@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Workspace Name="doDB" Database="">
+  <Project Name="doDB" Path="doDB.project" Active="Yes"/>
+  <Environment>
+    <![CDATA[]]>
+  </Environment>
+  <Project Name="evillib" Path="../libs/evillib/ide/evillib.project" Active="No"/>
+  <BuildMatrix>
+    <WorkspaceConfiguration Name="Debug" Selected="yes">
+      <Environment/>
+      <Project Name="evillib" ConfigName="headers"/>
+      <Project Name="doDB" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Release" Selected="yes">
+      <Environment/>
+      <Project Name="doDB" ConfigName="Release"/>
+      <Project Name="evillib" ConfigName="app - debug"/>
+    </WorkspaceConfiguration>
+  </BuildMatrix>
+</CodeLite_Workspace>

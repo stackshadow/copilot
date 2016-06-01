@@ -1,0 +1,3 @@
+﻿This folder contains Makefiles ( with *.mk ) which are running 
+AFTER
+the main make is running
