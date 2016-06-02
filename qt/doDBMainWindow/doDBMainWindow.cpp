@@ -25,6 +25,7 @@
 #include "main.h"
 #include "doDBConnection/doDBConnectionEditor.h"
 #include "doDBFile/doDBFile.h"
+#include "doDBRelation/doDBRelationPlugin.h"
 
 doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(parent){
 
@@ -72,6 +73,11 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
     this->itemViewLayout->addWidget( this->entryEditor );
     connect( this->entryEditor, SIGNAL (saveNew(etDBObject*,const char*)), this, SLOT (entryEditorItemSaveNew(etDBObject*,const char*)));
     connect( this->entryEditor, SIGNAL (saveChanged(etDBObject*,const char*)), this, SLOT (entryEditorItemChanged(etDBObject*,const char*)));
+
+// relations
+    doDBRelationPlugin *dbRelation = new doDBRelationPlugin();
+    dbRelation->doDBTreeInit( this->dataTree );
+    dbRelation->doDBItemViewInit( this->itemViewLayout );
 
 // load plugins
     doDBFile *dbFile = new doDBFile();
@@ -135,7 +141,7 @@ void doDBMainWindow::           treeElementClicked( QTreeWidgetItem * item, int 
 
     // get the dbobject
         this->entryEditorConnID = connectionID;
-        connection->dbObjectGet( &dbObject, &this->entryEditorLockID );
+        dbObject = connection->dbObject;
 
     // pick the table
         etDBObjectTablePick( dbObject, tableName.toUtf8() );
@@ -152,8 +158,6 @@ void doDBMainWindow::           treeElementClicked( QTreeWidgetItem * item, int 
         this->entryEditor->dbObjectShow( dbObject, tableName.toUtf8() );
         this->entryEditor->setEnabled(true);
 
-    // unlock
-        connection->dbObjectUnLock( this->entryEditorLockID );
 
         this->entryEditor->setVisible(true);
     } else {

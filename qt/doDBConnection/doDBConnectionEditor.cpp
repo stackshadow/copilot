@@ -278,8 +278,7 @@ void doDBConnectionEditor::         tablesEdit(){
     etDBObject          *dbObject;
     QString             dbObjectLockID;
 
-    if( ! this->selectedConnection->dbObjectGet(&dbObject, &dbObjectLockID) ) return;
-    this->selectedConnection->dbObjectUnLock( dbObjectLockID );
+    dbObject = this->selectedConnection->dbObject;
 
     QStackedWidget      *stackedContainer = (QStackedWidget*)this->parentWidget();
 

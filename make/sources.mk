@@ -80,6 +80,12 @@ sourcesQT   += ./qt/doDBConnection/doDBConnectionEditor.cpp
 sourcesUI   += ./qt/doDBConnection/doDBConnectionEditor.ui
 
 sourcesQT   += ./qt/doDBTree/doDBTree.cpp
+
+sourcesQT   += ./qt/doDBRelation/doDBRelationPlugin.cpp
+sourcesQT   += ./qt/doDBRelation/doDBRelation.cpp
+sourcesQT   += ./qt/doDBRelation/doDBRelationEditor.cpp
+sourcesUI   += ./qt/doDBRelation/doDBRelationEditor.ui
+
 sourcesQT   += ./qt/doDBFile/doDBFile.cpp
 sourcesQT   += ./qt/doDBFile/doDBTableFoldersEditor.cpp
 sourcesUI   += ./qt/doDBFile/doDBTableFoldersEditor.ui

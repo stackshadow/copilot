@@ -236,7 +236,8 @@ void doDBtree::                         refresh(){
         if( ! dbConnection->isConnected() ) goto nextConnection;
 
 
-        if( dbConnection->dbObjectGet( &dbObject, &dbLockID ) ){
+        if( dbConnection->dbObject != NULL ){
+            dbObject = dbConnection->dbObject;
 
             etDBObjectIterationReset( dbObject );
             while( etDBObjectTableNext( dbObject, tableName ) == etID_YES ){
@@ -245,9 +246,6 @@ void doDBtree::                         refresh(){
 
                 this->append( NULL, tableDisplayName, tableName, dbConnection->UUIDGet(), "", doDBtree::typeTable );
             }
-
-        // unlock
-            dbConnection->dbObjectUnLock( dbLockID );
 
         }
 
@@ -290,55 +288,10 @@ void doDBtree::                         expand( QTreeWidgetItem * item ){
 
     }
 
-// if selected item is an entry
-    if( itemType == doDBtree::typeEntry ){
-
-    // item is selected
-        connection = doDBCore->connectionGet( connectionID.toUtf8() );
-        if( connection == NULL ){
-            return;
-        }
-
-        etDBObject *dbObject;
-        QString dbObjectLockID;
-        connection->dbObjectGet( &dbObject, &dbObjectLockID );
-
-    // append related tables
-        const char *relatedTable;
-        const char *relatedTableDisplayName = NULL;
-        bool relatedTableExist = connection->relatedTableGetFirst( tableName.toUtf8(), NULL, &relatedTable, NULL );
-        while( relatedTableExist ){
-
-
-            // get the display name
-            if( etDBObjectTablePick(dbObject,relatedTable) == etID_NO ){
-                connection->dbObjectUnLock( dbObjectLockID );
-                return;
-            }
-
-            const char *tableDisplayName = NULL;
-            if( etDBObjectTableDisplayNameGet(dbObject, "", tableDisplayName) != etID_YES ){
-                connection->dbObjectUnLock( dbObjectLockID );
-                return;
-            }
-
-            //etDBObjectTableDisplayNameGet(  )
-            this->append( this->selectedItem, tableDisplayName, relatedTable, connectionID.toUtf8(), "", doDBtree::typeRelatedTable );
-
-
-            relatedTableExist = connection->relatedTableGetNext( NULL, &relatedTable, NULL );
-        }
-
-        connection->dbObjectUnLock( dbObjectLockID );
-
-        //connection->treeFillDataRelated( this->dataTree, item );
-
-        //connection->dataGet( tableName.toUtf8(), itemID.toUtf8() );
-    }
 
 // if selected item is an related table
     if( itemType == doDBtree::typeRelatedTable ){
-
+/*
     // item is selected
         connection = doDBCore->connectionGet( connectionID.toUtf8() );
         if( connection == NULL ){
@@ -356,7 +309,7 @@ void doDBtree::                         expand( QTreeWidgetItem * item ){
 
         connection->dbDataGet( srcTable.toUtf8(), srcItemID.toUtf8(), tableName.toUtf8(), this, doDBtree::callbackEntryAdd );
 
-
+*/
 
 
     }

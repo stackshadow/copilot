@@ -63,12 +63,6 @@ public:
     QString                 fileNameGet();
     void                    fileNameSet( QString fileName );
 
-// dbobjects
-public:
-    bool                    dbObjectGet( etDBObject **dbObject, QString *lockID );
-    bool                    dbObjectLock( QString *lockID );
-    bool                    dbObjectUnLock( QString lockID );
-
 // connection ?
 public:
     bool                    connect();
@@ -97,20 +91,10 @@ public:
     bool                    dbObjectLoad();
     bool                    dbObjectSave();
 
-// relations
-    bool                    dbRelationLoad();
-    bool                    dbRelationSave();
-    bool                    relatedTableAppend( const char *srcTable, const char *relatedTable, const char *srcColumn, const char *relatedColumn );
-    bool                    relatedTableGetFirst( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
-    bool                    relatedTableGetFirst( const char *srcTable, const char **srcColumn, const char *relatedTable, const char **relatedColumn );
-    bool                    relatedTableGetNext( const char **srcColumn, const char **relatedTable, const char **relatedColumn );
-    bool                    relatedTableGetNext( const char **srcColumn, const char *relatedTable, const char **relatedColumn );
-
 // data
     bool                    dbDataGet( const char *tableName, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) );
     bool                    dbDataGet( const char *table, const char *tableItemID );
     bool                    dbDataGet( const char *table, const char *tableItemID, void *userdata, void (*callback)( void *userdata, const char *columnName, const char *columnValue ) );
-    bool                    dbDataGet( const char *srcTable, const char *scrTableItemID, const char *relatedTable, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) );
     bool                    dbDataNew( const char *tableName );
     bool                    dbDataChange( const char *tableName );
 
@@ -145,22 +129,14 @@ private:
     connectionType          type;
     etString                *uuid;
     etString                *displayName;
-
-// database stuff
     QString                 fileName;
+
+public:
+// database stuff
     etDBDriver              *dbDriver;
     etDBObject              *dbObject;
     QString                 dbObjectLockID;
     QString                 doDBVersion;
-
-// relations
-    json_t*                 dbTableRelations;
-    json_t*                 dbTableRelationSrcTable;
-    int                     dbTableRelationIndex;
-
-
-// folders
-    json_t                  *dbTableFolders;
 
 // actual data stuff
     bool                    dbLocked;

@@ -23,6 +23,8 @@
 
 #include "main.h"
 #include "doDBDebug/doDBDebug.h"
+
+#include "core/etDebug.h"
 #include "db/etDBObjectTableColumn.h"
 #include "db/etDBObjectFilter.h"
 #include "db/etDBObjectValue.h"
@@ -64,9 +66,6 @@ doDBConnection::                    doDBConnection( connectionType type, const c
     this->dbDriver = NULL;
     this->doDBVersion = "000";
 
-    this->dbTableRelations = NULL;
-
-    this->dbTableFolders = NULL;
 
 // disable lock
     this->dbLocked = false;
@@ -127,69 +126,6 @@ QString doDBConnection::            fileNameGet(){
 
 void doDBConnection::               fileNameSet( QString fileName ){
     this->fileName = fileName;
-}
-
-
-// dbobjects
-
-
-bool doDBConnection::               dbObjectGet( etDBObject **dbObject, QString *lockID ){
-
-// get lock
-    if( ! this->dbObjectLock(lockID) ){
-        *dbObject = NULL;
-        return false;
-    }
-
-// return
-    *dbObject = this->dbObject;
-    return true;
-}
-
-
-bool doDBConnection::               dbObjectLock( QString *lockID ){
-
-// is unlocked
-    if( this->dbObjectLockID == "0" ){
-    // generate random
-        this->dbObjectLockID = QUuid::createUuid().toString();
-
-        doDBDebug::ptr->print( QString("%1: Get lock with id '%2' !").arg(__PRETTY_FUNCTION__).arg(this->dbObjectLockID) );
-
-    // return
-        *lockID = this->dbObjectLockID;
-        return true;
-    }
-
-// locked from us
-    if( this->dbObjectLockID == *lockID ){
-        return true;
-    }
-
-// locked from somebody else
-    doDBDebug::ptr->print( QString("%1: object is already locked from id '%2' !").arg(__PRETTY_FUNCTION__).arg(this->dbObjectLockID) );
-    return false;
-
-}
-
-
-bool doDBConnection::               dbObjectUnLock( QString lockID ){
-
-// is unlocked
-    if( this->dbObjectLockID == "0" ){
-        return true;
-    }
-
-// locked from us
-    if( this->dbObjectLockID == lockID ){
-        doDBDebug::ptr->print( QString("%1: unlock id '%2' !").arg(__PRETTY_FUNCTION__).arg(this->dbObjectLockID) );
-        this->dbObjectLockID = "0";
-        return true;
-    }
-
-// locked from somebody else
-    doDBDebug::ptr->print( QString(__PRETTY_FUNCTION__) + ": dbObject is locked from somebody else, can not unlock !" );
-    return false;
 }
 
 
@@ -265,9 +201,6 @@ bool doDBConnection::               connect(){
 
 // load dbObject from db
     this->dbObjectLoad();
-
-// load relation
-    this->dbRelationLoad();
 
 
 
@@ -475,228 +408,6 @@ bool doDBConnection::               dbObjectSave(){
 
 
 
-bool doDBConnection::               dbRelationLoad(){
-
-// vars
-    const char *displayName = this->displayNameGet();
-
-// reset
-    this->dbTableRelations = NULL;
-
-// get doDBObject from db
-    etDBObjectTablePick( doDBCore->dbObjectCore, "doDB" );
-    etDBObjectFilterClear( doDBCore->dbObjectCore );
-    etDBObjectFilterAdd( doDBCore->dbObjectCore, 0, etDBFILTER_OP_AND, "key", etDBFILTER_TYPE_EQUAL, "doDBRelations" );
-    etDBDriverDataGet( this->dbDriver, doDBCore->dbObjectCore );
-    if( etDBDriverDataNext( this->dbDriver, doDBCore->dbObjectCore ) == etID_YES ){
-
-        const char *jsonRelationString = NULL;
-        if( etDBObjectValueGet( doDBCore->dbObjectCore, "value", jsonRelationString ) == etID_YES ){
-            json_error_t jsonError;
-            this->dbTableRelations = json_loads( jsonRelationString, JSON_PRESERVE_ORDER, &jsonError );
-
-            if( jsonError.line > 0 ){
-                doDBDebug::ptr->print( jsonError.text );
-            } else {
-                doDBDebug::ptr->print( QString("%1: relations loaded from db").arg(displayName) );
-            }
-        } else {
-            doDBDebug::ptr->print( QString("%1: no relations in table").arg(displayName) );
-            return false;
-        }
-
-    } else {
-        doDBDebug::ptr->print( QString("%1: no relations in table").arg(displayName) );
-        return false;
-    }
-
-}
-
-
-bool doDBConnection::               dbRelationSave(){
-
-// vars
-    const char *displayName = this->displayNameGet();
-
-// get doDBObject from db
-    etDBObjectTablePick( doDBCore->dbObjectCore, "doDB" );
-
-    etDBObjectValueClean( doDBCore->dbObjectCore );
-    etDBObjectValueSet( doDBCore->dbObjectCore, "key", "doDBRelations" );
-
-//dump json to char
-    const char *jsonDump = json_dumps( this->dbTableRelations, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-    etDBObjectValueSet( doDBCore->dbObjectCore, "value", jsonDump );
-    free( (void*)jsonDump );
-
-    etDBObjectDump( doDBCore->dbObjectCore );
-    //etDBDriverDataChange( this->dbDriver, dbObject );
-    etDBDriverDataChange( this->dbDriver, doDBCore->dbObjectCore );
-
-}
-
-
-bool doDBConnection::               relatedTableAppend( const char *srcTable, const char *relatedTable, const char *srcColumn, const char *relatedColumn ){
-
-// check
-    if( srcTable == NULL ) return false;
-    if( relatedTable == NULL ) return false;
-    if( srcColumn == NULL ) return false;
-    if( relatedColumn == NULL ) return false;
-
-// vars
-    json_t      *jsonRelatedTable = NULL;
-    json_t      *jsonValue = NULL;
-
-//
-    if( this->dbTableRelations == NULL ){
-        this->dbTableRelations = json_object();
-    }
-
-// get source table
-    this->dbTableRelationSrcTable = json_object_get( this->dbTableRelations, srcTable );
-    if( this->dbTableRelationSrcTable == NULL ){
-        this->dbTableRelationSrcTable = json_array();
-        json_object_set_new( this->dbTableRelations, srcTable, this->dbTableRelationSrcTable );
-    }
-
-// create a new relation
-    jsonRelatedTable = json_object();
-    json_array_append( this->dbTableRelationSrcTable, jsonRelatedTable );
-
-
-// src-Column
-    json_object_set_new( jsonRelatedTable, "srcColumn", json_string(srcColumn) );
-
-// rel-Table
-    json_object_set_new( jsonRelatedTable, "relTable", json_string(relatedColumn) );
-
-// rel-Column
-    json_object_set_new( jsonRelatedTable, "relColumn", json_string(relatedColumn) );
-
-    return true;
-}
-
-
-bool doDBConnection::               relatedTableGetFirst( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
-
-// check
-    if( srcTable == NULL ) return false;
-
-
-// vars
-    json_t      *jsonRelatedTable = NULL;
-    json_t      *jsonValue = NULL;
-
-// get first related-table
-    this->dbTableRelationSrcTable = json_object_get( this->dbTableRelations, srcTable );
-    if( this->dbTableRelationSrcTable == NULL ) return false;
-
-// reset arrayindex
-    this->dbTableRelationIndex = 0;
-
-// get the table
-    jsonRelatedTable = json_array_get( this->dbTableRelationSrcTable, this->dbTableRelationIndex );
-    if( jsonRelatedTable == NULL ) return false;
-
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "srcColumn" );
-    if( srcColumn != NULL ){
-        *srcColumn = json_string_value(jsonValue);
-    }
-
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relTable" );
-    if( relatedTable != NULL ){
-        *relatedTable = json_string_value(jsonValue);
-    }
-
-// rel-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relColumn" );
-    if( relatedColumn != NULL ){
-        *relatedColumn = json_string_value(jsonValue);
-    }
-
-    return true;
-}
-
-
-bool doDBConnection::               relatedTableGetFirst( const char *srcTable, const char **srcColumn, const char *relatedTable, const char **relatedColumn ){
-
-    const char *relatedTableLocal = NULL;
-
-// get first
-    if( relatedTableGetFirst(srcTable,srcColumn,&relatedTableLocal,relatedColumn) ){
-        if( QString(relatedTableLocal) == relatedTable ){
-            return true;
-        }
-    }
-
-
-    while( relatedTableGetNext(srcColumn,&relatedTableLocal,relatedColumn) ){
-        if( QString(relatedTableLocal) == relatedTable ){
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
-bool doDBConnection::               relatedTableGetNext( const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
-
-
-// vars
-    json_t      *jsonRelatedTable = NULL;
-    json_t      *jsonValue = NULL;
-
-// get first related-table
-    if( this->dbTableRelationSrcTable == NULL ) return false;
-
-// reset arrayindex
-    this->dbTableRelationIndex = this->dbTableRelationIndex + 1;
-
-// get the table
-    jsonRelatedTable = json_array_get( this->dbTableRelationSrcTable, this->dbTableRelationIndex );
-    if( jsonRelatedTable == NULL ) return false;
-
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "srcColumn" );
-    if( srcColumn != NULL ){
-        *srcColumn = json_string_value(jsonValue);
-    }
-
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relTable" );
-    if( relatedTable != NULL ){
-        *relatedTable = json_string_value(jsonValue);
-    }
-
-// rel-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relColumn" );
-    if( relatedColumn != NULL ){
-        *relatedColumn = json_string_value(jsonValue);
-    }
-
-    return true;
-}
-
-
-bool doDBConnection::               relatedTableGetNext( const char **srcColumn, const char *relatedTable, const char **relatedColumn ){
-
-    const char *relatedTableLocal = NULL;
-
-    while( relatedTableGetNext(srcColumn,&relatedTableLocal,relatedColumn) ){
-        if( QString(relatedTableLocal) == relatedTable ){
-            return true;
-        }
-    }
-
-    return false;
-}
-
-
-
 
 etID_STATE doDBConnection::         columnDisplayValueGet( const char *tableName, const char **displayColumn ){
 
@@ -726,102 +437,6 @@ etID_STATE doDBConnection::         columnDisplayValueGet( const char *tableName
     }
 
     return etID_YES;
-}
-
-
-bool doDBConnection::               dbDataGet( const char *srcTable, const char *srcTableItemID, const char *relatedTable, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) ){
-// check if connected
-    if( this->isConnected() == false ){
-        return false;
-    }
-
-// vars
-    const char      *connID = this->UUIDGet();
-    const char      *tableDisplayName = NULL;
-    const char      *primaryColumn = NULL;
-    const char      *primaryColumnValue = NULL;
-    const char      *relDisplayColumn = NULL;
-    const char      *relDisplayColumnValue = NULL;
-    const char      *srcColumn = NULL;
-    const char      *srcColumnValue = NULL;
-    const char      *relColumn = NULL;
-
-
-// get the related columns
-    bool relationPresent = this->relatedTableGetFirst( srcTable, &srcColumn, relatedTable, &relColumn );
-    while( relationPresent ){
-
-
-    // pick table
-        if( etDBObjectTablePick( this->dbObject, srcTable ) != etID_YES ){
-            return false;
-        }
-
-    // get primary column
-       if( etDBObjectTableColumnPrimaryGet( this->dbObject, primaryColumn ) != etID_YES ){
-            return false;
-        }
-
-    // create filter
-        etDBObjectFilterClear( this->dbObject );
-        etDBObjectFilterAdd(  this->dbObject, 1, etDBFILTER_OP_AND, primaryColumn, etDBFILTER_TYPE_EQUAL, srcTableItemID );
-
-    // run the query
-        if( etDBDriverDataGet( this->dbDriver, this->dbObject ) != etID_YES ) {
-            return false;
-        }
-
-    // get the first result ( there should be only one )
-        if( etDBDriverDataNext( this->dbDriver, this->dbObject ) != etID_YES ){
-            return false;
-        }
-
-    // okay, get the value of the source column
-        etDBObjectValueGet( this->dbObject, srcColumn, srcColumnValue );
-
-
-    // create filter
-        etDBObjectFilterClear( this->dbObject );
-        etDBObjectFilterAdd(  this->dbObject, 1, etDBFILTER_OP_AND, relColumn, etDBFILTER_TYPE_EQUAL, srcColumnValue );
-
-    // pick related table
-        if( etDBObjectTablePick( this->dbObject, relatedTable ) != etID_YES ){
-            return false;
-        }
-
-    // get the column which respresent the visible value the value from the related table
-        etDBObjectTableColumnMainGet( this->dbObject, relDisplayColumn );
-
-    // run the query
-        if( etDBDriverDataGet( this->dbDriver, this->dbObject ) != etID_YES ) {
-            goto next;
-        }
-
-
-    // iterate through data
-        while( etDBDriverDataNext( this->dbDriver, this->dbObject ) == etID_YES ){
-
-
-            if( etDBObjectValueGet( this->dbObject, primaryColumn, primaryColumnValue ) != etID_YES ){
-                continue;
-            }
-
-
-            if( etDBObjectValueGet( this->dbObject, relDisplayColumn, relDisplayColumnValue ) != etID_YES ){
-                doDBDebug::ptr->print( __PRETTY_FUNCTION__ + QString(": table '%1' has no display column use primaryKeyColumn").arg(relatedTable) );
-                relDisplayColumnValue = primaryColumnValue;
-            }
-
-            callback( userdata, relatedTable, connID, primaryColumnValue, relDisplayColumnValue );
-
-        }
-
-        next:
-        relationPresent = this->relatedTableGetNext( &srcColumn, relatedTable, &relColumn );
-
-    }
-
-    return true;
 }
 
 
@@ -1039,12 +654,18 @@ bool doDBConnection::               dbDoDBValueGet( const char *key, const char 
         if( __etDBObjectValueGet( doDBCore->dbObjectCore, "value", value ) == etID_YES ){
             return true;
         } else {
-            doDBDebug::ptr->print( QString("%1: no %2 in table").arg(displayName).arg(key) );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: value of %s is empty", displayName, key );
+            etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
             return false;
         }
 
     } else {
-        doDBDebug::ptr->print( QString("%1: no %2 in table").arg(displayName).arg(key) );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: no %s in doDBTable, create an empty one", displayName, key );
+        etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+
+        etDBObjectValueSet( doDBCore->dbObjectCore, "key", key );
+        etDBObjectValueSet( doDBCore->dbObjectCore, "value", "" );
+        etDBDriverDataAdd(this->dbDriver, doDBCore->dbObjectCore);
         return false;
     }
 

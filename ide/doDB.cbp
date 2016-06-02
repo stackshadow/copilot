@@ -8,7 +8,7 @@
 		<Option execution_dir="/usr/src/projects/dodb" />
 		<Option pch_mode="2" />
 		<Option compiler="null" />
-		<Option virtualFolders="qt/;qt/doDBConnection/;qt/doDBDebug/;qt/doDBEntryEditor/;qt/doDBFile/;qt/doDBMainWIndow/;qt/doDBPlugin/;qt/doDBSettings/;qt/doDBTableEditor/;qt/doDBTree/;" />
+		<Option virtualFolders="qt/;qt/doDBConnection/;qt/doDBDebug/;qt/doDBEntryEditor/;qt/doDBFile/;qt/doDBMainWIndow/;qt/doDBPlugin/;qt/doDBSettings/;qt/doDBTableEditor/;qt/doDBTree/;qt/doDBRelation/;src/;src/doDB/;src/jsonSettings/;make/;make/generic/;make/postmake/;make/premake/;" />
 		<Build>
 			<Target title="binary-qt-dbg">
 				<Option output="/tmp/dodb/target/bin/dodb" prefix_auto="1" extension_auto="1" />
@@ -28,156 +28,56 @@
 				</MakeCommands>
 			</Target>
 		</Build>
-		<Unit filename="../../evillib/core/core/etDebug.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/core/etDebug.dox" />
-		<Unit filename="../../evillib/core/core/etDebug.h" />
-		<Unit filename="../../evillib/core/core/etIDState.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/core/etIDState.h" />
-		<Unit filename="../../evillib/core/core/etInit.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/core/etInit.h" />
-		<Unit filename="../../evillib/core/core/etObject.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/core/etObject.h" />
-		<Unit filename="../../evillib/core/core/etVersion.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/core/etVersion.h" />
-		<Unit filename="../../evillib/core/evillib_defines.h" />
-		<Unit filename="../../evillib/core/evillib_depends.h" />
-		<Unit filename="../../evillib/core/evillib_version.h" />
-		<Unit filename="../../evillib/core/memory/etMemory.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/memory/etMemory.h" />
-		<Unit filename="../../evillib/core/memory/etMemoryBlock.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/memory/etMemoryBlock.h" />
-		<Unit filename="../../evillib/core/memory/etMemoryBlockList.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/memory/etMemoryBlockList.dox" />
-		<Unit filename="../../evillib/core/memory/etMemoryBlockList.h" />
-		<Unit filename="../../evillib/core/specialheaders/copyright.h" />
-		<Unit filename="../../evillib/core/specialheaders/evillib_end.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/specialheaders/evillib_end.h" />
-		<Unit filename="../../evillib/core/specialheaders/evillib_start.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/specialheaders/evillib_start.h" />
-		<Unit filename="../../evillib/core/string/etString.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/string/etString.dox" />
-		<Unit filename="../../evillib/core/string/etString.h" />
-		<Unit filename="../../evillib/core/string/etStringChar.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/string/etStringChar.dox" />
-		<Unit filename="../../evillib/core/string/etStringChar.h" />
-		<Unit filename="../../evillib/core/string/etStringWChar.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/system/etFile.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/system/etFile.h" />
-		<Unit filename="../../evillib/core/system/etFile.h.orig" />
-		<Unit filename="../../evillib/core/system/etThread.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/core/system/etThread.h" />
-		<Unit filename="../../evillib/core/system/etThreadUsage.dot" />
-		<Unit filename="../../evillib/extra/db/etDBObject.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/db/etDBObject.dox" />
-		<Unit filename="../../evillib/extra/db/etDBObject.h" />
-		<Unit filename="../../evillib/extra/db/etDBObjectFilter.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/db/etDBObjectFilter.h" />
-		<Unit filename="../../evillib/extra/db/etDBObjectTable.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/db/etDBObjectTable.dox" />
-		<Unit filename="../../evillib/extra/db/etDBObjectTable.h" />
-		<Unit filename="../../evillib/extra/db/etDBObjectTableColumn.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/db/etDBObjectTableColumn.h" />
-		<Unit filename="../../evillib/extra/db/etDBObjectValue.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/db/etDBObjectValue.dox" />
-		<Unit filename="../../evillib/extra/db/etDBObjectValue.h" />
-		<Unit filename="../../evillib/extra/dbdriver/etDBDriver.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/dbdriver/etDBDriver.h" />
-		<Unit filename="../../evillib/extra/dbdriver/etDBSQL.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/dbdriver/etDBSQL.h" />
-		<Unit filename="../../evillib/extra/dbdriver/etDBSQLite.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/dbdriver/etDBSQLite.h" />
-		<Unit filename="../../evillib/extra/evillib-extra_depends.h" />
-		<Unit filename="../../evillib/extra/specialheaders/evillib_end.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/specialheaders/evillib_end.h" />
-		<Unit filename="../../evillib/extra/specialheaders/evillib_start.c">
-			<Option compilerVar="CC" />
-		</Unit>
-		<Unit filename="../../evillib/extra/specialheaders/evillib_start.h" />
 		<Unit filename="../make/Makefile">
+			<Option virtualFolder="make/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/cflags.mk">
+			<Option virtualFolder="make/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/clibs.mk">
+			<Option virtualFolder="make/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/generic/bin.mk">
+			<Option virtualFolder="make/generic/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/generic/library.mk">
+			<Option virtualFolder="make/generic/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/generic/objects.mk">
+			<Option virtualFolder="make/generic/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/generic/qt.mk">
+			<Option virtualFolder="make/generic/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/postmake/README">
+			<Option virtualFolder="make/postmake/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/postmake/doDB.mk">
+			<Option virtualFolder="make/postmake/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/premake/README">
+			<Option virtualFolder="make/premake/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/premake/evillib.mk">
+			<Option virtualFolder="make/premake/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/progs.mk">
+			<Option virtualFolder="make/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../make/sources.mk">
+			<Option virtualFolder="make/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
 		<Unit filename="../qt/doDBConnection/doDBConnection.cpp">
@@ -257,6 +157,30 @@
 		<Unit filename="../qt/doDBPlugin/doDBPlugin.h">
 			<Option virtualFolder="qt/doDBPlugin/" />
 		</Unit>
+		<Unit filename="../qt/doDBRelation/doDBRelation.cpp">
+			<Option virtualFolder="qt/doDBRelation/" />
+		</Unit>
+		<Unit filename="../qt/doDBRelation/doDBRelation.h">
+			<Option virtualFolder="qt/doDBRelation/" />
+		</Unit>
+		<Unit filename="../qt/doDBRelation/doDBRelationEditor.cpp">
+			<Option virtualFolder="qt/doDBRelation/" />
+		</Unit>
+		<Unit filename="../qt/doDBRelation/doDBRelationEditor.h">
+			<Option virtualFolder="qt/doDBRelation/" />
+		</Unit>
+		<Unit filename="../qt/doDBRelation/doDBRelationEditor.ui">
+			<Option virtualFolder="qt/doDBRelation/" />
+		</Unit>
+		<Unit filename="../qt/doDBRelation/doDBRelationEditor.ui.h">
+			<Option virtualFolder="qt/doDBRelation/" />
+		</Unit>
+		<Unit filename="../qt/doDBRelation/doDBRelationPlugin.cpp">
+			<Option virtualFolder="qt/doDBRelation/" />
+		</Unit>
+		<Unit filename="../qt/doDBRelation/doDBRelationPlugin.h">
+			<Option virtualFolder="qt/doDBRelation/" />
+		</Unit>
 		<Unit filename="../qt/doDBSettings/doDBSettings.cpp">
 			<Option virtualFolder="qt/doDBSettings/" />
 		</Unit>
@@ -284,16 +208,28 @@
 		<Unit filename="../qt/doDBTree/doDBTree.ui">
 			<Option virtualFolder="qt/doDBTree/" />
 		</Unit>
-		<Unit filename="../src/doDB/doDB.cpp" />
-		<Unit filename="../src/doDB/doDB.h" />
+		<Unit filename="../src/doDB/doDB.cpp">
+			<Option virtualFolder="src/doDB/" />
+		</Unit>
+		<Unit filename="../src/doDB/doDB.h">
+			<Option virtualFolder="src/doDB/" />
+		</Unit>
 		<Unit filename="../src/evillib.c">
 			<Option compilerVar="CC" />
+			<Option virtualFolder="src/" />
 		</Unit>
-		<Unit filename="../src/jsonSettings/jsonSettings.cpp" />
-		<Unit filename="../src/jsonSettings/jsonSettings.h" />
-		<Unit filename="../src/main.cpp" />
-		<Unit filename="../src/main.h" />
-		<Unit filename="../werkstatt.sqlite" />
+		<Unit filename="../src/jsonSettings/jsonSettings.cpp">
+			<Option virtualFolder="src/jsonSettings/" />
+		</Unit>
+		<Unit filename="../src/jsonSettings/jsonSettings.h">
+			<Option virtualFolder="src/jsonSettings/" />
+		</Unit>
+		<Unit filename="../src/main.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../src/main.h">
+			<Option virtualFolder="src/" />
+		</Unit>
 		<Extensions>
 			<code_completion>
 				<search_path add="/usr/include/x86_64-linux-gnu/qt5" />
@@ -302,6 +238,8 @@
 				<search_path add="/usr/src/projects/dodb/libs/evillib/core/string" />
 				<search_path add="../libs/evillib/extra/db" />
 				<search_path add="../libs/evillib/extra/dbdriver" />
+				<search_path add="../libs/evillib/extra" />
+				<search_path add="../libs/evillib/core" />
 			</code_completion>
 			<debugger />
 			<envvars />
