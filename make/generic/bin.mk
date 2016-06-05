@@ -20,20 +20,20 @@ objects: $(objectsFull)
 $(buildPath)/%.cpp.o: $(sourcePath)/%.cpp
 	@$(ECHO) "CC    $@"
 	@$(MKDIR) $(shell dirname $@)
-	$(CPP) $(CFLAGS) \
+	@$(CPP) $(CFLAGS) \
 	-c $< -o $@
 	@$(ECHO) ""
 
 $(buildPath)/%.c.o: $(sourcePath)/%.c
 	@$(ECHO) "CC    $@"
 	@$(MKDIR) $(shell dirname $@)
-	$(CC) $(CFLAGS) \
+	@$(CC) $(CFLAGS) \
 	-c $< -o $@
 	@$(ECHO) ""
 
 binary: $(objectsFull)
 	@$(ECHO) "LD    $@"
-	$(CPP) \
+	@$(CPP) \
 	$(CFLAGS) \
 	$(CLIBS) \
 	$(shell find $(buildPath) -name "*.o") \

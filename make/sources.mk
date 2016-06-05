@@ -62,16 +62,19 @@ sources     += ./src/evillib.c
 
 # sources which contains qt-stuff
 sourcesQT   += ./src/main.cpp
-sourcesQT   += ./src/doDB/doDB.cpp
 
 sourcesQT   += ./qt/doDBDebug/doDBDebug.cpp
 
 sourcesQT   += ./qt/doDBSettings/doDBSettings.cpp
 
-sourcesQT   += ./qt/doDBConnection/doDBConnection.cpp
-
 sourcesQT   += ./qt/doDBMainWindow/doDBMainWindow.cpp
 sourcesUI   += ./qt/doDBMainWindow/doDBMainWindowUi.ui
+
+sourcesQT   += ./qt/doDBPlugin/doDBPlugin.cpp
+
+
+sourcesQT   += ./qt/doDBConnection/doDBConnections.cpp
+sourcesQT   += ./qt/doDBConnection/doDBConnection.cpp
 
 sourcesQT   += ./qt/doDBTableEditor/doDBTableEditor.cpp
 sourcesUI   += ./qt/doDBTableEditor/doDBTableEditor.ui
