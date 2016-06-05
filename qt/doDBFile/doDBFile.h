@@ -38,7 +38,6 @@ public:
 
     void                    doDBTreeInit( doDBtree *dbTree );
     void                    doDBItemViewInit( QLayout *itemView );
-    void                    doDBActionAreaInit( QLayout *actionArea );
 
 
 // db stuff

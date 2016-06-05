@@ -16,21 +16,21 @@
     along with doDB.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef DODB_H
-#define DODB_H
+#ifndef doDBConnections_H
+#define doDBConnections_H
 
 #include "evillib-extra_depends.h"
 #include "db/etDBObject.h"
 
-#include "qt/doDBConnection/doDBConnection.h"
+#include "doDBConnection.h"
 
 
-class doDB
+class doDBConnections
 {
 public:
-    doDB();
-    ~doDB();
-    static doDB                 *ptr;
+    doDBConnections();
+    ~doDBConnections();
+    static doDBConnections      *ptr;
 
 public:
     void                        connectionAppend( doDBConnection *newConnection );
@@ -43,7 +43,7 @@ public:
     void                        connectionsSave();
 
 public:
-    etDBObject                  *dbObjectCore;
+    etDBObject*                 dbObjectCore;
 
 
 private:

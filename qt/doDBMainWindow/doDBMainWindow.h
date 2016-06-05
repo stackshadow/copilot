@@ -50,7 +50,6 @@ private slots:
 
 private:
     Ui::doDBMainWindow          ui;
-
     doDBtree                    *dataTree;
     QLayout                     *itemViewLayout;
     doDBEntryEditor             *entryEditor;

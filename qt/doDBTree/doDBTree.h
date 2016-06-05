@@ -30,8 +30,7 @@ public:
     typedef enum treeItemType {
         typeNothing = 0,
         typeTable = 1,
-        typeEntry = 2,
-        typeRelatedTable = 3,
+        typeEntry = 2
     } treeItemType;
 
 public:
@@ -43,6 +42,7 @@ private:
     QTreeWidgetItem*        findItem( QString parentID, QString table );
 
 public:
+    QTreeWidgetItem*        append( QTreeWidgetItem *parentItem, QString displayName, QString table, QString connectionID, QString itemId, int itemType );
     QTreeWidgetItem*        append( QTreeWidgetItem *parentItem, QString displayName, QString table, QString connectionID, QString itemId, treeItemType itemType );
     QTreeWidgetItem*        find( QTreeWidgetItem *parentItem, QString displayName );
 

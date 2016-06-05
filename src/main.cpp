@@ -29,7 +29,9 @@
 #include "main.h"
 #include "core/etDebug.h"
 
-doDB                *doDBCore;
+#include "doDBConnection/doDBConnections.h"
+
+
 doDBSettings        *doDBSettingsGlobal;
 t_globalSettings    globalSettings;
 
@@ -51,8 +53,9 @@ int main(int argc, char *argv[])
 // init the qt-application
     QApplication a(argc, argv);
 
-
-    doDBCore = new doDB();
+// create the list of all connections
+    new doDBConnections();
+    doDBConnections::ptr->connectionsLoad();
 
 // okay, we load the settings
     doDBSettingsGlobal = new doDBSettings();

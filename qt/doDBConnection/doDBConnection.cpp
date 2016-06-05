@@ -31,6 +31,7 @@
 #include "dbdriver/etDBDriver.h"
 #include "dbdriver/etDBSQLite.h"
 
+#include "doDBConnections.h"
 
 
 
@@ -139,7 +140,10 @@ bool doDBConnection::               connect(){
     if( this->isConnected() == true ) return true;
 
 // displayName
-    const char          *displayName = NULL;
+    const char*         displayName = NULL;
+    const char*         doDBCoreVersion = NULL;
+    etDBObject*         dbObjectCore = NULL;
+
     etStringCharGet( this->displayName, displayName );
 
 // SQLITE
@@ -169,34 +173,17 @@ bool doDBConnection::               connect(){
 // init dodb
 // check if connected
     if( this->isConnected() == false ) return false;
-    doDBDebug::ptr->print( QString("%1: Connected").arg(displayName) );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%1: Connected", displayName );
+    etDebugMessage( etID_LEVEL_DETAIL_DB, etDebugTempMessage );
 
-// get version of db
-    etDBObjectTablePick( doDBCore->dbObjectCore, "doDB" );
-    etDBObjectFilterClear( doDBCore->dbObjectCore );
-    etDBObjectFilterAdd( doDBCore->dbObjectCore, 0, etDBFILTER_OP_AND, "key", etDBFILTER_TYPE_EQUAL, "doDBVersion" );
+    dbObjectCore = doDBConnections::ptr->dbObjectCore;
 
-    etDBDriverDataGet( this->dbDriver, doDBCore->dbObjectCore );
-    if( etDBDriverDataNext( this->dbDriver, doDBCore->dbObjectCore ) == etID_YES ){
-        const char *version = NULL;
-        if( etDBObjectValueGet( doDBCore->dbObjectCore, "value", version ) == etID_YES ){
-            this->doDBVersion = version;
-        }
-    } else {
-        // doDB-Stuff dont exist, we need to create it
-        etDBObjectTablePick( doDBCore->dbObjectCore, "doDB" );
-        etDBDriverTableAdd( this->dbDriver, doDBCore->dbObjectCore );
-        etDBObjectTablePick( doDBCore->dbObjectCore, "doDBRelations" );
-        etDBDriverTableAdd( this->dbDriver, doDBCore->dbObjectCore );
-        etDBObjectTablePick( doDBCore->dbObjectCore, "doDBLog" );
-        etDBDriverTableAdd( this->dbDriver, doDBCore->dbObjectCore );
-        etDBObjectTablePick( doDBCore->dbObjectCore, "doDBFiles" );
-        etDBDriverTableAdd( this->dbDriver, doDBCore->dbObjectCore );
-        etDBObjectTablePick( doDBCore->dbObjectCore, "doDBLinks" );
-        etDBDriverTableAdd( this->dbDriver, doDBCore->dbObjectCore );
-
+// load the version of the db
+    if( this->dbDoDBValueGet("doDBVersion",&doDBCoreVersion) != true ){
+        this->doDBVersion = doDBCoreVersion;
     }
-    doDBDebug::ptr->print( QString("%1: Version of doDB: %2").arg(displayName).arg(this->doDBVersion) );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%1: Version of doDB: %2", displayName, this->doDBVersion.toUtf8() );
+    etDebugMessage( etID_LEVEL_DETAIL_DB, etDebugTempMessage );
 
 
 // load dbObject from db
@@ -345,62 +332,50 @@ bool doDBConnection::               dbLockRelease(){
 bool doDBConnection::               dbObjectLoad(){
 
 // vars
-    const char *displayName = this->displayNameGet();
+    const char*         displayName = this->displayNameGet();
+    etDBObject*         dbObjectCore = NULL;
+    json_error_t        jsonError;
+    const char*         jsonDoDBObject = NULL;
 
-// get doDBObject from db
-    etDBObjectTablePick( doDBCore->dbObjectCore, "doDB" );
-    etDBObjectFilterClear( doDBCore->dbObjectCore );
-    etDBObjectFilterAdd( doDBCore->dbObjectCore, 0, etDBFILTER_OP_AND, "key", etDBFILTER_TYPE_EQUAL, "doDBObject" );
-    etDBDriverDataGet( this->dbDriver, doDBCore->dbObjectCore );
-    if( etDBDriverDataNext( this->dbDriver, doDBCore->dbObjectCore ) == etID_YES ){
-
-        const char *jsonDoDBObject = NULL;
-        if( etDBObjectValueGet( doDBCore->dbObjectCore, "value", jsonDoDBObject ) == etID_YES ){
-            json_error_t jsonError;
-            json_t *newdoDBObject = json_loads( jsonDoDBObject, JSON_PRESERVE_ORDER, &jsonError );
-
-            if( jsonError.line > 0 ){
-                doDBDebug::ptr->print( jsonError.text );
-            } else {
-                this->dbObject->jsonRootObject = newdoDBObject;
-                doDBDebug::ptr->print( QString("%1: tables loaded from db").arg(displayName) );
-            }
-        } else {
-            doDBDebug::ptr->print( QString("%1: no doDBObject in table, nothing will be shown of this db !").arg(displayName) );
-            etDBObjectValueSet( doDBCore->dbObjectCore, "key", "doDBObject" );
-            etDBDriverDataAdd( this->dbDriver, doDBCore->dbObjectCore );
-            return false;
-        }
-
-    } else {
-        doDBDebug::ptr->print( QString("%1: no doDBObject in table, nothing will be shown of this db !").arg(displayName) );
-        etDBObjectValueSet( doDBCore->dbObjectCore, "key", "doDBObject" );
-        etDBDriverDataAdd( this->dbDriver, doDBCore->dbObjectCore );
+// get the dbObject as jsonString
+    if( this->dbDoDBValueGet( "doDBObject", &jsonDoDBObject ) != true ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "could not load/create doDBObject, there would be nothing to show" );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
         return false;
     }
 
+// load the json file
+    json_t *newdoDBObject = json_loads( jsonDoDBObject, JSON_PRESERVE_ORDER, &jsonError );
+    if( newdoDBObject == NULL ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "JSON ERROR: %s", jsonError.text );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return false;
+    } else {
+        this->dbObject->jsonRootObject = newdoDBObject;
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "doDBObject loeded from db"  );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return true;
+    }
+
+
+    return false;
 }
 
 
 bool doDBConnection::               dbObjectSave(){
 
 // vars
-    const char *displayName = this->displayNameGet();
+    const char*         displayName = this->displayNameGet();
+    etDBObject*         dbObjectCore = NULL;
 
-// get doDBObject from db
-    etDBObjectTablePick( doDBCore->dbObjectCore, "doDB" );
-
-    etDBObjectValueClean( doDBCore->dbObjectCore );
-    etDBObjectValueSet( doDBCore->dbObjectCore, "key", "doDBObject" );
 
 //dump json to char
     const char *jsonDump = json_dumps( this->dbObject->jsonRootObject, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-    etDBObjectValueSet( doDBCore->dbObjectCore, "value", jsonDump );
+
+    this->dbDoDBValueSet( "doDBObject", jsonDump );
+
     free( (void*)jsonDump );
 
-    etDBObjectDump( doDBCore->dbObjectCore );
-    //etDBDriverDataChange( this->dbDriver, dbObject );
-    etDBDriverDataChange( this->dbDriver, doDBCore->dbObjectCore );
 
 
 }
@@ -642,16 +617,18 @@ bool doDBConnection::               dbDataChange( const char *tableName ){
 bool doDBConnection::               dbDoDBValueGet( const char *key, const char **value ){
 
 // vars
-    const char *displayName = this->displayNameGet();
+    const char      *displayName = this->displayNameGet();
+    etDBObject      *dbObjectCore = doDBConnections::ptr->dbObjectCore;
+
 
 // get doDBObject from db
-    etDBObjectTablePick( doDBCore->dbObjectCore, "doDB" );
-    etDBObjectFilterClear( doDBCore->dbObjectCore );
-    etDBObjectFilterAdd( doDBCore->dbObjectCore, 0, etDBFILTER_OP_AND, "key", etDBFILTER_TYPE_EQUAL, key );
-    etDBDriverDataGet( this->dbDriver, doDBCore->dbObjectCore );
-    if( etDBDriverDataNext( this->dbDriver, doDBCore->dbObjectCore ) == etID_YES ){
+    etDBObjectTablePick( dbObjectCore, "doDB" );
+    etDBObjectFilterClear( dbObjectCore );
+    etDBObjectFilterAdd( dbObjectCore, 0, etDBFILTER_OP_AND, "key", etDBFILTER_TYPE_EQUAL, key );
+    etDBDriverDataGet( this->dbDriver, dbObjectCore );
+    if( etDBDriverDataNext( this->dbDriver, dbObjectCore ) == etID_YES ){
 
-        if( __etDBObjectValueGet( doDBCore->dbObjectCore, "value", value ) == etID_YES ){
+        if( __etDBObjectValueGet( dbObjectCore, "value", value ) == etID_YES ){
             return true;
         } else {
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: value of %s is empty", displayName, key );
@@ -663,10 +640,12 @@ bool doDBConnection::               dbDoDBValueGet( const char *key, const char 
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: no %s in doDBTable, create an empty one", displayName, key );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
-        etDBObjectValueSet( doDBCore->dbObjectCore, "key", key );
-        etDBObjectValueSet( doDBCore->dbObjectCore, "value", "" );
-        etDBDriverDataAdd(this->dbDriver, doDBCore->dbObjectCore);
-        return false;
+        etDBObjectValueSet( dbObjectCore, "key", key );
+        etDBObjectValueSet( dbObjectCore, "value", "" );
+        if( etDBDriverDataAdd(this->dbDriver, dbObjectCore) != etID_YES ){
+            return false;
+        }
+        return true;
     }
 
     return false;
@@ -678,17 +657,23 @@ bool doDBConnection::               dbDoDBValueSet( const char *key, const char 
     if( key == NULL ) return false;
     if( value == NULL ) return false;
 
-// get doDBObject from db
-    etDBObjectTablePick( doDBCore->dbObjectCore, "doDB" );
+// vars
+    etDBObject*         dbObjectCore = NULL;
 
-    etDBObjectValueClean( doDBCore->dbObjectCore );
-    etDBObjectValueSet( doDBCore->dbObjectCore, "key", key );
+// get dbObjects
+    dbObjectCore = doDBConnections::ptr->dbObjectCore;
+
+// get doDBObject from db
+    etDBObjectTablePick( dbObjectCore, "doDB" );
+
+    etDBObjectValueClean( dbObjectCore );
+    etDBObjectValueSet( dbObjectCore, "key", key );
 
 //dump json to char
-    etDBObjectValueSet( doDBCore->dbObjectCore, "value", value );
+    etDBObjectValueSet( dbObjectCore, "value", value );
 
 // change the value in the db
-    etDBDriverDataChange( this->dbDriver, doDBCore->dbObjectCore );
+    etDBDriverDataChange( this->dbDriver, dbObjectCore );
 }
 
 

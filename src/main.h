@@ -24,9 +24,7 @@
 #include "jsonSettings/jsonSettings.h"
 #include "doDBDebug/doDBDebug.h"
 #include "qt/doDBSettings/doDBSettings.h"
-#include "doDB/doDB.h"
 
-extern doDB             *doDBCore;
 extern doDBSettings     *doDBSettingsGlobal;
 extern doDBDebug        *debug;
 

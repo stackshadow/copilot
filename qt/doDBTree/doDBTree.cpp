@@ -21,7 +21,7 @@
 #include "main.h"
 
 #include "doDBTree.h"
-
+#include "doDBConnection/doDBConnections.h"
 
 doDBtree::                              doDBtree( QWidget *parent ) : QTreeWidget( parent ){
 
@@ -68,7 +68,7 @@ doDBtree::                              ~doDBtree(){
 
 
 
-QTreeWidgetItem* doDBtree::             append( QTreeWidgetItem *parentItem, QString displayName, QString table, QString connectionID, QString itemId, treeItemType itemType ){
+QTreeWidgetItem* doDBtree::             append( QTreeWidgetItem *parentItem, QString displayName, QString table, QString connectionID, QString itemId, int itemType ){
 
 // create new item
     QTreeWidgetItem* item = new QTreeWidgetItem();
@@ -101,6 +101,12 @@ QTreeWidgetItem* doDBtree::             append( QTreeWidgetItem *parentItem, QSt
 
     return item;
 }
+
+
+QTreeWidgetItem* doDBtree::             append( QTreeWidgetItem *parentItem, QString displayName, QString table, QString connectionID, QString itemId, treeItemType itemType ){
+    return this->append( parentItem, displayName, table, connectionID, itemId, (int)itemType );
+}
+
 
 QTreeWidgetItem* doDBtree::             find( QTreeWidgetItem *parentItem, QString displayName ){
 
@@ -229,7 +235,7 @@ void doDBtree::                         refresh(){
     const char              *tableDisplayName = NULL;
     bool                    tablePresent = false;
 
-    dbConnection = doDBCore->connectionGetFirst();
+    dbConnection = doDBConnections::ptr->connectionGetFirst();
     while( dbConnection != NULL ){
 
     // connected ?
@@ -250,7 +256,7 @@ void doDBtree::                         refresh(){
         }
 
     nextConnection:
-        dbConnection = doDBCore->connectionGetNext();
+        dbConnection = doDBConnections::ptr->connectionGetNext();
     }
 
     this->tableExist(NULL,"device");
@@ -278,38 +284,12 @@ void doDBtree::                         expand( QTreeWidgetItem * item ){
     if( itemType == doDBtree::typeTable ){
 
     // item is selected
-        connection = doDBCore->connectionGet( connectionID.toUtf8() );
+        connection = doDBConnections::ptr->connectionGet( connectionID.toUtf8() );
         if( connection == NULL ){
             return;
         }
 
         connection->dbDataGet( tableName.toUtf8(), this, doDBtree::callbackEntryAdd );
-
-
-    }
-
-
-// if selected item is an related table
-    if( itemType == doDBtree::typeRelatedTable ){
-/*
-    // item is selected
-        connection = doDBCore->connectionGet( connectionID.toUtf8() );
-        if( connection == NULL ){
-            return;
-        }
-
-
-    // get parent item
-        QTreeWidgetItem *parentItem = item->parent();
-        if( parentItem == NULL ) return;
-
-    // get source item + table
-        QString srcTable = this->itemTableName( parentItem );
-        QString srcItemID = this->itemID( parentItem );
-
-        connection->dbDataGet( srcTable.toUtf8(), srcItemID.toUtf8(), tableName.toUtf8(), this, doDBtree::callbackEntryAdd );
-
-*/
 
 
     }

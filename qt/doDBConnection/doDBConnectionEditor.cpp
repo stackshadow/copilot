@@ -21,6 +21,7 @@
 #include <QtWidgets/QTableWidgetItem>
 #include <QtWidgets/QStackedWidget>
 
+#include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnection.h"
 #include "doDBTableEditor/doDBTableEditor.h"
 
@@ -88,7 +89,7 @@ void doDBConnectionEditor::         tblConnectionRefresh(){
 // remove table rows
     this->ui.tblConnection->setRowCount(0);
 
-    dbConnection = doDBCore->connectionGetFirst();
+    dbConnection = doDBConnections::ptr->connectionGetFirst();
     while( dbConnection != NULL ){
 
         this->ui.tblConnection->insertRow( this->ui.tblConnection->rowCount() );
@@ -100,7 +101,7 @@ void doDBConnectionEditor::         tblConnectionRefresh(){
         this->ui.tblConnection->setItem( rowIndex, 1, newItem );
 
         rowIndex = rowIndex + 1;
-        dbConnection = doDBCore->connectionGetNext();
+        dbConnection = doDBConnections::ptr->connectionGetNext();
     }
 
     this->ui.tblConnection->resizeColumnsToContents();
@@ -117,7 +118,7 @@ void doDBConnectionEditor::         showSelectedConnection(){
 
 
 // get the connection with id
-    this->selectedConnection = doDBCore->connectionGet( selectedUUID.toUtf8() );
+    this->selectedConnection = doDBConnections::ptr->connectionGet( selectedUUID.toUtf8() );
     if( this->selectedConnection == NULL ) return;
 
 // set values from connections
@@ -168,7 +169,7 @@ void doDBConnectionEditor::         connectionAdd(){
     this->selectedConnection = new doDBConnection( doDBConnection::CONN_NOTHING, NULL, "new connection" );
 
 // add connection
-    doDBCore->connectionAppend( this->selectedConnection );
+    doDBConnections::ptr->connectionAppend( this->selectedConnection );
 
 // refresh list
     this->tblConnectionRefresh();
@@ -213,7 +214,7 @@ void doDBConnectionEditor::         connectionDelete(){
     if( this->selectedConnection->isConnected() ) return;
 
 // remove it from settings
-    doDBCore->connectionRemove( this->selectedConnection );
+    doDBConnections::ptr->connectionRemove( this->selectedConnection );
     this->selectedConnection = NULL;
 
 // refresh list

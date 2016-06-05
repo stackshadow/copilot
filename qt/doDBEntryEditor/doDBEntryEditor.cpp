@@ -21,7 +21,6 @@
 
 #include <QUuid>
 
-#include "doDB/doDB.h"
 
 doDBEntryEditor::               doDBEntryEditor( QWidget *parent ) : QWidget(parent){
 

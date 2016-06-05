@@ -24,10 +24,11 @@
 #include "main.h"
 #include "doDBDebug/doDBDebug.h"
 
+#include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnection.h"
 
 
-doDBFile::doDBFile() : QObject() {
+doDBFile::                  doDBFile() : QObject() {
 
 
 // setup ui
@@ -47,7 +48,7 @@ doDBFile::doDBFile() : QObject() {
 
 }
 
-doDBFile::~doDBFile(){
+doDBFile::                  ~doDBFile(){
 
 }
 
@@ -90,12 +91,6 @@ void doDBFile::             doDBItemViewInit( QLayout *itemView ){
 }
 
 
-void doDBFile::             doDBActionAreaInit( QLayout *actionArea ){
-
-
-
-}
-
 
 
 
@@ -109,7 +104,7 @@ bool doDBFile::             loadFromDB(){
     json_error_t            jsonError;
 
 // get connection
-    connection = doDBCore->connectionGet( this->connectionID.toUtf8() );
+    connection = doDBConnections::ptr->connectionGet( this->connectionID.toUtf8() );
     if( connection == NULL ) return false;
 
 // load from db
@@ -189,7 +184,7 @@ bool doDBFile::             saveToDB(){
     const char *jsonDump = json_dumps( this->actualJSON, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
 // save it to the db
-    connection = doDBCore->connectionGet( this->connectionID.toUtf8() );
+    connection = doDBConnections::ptr->connectionGet( this->connectionID.toUtf8() );
     if( connection == NULL ) return false;
 
 // load from db
@@ -345,23 +340,15 @@ void doDBFile::             doDBTreeAppendFolder( QTreeWidgetItem *parentItem, c
     }
 
 // create new
-    item = new QTreeWidgetItem();
+    item = this->dbTree->append( parentItem, folderName, "folder", "", "", this->dbTreeItemTypeFolder );
+    if( item == NULL ) return;
 
-// icon-filename
-    QString iconFileName = doDBSettingsGlobal->treePictureDirectory();
-    iconFileName += "/folder.png";
-    QIcon tableIcon = QIcon(iconFileName);
-    item->setIcon( 0, QIcon(iconFileName) );
-
-// create new item
-    item->setText( 0, folderName );
-    item->setText( 4, QString().number(this->dbTreeItemTypeFolder) );
+// save the current foldername
     item->setText( this->dbTreeItemColumnFolder, folderName );
 
 // we always have childs
     item->setChildIndicatorPolicy( QTreeWidgetItem::ShowIndicator );
 
-    parentItem->addChild(item);
 
     return;
 }

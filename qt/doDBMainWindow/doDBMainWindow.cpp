@@ -23,6 +23,7 @@
 #include <QStackedWidget>
 
 #include "main.h"
+#include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnectionEditor.h"
 #include "doDBFile/doDBFile.h"
 #include "doDBRelation/doDBRelationPlugin.h"
@@ -34,13 +35,18 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
     this->show();
 
 
+// set our status bar as debug bar
+    doDBDebug::ptr->registerDebugLine( this->ui.lineEditStatusBar );
+    doDBDebug::ptr->registerHistroyWidget( this->ui.historyMessages );
+    this->ui.historyMessages->setVisible(false);
+
+
+
 
 // left - tree
     this->dataTree = new doDBtree( this );
     this->ui.toolBox->addItem( this->dataTree, "Struktur" );
     connect( this->dataTree, SIGNAL (itemClicked(QTreeWidgetItem*,int)), this, SLOT (treeElementClicked(QTreeWidgetItem*,int)));
-
-
 
 // right item view
     this->itemViewLayout = new QVBoxLayout();
@@ -50,20 +56,6 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
 
 
 
-// set our status bar as debug bar
-    doDBDebug::ptr->registerDebugLine( this->ui.lineEditStatusBar );
-    doDBDebug::ptr->registerHistroyWidget( this->ui.historyMessages );
-    this->ui.historyMessages->setVisible(false);
-
-// load connections from global settings
-    doDBCore->connectionsLoad();
-
-// toolbar
-    connect( this->ui.btnConnectionsEdit, SIGNAL (clicked()), this, SLOT (connectionEditorShow()));
-
-
-// debug button
-    connect( this->ui.btnShowMessages, SIGNAL (clicked()), this, SLOT (debugMessagesTrigger()));
 
 
 
@@ -83,6 +75,13 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
     doDBFile *dbFile = new doDBFile();
     dbFile->doDBTreeInit( this->dataTree );
     dbFile->doDBItemViewInit( this->itemViewLayout );
+
+
+// toolbar
+    connect( this->ui.btnConnectionsEdit, SIGNAL (clicked()), this, SLOT (connectionEditorShow()));
+    connect( this->ui.btnShowMessages, SIGNAL (clicked()), this, SLOT (debugMessagesTrigger()));
+
+
 }
 
 doDBMainWindow::                ~doDBMainWindow(){
@@ -136,7 +135,7 @@ void doDBMainWindow::           treeElementClicked( QTreeWidgetItem * item, int 
 // if selected item is an entry
     if(  itemType == doDBtree::typeTable || itemType == doDBtree::typeEntry ){
 
-        connection = doDBCore->connectionGet( connectionID.toUtf8() );
+        connection = doDBConnections::ptr->connectionGet( connectionID.toUtf8() );
         if( connection == NULL ) return;
 
     // get the dbobject
@@ -221,7 +220,7 @@ void doDBMainWindow::           connectionEditorHide(){
 
 
 // save
-    doDBCore->connectionsSave();
+    doDBConnections::ptr->connectionsSave();
     doDBSettingsGlobal->save();
     this->treeUpdate();
 }
@@ -253,7 +252,7 @@ void doDBMainWindow::           onBtnTableEditClick(){
 
 void doDBMainWindow::           entryEditorItemSaveNew( etDBObject *dbObject, const char *tableName ){
 
-    doDBConnection *connection = doDBCore->connectionGet( this->entryEditorConnID.toUtf8() );
+    doDBConnection *connection = doDBConnections::ptr->connectionGet( this->entryEditorConnID.toUtf8() );
     if( connection == NULL ) return;
 
     connection->dbDataNew( tableName );
@@ -264,7 +263,7 @@ void doDBMainWindow::           entryEditorItemSaveNew( etDBObject *dbObject, co
 
 void doDBMainWindow::           entryEditorItemChanged( etDBObject *dbObject, const char *tableName ){
 
-    doDBConnection *connection = doDBCore->connectionGet( this->entryEditorConnID.toUtf8() );
+    doDBConnection *connection = doDBConnections::ptr->connectionGet( this->entryEditorConnID.toUtf8() );
     if( connection == NULL ) return;
 
     connection->dbDataChange( tableName );

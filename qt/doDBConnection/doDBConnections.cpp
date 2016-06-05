@@ -16,15 +16,25 @@
     along with doDB.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "doDB.h"
+#include "doDBConnection/doDBConnections.h"
 #include "main.h"
 
 #include "db/etDBObjectTable.h"
 #include "db/etDBObjectTableColumn.h"
 
-doDB* doDB::ptr = NULL;
+/**
+@defgroup doDBConnections Connections
+@short A List of all connections
 
-doDB::doDB(){
+This class holds all connections. Use it to get an connection by id or remove/add/iterate a connection.
+@todo Locking of connection if somebody do something in the db
+*/
+
+
+
+doDBConnections* doDBConnections::ptr = NULL;
+
+doDBConnections::                           doDBConnections(){
 
     this->ptr = this;
 
@@ -33,55 +43,30 @@ doDB::doDB(){
     etDBObjectAlloc( this->dbObjectCore );
     etDBObjectTableAdd( this->dbObjectCore, "doDB" );
     etDBObjectTableColumnPrimarySet( this->dbObjectCore, "key" );
-    //etDBObjectTableColumnAdd( this->dbObjectCore, "uuid", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTNULL | etDBCOLUMN_OPTION_PRIMARY | etDBCOLUMN_OPTION_UNIQUE );
     etDBObjectTableColumnAdd( this->dbObjectCore, "key", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTNULL | etDBCOLUMN_OPTION_PRIMARY | etDBCOLUMN_OPTION_UNIQUE );
     etDBObjectTableColumnAdd( this->dbObjectCore, "table", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
     etDBObjectTableColumnAdd( this->dbObjectCore, "value", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
 
-    etDBObjectTableAdd( this->dbObjectCore, "doDBLog" );
-    etDBObjectTableColumnPrimarySet( this->dbObjectCore, "timestamp" );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "timestamp", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTNULL | etDBCOLUMN_OPTION_PRIMARY );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "sqlquery", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTNULL );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "rollbackquery", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTNULL );
-
-
-// File
-    etDBObjectTableAdd( this->dbObjectCore, "doDBFiles" );
-    etDBObjectTableColumnPrimarySet( this->dbObjectCore, "uuid" );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "uuid", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTNULL | etDBCOLUMN_OPTION_PRIMARY | etDBCOLUMN_OPTION_UNIQUE );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "relativePath", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "filename", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "sha1", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "tags", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
-
-// links
-    etDBObjectTableAdd( this->dbObjectCore, "doDBLinks" );
-    etDBObjectTableColumnPrimarySet( this->dbObjectCore, "uuid" );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "uuid", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTNULL | etDBCOLUMN_OPTION_PRIMARY | etDBCOLUMN_OPTION_UNIQUE );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "itemTable", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "itemID", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "relItemTable", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
-    etDBObjectTableColumnAdd( this->dbObjectCore, "relItemID", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
-
-
-
-    etDBObjectDump( this->dbObjectCore );
     this->connections.clear();
 }
 
-doDB::~doDB(){
+
+doDBConnections::                           ~doDBConnections(){
 }
 
-void doDB::                     connectionAppend( doDBConnection *newConnection ){
+
+void doDBConnections::                      connectionAppend( doDBConnection *newConnection ){
     this->connections.append( newConnection );
 }
 
-void doDB::                     connectionRemove( doDBConnection *newConnection ){
+
+void doDBConnections::                      connectionRemove( doDBConnection *newConnection ){
     this->connections.removeOne( newConnection );
     this->connections.removeAll( newConnection );
 }
 
-doDBConnection* doDB::          connectionGetFirst(){
+
+doDBConnection* doDBConnections::           connectionGetFirst(){
 
 // vars
     doDBConnection *dbConnection = NULL;
@@ -98,7 +83,7 @@ doDBConnection* doDB::          connectionGetFirst(){
 }
 
 
-doDBConnection* doDB::          connectionGetNext(){
+doDBConnection* doDBConnections::           connectionGetNext(){
 
 // vars
     doDBConnection *dbConnection = NULL;
@@ -115,7 +100,7 @@ doDBConnection* doDB::          connectionGetNext(){
 }
 
 
-doDBConnection* doDB::          connectionGet( const char *id ){
+doDBConnection* doDBConnections::           connectionGet( const char *id ){
 
     doDBConnection *dbConnection = NULL;
 
@@ -130,7 +115,7 @@ doDBConnection* doDB::          connectionGet( const char *id ){
 }
 
 
-void doDB::                     connectionsLoad(){
+void doDBConnections::                      connectionsLoad(){
 
 // pick the group
     doDBSettingsGlobal->groupPick( "connections" );
@@ -185,7 +170,7 @@ void doDB::                     connectionsLoad(){
 }
 
 
-void doDB::                     connectionsSave(){
+void doDBConnections::                      connectionsSave(){
 
 // pick the group
     doDBSettingsGlobal->groupPick( "connections" );
@@ -209,9 +194,6 @@ void doDB::                     connectionsSave(){
 
 
 }
-
-
-
 
 
 
