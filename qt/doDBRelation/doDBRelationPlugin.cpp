@@ -23,6 +23,7 @@
 #include "doDBRelationPlugin.h"
 
 #include "doDBDebug/doDBDebug.h"
+#include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnection.h"
 
 #include "db/etDBObjectValue.h"
@@ -102,7 +103,7 @@ bool doDBRelationPlugin::       dbRelationLoad(){
 
 
 // get connection
-    connection = doDBCore->connectionGet( this->connectionID.toUtf8() );
+    connection = doDBConnections::ptr->connectionGet( this->connectionID.toUtf8() );
     if( connection == NULL ) return false;
 
 // get display name ( for debugging purpose )
@@ -129,7 +130,7 @@ bool doDBRelationPlugin::       dbRelationSave(){
     const char                  *jsonDump = NULL;
 
 // get connection
-    connection = doDBCore->connectionGet( this->connectionID.toUtf8() );
+    connection = doDBConnections::ptr->connectionGet( this->connectionID.toUtf8() );
     if( connection == NULL ) return false;
 
     this->dbRelation->relationExport( &jsonDump );
@@ -151,11 +152,12 @@ bool doDBRelationPlugin::       dbDataGet( const char *srcTable, const char *src
 // vars
     doDBConnection  *connection = NULL;
     etDBObject      *dbObject = NULL;
+    etDBDriver      *dbDriver = NULL;
     QString         dbObjectLockID;
     const char      *connID = NULL;
     const char      *tableDisplayName = NULL;
-    const char      *srcPrimaryColumn = NULL;
-    const char      *srcPrimaryColumnValue = NULL;
+    const char      *relPrimaryColumn = NULL;
+    const char      *relPrimaryColumnValue = NULL;
     const char      *relDisplayColumn = NULL;
     const char      *relDisplayColumnValue = NULL;
     const char      *srcColumn = NULL;
@@ -164,12 +166,16 @@ bool doDBRelationPlugin::       dbDataGet( const char *srcTable, const char *src
 
 
 // get connection
-    connection = doDBCore->connectionGet( this->connectionID.toUtf8() );
+    connection = doDBConnections::ptr->connectionGet( this->connectionID.toUtf8() );
     if( connection == NULL ) return false;
 
 // get the object
     dbObject = connection->dbObject;
     if( dbObject == NULL ) return false;
+
+// get the driver
+    dbDriver = connection->dbDriver;
+    if( dbDriver == NULL ) return false;
 
 
 // get the related columns
@@ -196,31 +202,33 @@ bool doDBRelationPlugin::       dbDataGet( const char *srcTable, const char *src
 
     // get the column which respresent the visible value the value from the related table
         etDBObjectTableColumnMainGet( dbObject, relDisplayColumn );
-/*
+    // primary column of related table
+        etDBObjectTableColumnPrimaryGet( dbObject, relPrimaryColumn );
+
     // run the query
-        if( etDBDriverDataGet( this->dbDriver, dbObject ) != etID_YES ) {
+        if( etDBDriverDataGet( dbDriver, dbObject ) != etID_YES ) {
             goto next;
         }
 
 
     // iterate through data
-        while( etDBDriverDataNext( this->dbDriver, dbObject ) == etID_YES ){
+        while( etDBDriverDataNext( dbDriver, dbObject ) == etID_YES ){
 
 
-            if( etDBObjectValueGet( this->dbObject, primaryColumn, primaryColumnValue ) != etID_YES ){
+            if( etDBObjectValueGet( dbObject, relPrimaryColumn, relPrimaryColumnValue ) != etID_YES ){
                 continue;
             }
 
 
-            if( etDBObjectValueGet( this->dbObject, relDisplayColumn, relDisplayColumnValue ) != etID_YES ){
+            if( etDBObjectValueGet( dbObject, relDisplayColumn, relDisplayColumnValue ) != etID_YES ){
                 doDBDebug::ptr->print( __PRETTY_FUNCTION__ + QString(": table '%1' has no display column use primaryKeyColumn").arg(relatedTable) );
-                relDisplayColumnValue = primaryColumnValue;
+                relDisplayColumnValue = relPrimaryColumnValue;
             }
 
-            callback( userdata, relatedTable, connID, primaryColumnValue, relDisplayColumnValue );
+            callback( userdata, relatedTable, this->connectionID.toUtf8(), relPrimaryColumnValue, relDisplayColumnValue );
 
         }
-*/
+
         next:
         relationPresent = this->dbRelation->relatedTableFindNext( &srcColumn, relatedTable, &relColumn );
 
@@ -250,21 +258,21 @@ void doDBRelationPlugin::       doDBTreeExpand( QTreeWidgetItem * item ){
     itemType = this->dbTree->itemType( item );
 
 
+// load relation from DB ( if needed )
+    if( this->connectionID != connectionID ){
+        this->connectionID = connectionID;
+        this->dbRelationLoad();
+    }
+
+// the connection we need
+    connection = doDBConnections::ptr->connectionGet( connectionID.toUtf8() );
+    if( connection == NULL ){
+        return;
+    }
+
+
 // if selected item is an entry
     if( itemType == doDBtree::typeEntry ){
-
-    // item is selected
-        connection = doDBCore->connectionGet( connectionID.toUtf8() );
-        if( connection == NULL ){
-            return;
-        }
-
-    // load relation from DB ( if needed )
-        if( this->connectionID != connectionID ){
-            this->connectionID = connectionID;
-            this->dbRelationLoad();
-        }
-
 
         etDBObject *dbObject = connection->dbObject;
         if( dbObject == NULL ) return;
@@ -288,21 +296,37 @@ void doDBRelationPlugin::       doDBTreeExpand( QTreeWidgetItem * item ){
             }
 
             //etDBObjectTableDisplayNameGet(  )
-            this->dbTree->append( item, tableDisplayName, relatedTable, connectionID.toUtf8(), "", doDBtree::typeRelatedTable );
+            this->dbTree->append( item, tableDisplayName, relatedTable, connectionID.toUtf8(), "", this->dbTreeItemTypeRelatedTable );
 
         next:
             relatedTableExist = this->dbRelation->relatedTableGetNext( NULL, &relatedTable, NULL );
         }
 
-
-        //connection->treeFillDataRelated( this->dataTree, item );
-
-        //connection->dataGet( tableName.toUtf8(), itemID.toUtf8() );
     }
 
+// if we expand an related Table -> show related data
+    if( itemType == this->dbTreeItemTypeRelatedTable ){
+
+        QTreeWidgetItem *parentItem = item->parent();
+        if( parentItem == NULL ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Related table without parent ! This is impossible !" );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            return;
+        }
+
+    // set the selected item in the dbTree
+        this->dbTree->selectedItem = item;
+
+    // get infos about the parent of the relation
+        QString srcTable = this->dbTree->itemTableName( parentItem );
+        QString srcTableItemID = this->dbTree->itemID( parentItem );
+
+
+        this->dbDataGet( srcTable.toUtf8(), srcTableItemID.toUtf8(), tableName.toUtf8(), this->dbTree, doDBtree::callbackEntryAdd  );
 
 
 
+    }
 
 
 
@@ -351,7 +375,7 @@ void doDBRelationPlugin::       editorShow(){
     etDBObject      *dbObject = NULL;
 
 // get connection
-    connection = doDBCore->connectionGet( this->connectionID.toUtf8() );
+    connection = doDBConnections::ptr->connectionGet( this->connectionID.toUtf8() );
     if( connection == NULL ) return;
 
 // get the object

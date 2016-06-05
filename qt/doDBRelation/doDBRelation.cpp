@@ -120,6 +120,44 @@ bool doDBRelation::             relationAppend( const char *srcTable, const char
 
 bool doDBRelation::             relationRemove( const char *srcTable, const char *relatedTable, const char *srcColumn, const char *relatedColumn ){
 
+    const char *localsrcTable;
+    const char *localrelTable;
+    const char *localsrcColumn;
+    const char *localrelColumn;
+
+// get the first table
+    bool relationAviable = this->relationGetFirst( &localsrcTable, &localsrcColumn, &localrelTable, &localrelColumn );
+    while( relationAviable == true ){
+
+        std::string tempString;
+
+        tempString = localsrcTable;
+        if( tempString == srcTable ){
+
+            tempString = localsrcColumn;
+            if( tempString == srcColumn ){
+
+                tempString = localrelTable;
+                if( tempString == relatedTable ){
+
+                    tempString = localrelColumn;
+                    if( tempString == relatedColumn ){
+
+                        json_array_remove( this->jsonRelationSrcTable, this->jsonRelationIndex );
+
+                    }
+
+                }
+
+            }
+
+        }
+
+
+        relationAviable = this->relationGetNext( &localsrcTable, &localsrcColumn, &localrelTable, &localrelColumn );
+    }
+
+
 }
 
 

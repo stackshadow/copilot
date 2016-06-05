@@ -66,8 +66,8 @@ doDBRelationEditor::            doDBRelationEditor( QWidget *parent ) : QWidget(
 // connections
     connect( this->ui.cBoxSrcTable, SIGNAL( activated(int) ), this, SLOT( srcTableSelected(int) ) );
     connect( this->ui.cBoxRelTable, SIGNAL( activated(int) ), this, SLOT( relTableSelected(int) ) );
-    connect( this->ui.btnRelationDelete, SIGNAL( clicked() ), this, SLOT( removeSelectedRelation() ) );
-    connect( this->ui.btnRelationCreate, SIGNAL( clicked() ), this, SLOT( createRelation() ) );
+    connect( this->ui.btnRelationCreate, SIGNAL( clicked() ), this, SLOT( relationAppend() ) );
+    connect( this->ui.btnRelationDelete, SIGNAL( clicked() ), this, SLOT( relationRemove() ) );
     connect( this->ui.btnClose, SIGNAL( clicked() ), this, SLOT( closeEditor() ) );
 
 }
@@ -210,6 +210,7 @@ void doDBRelationEditor::       refreshRelation(){
 
 
 
+
 void doDBRelationEditor::       srcTableSelected( int selectedItem ){
 
 // get table name
@@ -230,16 +231,10 @@ void doDBRelationEditor::       relTableSelected( int selectedItem ){
 }
 
 
-void doDBRelationEditor::       removeSelectedRelation(){
-
-// get selected relation
 
 
 
-}
-
-
-void doDBRelationEditor::       createRelation(){
+void doDBRelationEditor::       relationAppend(){
 
 // vars
     QString             srcTableName;
@@ -272,6 +267,35 @@ void doDBRelationEditor::       createRelation(){
     this->refreshRelation();
 
 }
+
+
+void doDBRelationEditor::       relationRemove(){
+
+
+// vars
+    QString             srcTableName;
+    QString             srcColumnName;
+    QString             relTableName;
+    QString             relColumnName;
+    QTableWidgetItem    *item = NULL;
+
+// src-table
+    srcTableName = this->ui.tblRelations->item( this->ui.tblRelations->currentRow(), 0 )->text();
+    srcColumnName = this->ui.tblRelations->item( this->ui.tblRelations->currentRow(), 1 )->text();
+    relTableName = this->ui.tblRelations->item( this->ui.tblRelations->currentRow(), 2 )->text();
+    relColumnName = this->ui.tblRelations->item( this->ui.tblRelations->currentRow(), 3 )->text();
+
+
+// remove
+    this->dbRelation->relationRemove( srcTableName.toUtf8(), relTableName.toUtf8(), srcColumnName.toUtf8(), relColumnName.toUtf8() );
+
+// refresh table
+    this->refreshRelation();
+
+
+
+}
+
 
 
 

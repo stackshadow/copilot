@@ -54,8 +54,8 @@ private:
 private slots:
     void                            srcTableSelected( int selectedItem );
     void                            relTableSelected( int selectedItem );
-    void                            removeSelectedRelation();
-    void                            createRelation();
+    void                            relationAppend();
+    void                            relationRemove();
     void                            closeEditor();
 
 signals:
