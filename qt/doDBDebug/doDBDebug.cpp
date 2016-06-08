@@ -67,7 +67,8 @@ void doDBDebug::            registerHistroyWidget( QTableWidget *tableWidget ){
     item->setText("message");
     this->tableWidget->setHorizontalHeaderItem( 3, item );
 
-
+    this->tableWidget->setWordWrap(true);
+    this->tableWidget->setTextElideMode(Qt::ElideMiddle);
 
 }
 
@@ -102,29 +103,32 @@ void doDBDebug::            print( QString programName, QString levelName, QStri
         this->lineEdit->setText( message );
     }
 
-// limit debug lines to 200
-    if( this->tableWidget->rowCount() > 200 ){
-        this->tableWidget->setRowCount(200);
+    if( this->tableWidget != NULL ){
+
+    // limit debug lines to 200
+        if( this->tableWidget->rowCount() > 200 ){
+            this->tableWidget->setRowCount(200);
+        }
+
+        this->tableWidget->insertRow(0);
+
+        item = new QTableWidgetItem();
+        item->setText( programName );
+        this->tableWidget->setItem( 0, 0, item );
+
+        item = new QTableWidgetItem();
+        item->setText( levelName );
+        this->tableWidget->setItem( 0, 1, item );
+
+        item = new QTableWidgetItem();
+        item->setText( functionName );
+        this->tableWidget->setItem( 0, 2, item );
+
+        item = new QTableWidgetItem();
+        item->setText( message );
+        this->tableWidget->setItem( 0, 3, item );
+
     }
-
-    this->tableWidget->insertRow(0);
-
-    item = new QTableWidgetItem();
-    item->setText( programName );
-    this->tableWidget->setItem( 0, 0, item );
-
-    item = new QTableWidgetItem();
-    item->setText( levelName );
-    this->tableWidget->setItem( 0, 1, item );
-
-    item = new QTableWidgetItem();
-    item->setText( functionName );
-    this->tableWidget->setItem( 0, 2, item );
-
-    item = new QTableWidgetItem();
-    item->setText( message );
-    this->tableWidget->setItem( 0, 3, item );
-
 
 }
 

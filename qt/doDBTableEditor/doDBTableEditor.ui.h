@@ -67,7 +67,6 @@ public:
     QCheckBox *columnOptNotNull;
     QCheckBox *ckBoxDisplayColumn;
     QPushButton *btnTableCreate;
-    QSpacerItem *verticalSpacer;
     QHBoxLayout *horizontalLayout_2;
     QSpacerItem *horizontalSpacer;
     QPushButton *btnClose;
@@ -76,7 +75,7 @@ public:
     {
         if (doDBTableEditorUi->objectName().isEmpty())
             doDBTableEditorUi->setObjectName(QStringLiteral("doDBTableEditorUi"));
-        doDBTableEditorUi->resize(849, 648);
+        doDBTableEditorUi->resize(849, 708);
         verticalLayout_2 = new QVBoxLayout(doDBTableEditorUi);
         verticalLayout_2->setObjectName(QStringLiteral("verticalLayout_2"));
         tablesBox = new QGroupBox(doDBTableEditorUi);
@@ -243,10 +242,6 @@ public:
         btnTableCreate->setObjectName(QStringLiteral("btnTableCreate"));
 
         verticalLayout_2->addWidget(btnTableCreate);
-
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-        verticalLayout_2->addItem(verticalSpacer);
 
         horizontalLayout_2 = new QHBoxLayout();
         horizontalLayout_2->setObjectName(QStringLiteral("horizontalLayout_2"));

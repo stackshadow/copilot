@@ -57,7 +57,7 @@ QString doDBSettings::      treePictureDirectory(){
         return QString(picturePath);
     }
 
-    QString configFileName = QDir::homePath() + "/doDB";
+    QString configFileName = "./pictures";
     return configFileName;
 }
 

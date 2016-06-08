@@ -31,6 +31,9 @@
 
 #include "doDBConnection/doDBConnections.h"
 
+#include "doDBPlugin/doDBPlugins.h"
+#include "doDBRelation/doDBRelationPlugin.h"
+#include "doDBEntryEditor/doDBEntryPlugin.h"
 
 doDBSettings        *doDBSettingsGlobal;
 t_globalSettings    globalSettings;
@@ -53,15 +56,27 @@ int main(int argc, char *argv[])
 // init the qt-application
     QApplication a(argc, argv);
 
-// create the list of all connections
-    new doDBConnections();
-    doDBConnections::ptr->connectionsLoad();
+// create our debugger
+    new doDBDebug();
 
 // okay, we load the settings
     doDBSettingsGlobal = new doDBSettings();
 
-// create our debugger
-    new doDBDebug();
+// create the list of all connections
+    new doDBConnections();
+    doDBConnections::ptr->connectionsLoad();
+
+
+
+// our plugins
+    new doDBPlugins();
+// default entryEditor
+    doDBEntryPlugin *entryEditor = new doDBEntryPlugin();
+    doDBPlugins::ptr->append( entryEditor );
+// relations
+    doDBRelationPlugin *dbRelation = new doDBRelationPlugin();
+    doDBPlugins::ptr->append( dbRelation );
+
 
 
 // the main window
