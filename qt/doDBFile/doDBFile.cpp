@@ -477,10 +477,10 @@ void doDBFile::             doDBTreeClicked( QTreeWidgetItem * item, int column 
     const char                  *tempChar = NULL;
 
 // get Stuff from the selected item
-    tableName = this->dbTree->itemTableName( item );
-    connectionID = this->dbTree->itemConnectionID( item );
-    itemID = this->dbTree->itemID( item );
-    itemType = this->dbTree->itemType( item );
+    tableName = doDBtree::itemTableName( item );
+    connectionID = doDBtree::itemConnectionID( item );
+    itemID = doDBtree::itemID( item );
+    itemType = doDBtree::itemType( item );
     itemFolder = this->doDBTreeItemFolderNameGet( item );
 
     if( itemType == doDBtree::typeTable ){

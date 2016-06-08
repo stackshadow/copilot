@@ -51,11 +51,16 @@ public:
     int                     newTreeColumn( QString columnName, bool hide );
 
 // handle an single item
-    QString                 itemDisplayValue( QTreeWidgetItem *treeItem = NULL );
-    QString                 itemID( QTreeWidgetItem *treeItem = NULL );
-    QString                 itemConnectionID( QTreeWidgetItem *treeItem = NULL );
-    QString                 itemTableName( QTreeWidgetItem *treeItem = NULL );
-    treeItemType            itemType( QTreeWidgetItem *treeItem = NULL );
+    QString                 itemDisplayValue();
+    static QString          itemDisplayValue( QTreeWidgetItem *treeItem );
+    QString                 itemID();
+    static QString          itemID( QTreeWidgetItem *treeItem );
+    QString                 itemConnectionID();
+    static QString          itemConnectionID( QTreeWidgetItem *treeItem );
+    QString                 itemTableName();
+    static QString          itemTableName( QTreeWidgetItem *treeItem );
+    treeItemType            itemType();
+    static treeItemType     itemType( QTreeWidgetItem *treeItem );
 
     bool                    tableExist( QTreeWidgetItem *parentItem, QString tableName );
 

@@ -22,6 +22,7 @@
 
 #include "doDBTree.h"
 #include "doDBConnection/doDBConnections.h"
+#include "doDBPlugin/doDBPlugins.h"
 
 doDBtree::                              doDBtree( QWidget *parent ) : QTreeWidget( parent ){
 
@@ -150,59 +151,69 @@ int doDBtree::                          newTreeColumn( QString columnName, bool 
 }
 
 
+QString doDBtree::                      itemDisplayValue(){
+    return doDBtree::itemDisplayValue( this->selectedItem );
+}
+
 QString doDBtree::                      itemDisplayValue( QTreeWidgetItem *treeItem ){
 // if no item is passed, we use the selecte
-    if( treeItem == NULL ) treeItem = this->selectedItem;
+    if( treeItem == NULL ) return "";
 
-
-    if( treeItem != NULL ){
-        return treeItem->text(0);
-    }
+    return treeItem->text(0);
 
     return "";
+}
+
+QString doDBtree::                      itemID(){
+    return doDBtree::itemID( this->selectedItem );
 }
 
 QString doDBtree::                      itemID( QTreeWidgetItem *treeItem ){
 // if no item is passed, we use the selecte
-    if( treeItem == NULL ) treeItem = this->selectedItem;
+    if( treeItem == NULL ) return "";
 
-    if( treeItem != NULL ){
-        return treeItem->text(1);
-    }
+    return treeItem->text(1);
 
     return "";
+}
+
+QString doDBtree::                      itemConnectionID(){
+    return doDBtree::itemConnectionID( this->selectedItem );
 }
 
 QString doDBtree::                      itemConnectionID( QTreeWidgetItem *treeItem ){
 // if no item is passed, we use the selecte
-    if( treeItem == NULL ) treeItem = this->selectedItem;
+    if( treeItem == NULL ) return "";
 
-    if( treeItem != NULL ){
-        return treeItem->text(2);
-    }
+    return treeItem->text(2);
 
     return "";
+}
+
+QString doDBtree::                      itemTableName(){
+    return doDBtree::itemTableName( this->selectedItem );
 }
 
 QString doDBtree::                      itemTableName( QTreeWidgetItem *treeItem ){
 // if no item is passed, we use the selecte
-    if( treeItem == NULL ) treeItem = this->selectedItem;
+    if( treeItem == NULL ) return "";
 
-    if( treeItem != NULL ){
-        return treeItem->text(3);
-    }
+    return treeItem->text(3);
 
     return "";
 }
 
+doDBtree::treeItemType doDBtree::       itemType(){
+    return doDBtree::itemType( this->selectedItem );
+}
+
 doDBtree::treeItemType doDBtree::       itemType( QTreeWidgetItem *treeItem ){
 // if no item is passed, we use the selecte
-    if( treeItem == NULL ) treeItem = this->selectedItem;
+    if( treeItem == NULL ) return doDBtree::typeNothing;
 
-    if( treeItem != NULL ){
-        QString itemText = treeItem->text(4);
-        return (doDBtree::treeItemType)itemText.toInt();
-    }
+    QString itemText = treeItem->text(4);
+    return (doDBtree::treeItemType)itemText.toInt();
+
 }
 
 
@@ -293,6 +304,10 @@ void doDBtree::                         expand( QTreeWidgetItem * item ){
 
 
     }
+
+// call the plugins
+    doDBPlugins::ptr->eventTreeItemExpanded( item );
+
 
 }
 
