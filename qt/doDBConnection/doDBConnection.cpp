@@ -353,7 +353,7 @@ bool doDBConnection::               dbObjectLoad(){
     } else {
         this->dbObject->jsonRootObject = newdoDBObject;
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "doDBObject loeded from db"  );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
         return true;
     }
 
