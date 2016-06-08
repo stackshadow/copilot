@@ -54,6 +54,7 @@ $(buildPath)/%.qt.o: $(sourcePath)/%.cpp
 
 
 clean:
+	@$(ECHO) "QT CLEAN"
 	@$(RM) $(objectsQTFull)
 	@$(RM) $(sourcesQTMocFull)
 	@$(RM) $(headersUiFull)
