@@ -31,6 +31,7 @@
 #include "db/etDBObjectTableColumn.h"
 #include "dbdriver/etDBDriver.h"
 
+#include "doDBPlugin/doDBPlugin.h"
 #include "doDBTree/doDBTree.h"
 #include "doDBRelation.h"
 #include "doDBRelation/doDBRelationEditor.h"
@@ -38,28 +39,28 @@
 
 
 class doDBRelationPlugin :
-public QObject {
+public doDBPlugin {
     Q_OBJECT
 
 public:
                             doDBRelationPlugin();
                             ~doDBRelationPlugin();
 
-    void                    doDBTreeInit( doDBtree *dbTree );
-    void                    doDBItemViewInit( QLayout *itemView );
+// overloaded plugin functions
+// prepare stuff
+//  void                    prepareDashboard( QLayout *dashboardLayout );
+    void                    prepareTree( doDBtree *dbTree );
+    void                    prepareItemView( QLayout *itemViewLayout );
 
-// relations
-    bool                    dbRelationLoad();
-    bool                    dbRelationSave();
+// events
+    bool                    dbTreeItemClicked( QTreeWidgetItem * item, int column );
+    bool                    dbTreeItemExpanded( QTreeWidgetItem * item );
+    bool                    dbTreeItemCollapsed( QTreeWidgetItem * item );
 
-    bool                    dbDataGet( const char *srcTable, const char *srcTableItemID, const char *relatedTable, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) );
+
 
 
 private slots:
-    void                    doDBTreeExpand( QTreeWidgetItem * item );
-    void                    doDBTreeCollapsed( QTreeWidgetItem * item );
-    void                    doDBTreeClicked( QTreeWidgetItem * item, int column );
-
     void                    editorShow();
     void                    editorClosed();
 
@@ -70,11 +71,11 @@ private:
     QString                 connectionID;
 
     QPushButton             *btnEditRelations;
+    QPushButton             *btnConnectRelation;
 
 // db tree
     doDBtree                *dbTree;
     int                     dbTreeItemTypeRelatedTable;
-    QTreeWidgetItem         *dbTreeSelectedItem;
 
 };
 

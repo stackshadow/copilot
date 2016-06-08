@@ -22,6 +22,7 @@
 #include "main.h"
 #include "doDBRelation.h"
 #include "doDBDebug/doDBDebug.h"
+#include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnection.h"
 
 #include "core/etDebug.h"
@@ -323,6 +324,7 @@ bool doDBRelation::             relatedTableGetFirst( const char *srcTable, cons
 
 
 
+
 bool doDBRelation::             relatedTableGetNext( const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
 
 
@@ -400,6 +402,154 @@ bool doDBRelation::             relatedTableFindNext( const char **srcColumn, co
     return false;
 }
 
+
+
+
+
+bool doDBRelation::             dbRelationLoad( const char *connectionID ){
+// check
+    if( connectionID == NULL ) return false;
+
+
+// vars
+    doDBConnection              *connection = NULL;
+    const char                  *displayName = NULL;
+    const char                  *dbValueString = NULL;
+
+
+// get connection
+    connection = doDBConnections::ptr->connectionGet( connectionID );
+    if( connection == NULL ) return false;
+
+// get display name ( for debugging purpose )
+    displayName = connection->displayNameGet();
+
+
+
+    if( connection->dbDoDBValueGet( "doDBRelations", &dbValueString ) ){
+        this->relationImport( dbValueString );
+    }
+
+
+
+}
+
+
+bool doDBRelation::             dbRelationSave( const char *connectionID ){
+// check
+    if( connectionID == NULL ) return false;
+
+
+// vars
+    doDBConnection              *connection = NULL;
+    const char                  *displayName = NULL;
+    const char                  *jsonDump = NULL;
+
+// get connection
+    connection = doDBConnections::ptr->connectionGet( connectionID );
+    if( connection == NULL ) return false;
+
+    this->relationExport( &jsonDump );
+    if( jsonDump != NULL ){
+        connection->dbDoDBValueSet( "doDBRelations", jsonDump );
+        free( (void*)jsonDump );
+    }
+
+
+
+
+}
+
+
+bool doDBRelation::             dbDataGet( const char *connectionID, const char *srcTable, const char *srcTableItemID, const char *relatedTable, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) ){
+
+// vars
+    doDBConnection  *connection = NULL;
+    etDBObject      *dbObject = NULL;
+    etDBDriver      *dbDriver = NULL;
+    QString         dbObjectLockID;
+    const char      *connID = NULL;
+    const char      *tableDisplayName = NULL;
+    const char      *relPrimaryColumn = NULL;
+    const char      *relPrimaryColumnValue = NULL;
+    const char      *relDisplayColumn = NULL;
+    const char      *relDisplayColumnValue = NULL;
+    const char      *srcColumn = NULL;
+    const char      *srcColumnValue = NULL;
+    const char      *relColumn = NULL;
+
+
+// get connection
+    connection = doDBConnections::ptr->connectionGet( connectionID );
+    if( connection == NULL ) return false;
+
+// get the object
+    dbObject = connection->dbObject;
+    if( dbObject == NULL ) return false;
+
+// get the driver
+    dbDriver = connection->dbDriver;
+    if( dbDriver == NULL ) return false;
+
+
+// get the related columns
+    bool relationPresent = this->relatedTableFindFirst( srcTable, &srcColumn, relatedTable, &relColumn );
+    while( relationPresent ){
+
+
+    // get all columns from selected row
+        if( connection->dbDataGet( srcTable, srcTableItemID )  != true ) break;
+
+
+    // okay, get the value of the source column
+        etDBObjectValueGet( dbObject, srcColumn, srcColumnValue );
+
+
+    // create filter
+        etDBObjectFilterClear( dbObject );
+        etDBObjectFilterAdd(  dbObject, 1, etDBFILTER_OP_AND, relColumn, etDBFILTER_TYPE_EQUAL, srcColumnValue );
+
+    // pick related table
+        if( etDBObjectTablePick( dbObject, relatedTable ) != etID_YES ){
+            return false;
+        }
+
+    // get the column which respresent the visible value the value from the related table
+        etDBObjectTableColumnMainGet( dbObject, relDisplayColumn );
+    // primary column of related table
+        etDBObjectTableColumnPrimaryGet( dbObject, relPrimaryColumn );
+
+    // run the query
+        if( etDBDriverDataGet( dbDriver, dbObject ) != etID_YES ) {
+            goto next;
+        }
+
+
+    // iterate through data
+        while( etDBDriverDataNext( dbDriver, dbObject ) == etID_YES ){
+
+
+            if( etDBObjectValueGet( dbObject, relPrimaryColumn, relPrimaryColumnValue ) != etID_YES ){
+                continue;
+            }
+
+
+            if( etDBObjectValueGet( dbObject, relDisplayColumn, relDisplayColumnValue ) != etID_YES ){
+                doDBDebug::ptr->print( __PRETTY_FUNCTION__ + QString(": table '%1' has no display column use primaryKeyColumn").arg(relatedTable) );
+                relDisplayColumnValue = relPrimaryColumnValue;
+            }
+
+            callback( userdata, relatedTable, connectionID, relPrimaryColumnValue, relDisplayColumnValue );
+
+        }
+
+        next:
+        relationPresent = this->relatedTableFindNext( &srcColumn, relatedTable, &relColumn );
+
+    }
+
+    return true;
+}
 
 
 

@@ -58,6 +58,9 @@ public:
     bool                    relatedTableFindFirst( const char *srcTable, const char **srcColumn, const char *relatedTable, const char **relatedColumn );
     bool                    relatedTableFindNext( const char **srcColumn, const char *relatedTable, const char **relatedColumn );
 
+    bool                    dbRelationLoad( const char *connectionID );
+    bool                    dbRelationSave( const char *connectionID );
+    bool                    dbDataGet( const char *connectionID, const char *srcTable, const char *srcTableItemID, const char *relatedTable, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) );
 
 private:
 
