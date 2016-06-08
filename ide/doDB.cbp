@@ -8,7 +8,7 @@
 		<Option execution_dir="/usr/src/projects/dodb" />
 		<Option pch_mode="2" />
 		<Option compiler="null" />
-		<Option virtualFolders="qt/;qt/doDBConnection/;qt/doDBDebug/;qt/doDBEntryEditor/;qt/doDBFile/;qt/doDBMainWIndow/;qt/doDBPlugin/;qt/doDBSettings/;qt/doDBTableEditor/;qt/doDBTree/;qt/doDBRelation/;src/;src/doDB/;src/jsonSettings/;make/;make/generic/;make/postmake/;make/premake/;" />
+		<Option virtualFolders="qt/;qt/doDBConnection/;qt/doDBDebug/;qt/doDBEntryEditor/;qt/doDBFile/;qt/doDBMainWIndow/;qt/doDBPlugin/;qt/doDBSettings/;qt/doDBTableEditor/;qt/doDBTree/;qt/doDBRelation/;src/;src/jsonSettings/;make/;make/generic/;make/postmake/;make/premake/;" />
 		<Build>
 			<Target title="binary-qt-dbg">
 				<Option output="/tmp/dodb/target/bin/dodb" prefix_auto="1" extension_auto="1" />
@@ -98,6 +98,12 @@
 		<Unit filename="../qt/doDBConnection/doDBConnectionEditor.ui.h">
 			<Option virtualFolder="qt/doDBConnection/" />
 		</Unit>
+		<Unit filename="../qt/doDBConnection/doDBConnections.cpp">
+			<Option virtualFolder="qt/doDBConnection/" />
+		</Unit>
+		<Unit filename="../qt/doDBConnection/doDBConnections.h">
+			<Option virtualFolder="qt/doDBConnection/" />
+		</Unit>
 		<Unit filename="../qt/doDBConnection/doDBData.h">
 			<Option virtualFolder="qt/doDBConnection/" />
 		</Unit>
@@ -117,6 +123,12 @@
 			<Option virtualFolder="qt/doDBEntryEditor/" />
 		</Unit>
 		<Unit filename="../qt/doDBEntryEditor/doDBEntryEditor.ui.h">
+			<Option virtualFolder="qt/doDBEntryEditor/" />
+		</Unit>
+		<Unit filename="../qt/doDBEntryEditor/doDBEntryPlugin.cpp">
+			<Option virtualFolder="qt/doDBEntryEditor/" />
+		</Unit>
+		<Unit filename="../qt/doDBEntryEditor/doDBEntryPlugin.h">
 			<Option virtualFolder="qt/doDBEntryEditor/" />
 		</Unit>
 		<Unit filename="../qt/doDBFile/doDBFile.cpp">
@@ -155,6 +167,12 @@
 			<Option virtualFolder="qt/doDBPlugin/" />
 		</Unit>
 		<Unit filename="../qt/doDBPlugin/doDBPlugin.h">
+			<Option virtualFolder="qt/doDBPlugin/" />
+		</Unit>
+		<Unit filename="../qt/doDBPlugin/doDBPlugins.cpp">
+			<Option virtualFolder="qt/doDBPlugin/" />
+		</Unit>
+		<Unit filename="../qt/doDBPlugin/doDBPlugins.h">
 			<Option virtualFolder="qt/doDBPlugin/" />
 		</Unit>
 		<Unit filename="../qt/doDBRelation/doDBRelation.cpp">
@@ -207,12 +225,6 @@
 		</Unit>
 		<Unit filename="../qt/doDBTree/doDBTree.ui">
 			<Option virtualFolder="qt/doDBTree/" />
-		</Unit>
-		<Unit filename="../src/doDB/doDB.cpp">
-			<Option virtualFolder="src/doDB/" />
-		</Unit>
-		<Unit filename="../src/doDB/doDB.h">
-			<Option virtualFolder="src/doDB/" />
 		</Unit>
 		<Unit filename="../src/evillib.c">
 			<Option compilerVar="CC" />

@@ -19,15 +19,26 @@
 #ifndef doDBPlugin_H
 #define doDBPlugin_H
 
-#include "doDBTree.h"
+#include "qt/doDBTree/doDBTree.h"
 
-class doDBPlugin
-{
+class doDBPlugin : public QObject {
+    Q_OBJECT
+
     public:
         doDBPlugin();
         virtual ~doDBPlugin();
 
-        virtual void prepareTree( doDBtree *dbTree );
+// prepare stuff
+        virtual void prepareDashboard( QLayout *dashboardLayout ){ return; }
+        virtual void prepareTree( doDBtree *dbTree ){ return; }
+        virtual void prepareItemView( QLayout *itemViewLayout ){ return; }
+
+// events
+        virtual bool dbTreeItemClicked( QTreeWidgetItem * item, int column ){ return true; }
+        virtual bool dbTreeItemExpanded( QTreeWidgetItem * item ){ return true; }
+        virtual bool dbTreeItemCollapsed( QTreeWidgetItem * item ){ return true; }
+
+
 
     protected:
     private:

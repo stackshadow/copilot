@@ -70,6 +70,7 @@ sourcesQT   += ./qt/doDBSettings/doDBSettings.cpp
 sourcesQT   += ./qt/doDBMainWindow/doDBMainWindow.cpp
 sourcesUI   += ./qt/doDBMainWindow/doDBMainWindowUi.ui
 
+sourcesQT   += ./qt/doDBPlugin/doDBPlugins.cpp
 sourcesQT   += ./qt/doDBPlugin/doDBPlugin.cpp
 
 
@@ -93,6 +94,7 @@ sourcesQT   += ./qt/doDBFile/doDBFile.cpp
 sourcesQT   += ./qt/doDBFile/doDBTableFoldersEditor.cpp
 sourcesUI   += ./qt/doDBFile/doDBTableFoldersEditor.ui
 
+sourcesQT   += ./qt/doDBEntryEditor/doDBEntryPlugin.cpp
 sourcesQT   += ./qt/doDBEntryEditor/doDBEntryEditor.cpp
 sourcesUI   += ./qt/doDBEntryEditor/doDBEntryEditor.ui
 

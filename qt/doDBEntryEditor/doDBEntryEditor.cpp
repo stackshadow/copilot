@@ -112,6 +112,9 @@ void doDBEntryEditor::          dbObjectShow( etDBObject *dbObject, QString tabl
 
     }
 
+// resize to content
+    this->ui.tableWidget->resizeColumnsToContents();
+
 // set the mode to change
     this->editMode = modeChanged;
 
@@ -212,6 +215,7 @@ int doDBEntryEditor::           columnFind( QString columnName ){
 
     return -1;
 }
+
 
 
 

@@ -70,7 +70,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QStackedWidget" name="widgetContainerRight"/>
+      <widget class="QStackedWidget" name="widgetContainerRight">
+       <widget class="QWidget" name="itemView">
+        <layout class="QVBoxLayout" name="verticalLayout_2"/>
+       </widget>
+      </widget>
      </item>
     </layout>
    </item>

@@ -15,50 +15,53 @@
     You should have received a copy of the GNU Lesser General Public License
     along with doDB.  If not, see <http://www.gnu.org/licenses/>.
 */
-#ifndef DODBMAINWINDOW_H
-#define DODBMAINWINDOW_H
+#ifndef doDBPlugins_H
+#define doDBPlugins_H
 
 #include <QMainWindow>
 #include <QHBoxLayout>
 
-#include "doDBMainWindowUi.ui.h"
 
 #include "doDBPlugin/doDBPlugin.h"
 #include "doDBConnection/doDBConnection.h"
 #include "doDBTree/doDBTree.h"
 #include "doDBEntryEditor/doDBEntryEditor.h"
 
-class doDBMainWindow :
-QWidget
+class doDBPlugins
 {
-    Q_OBJECT
 
 public:
-    doDBMainWindow( QWidget *parent );
-    ~doDBMainWindow();
+                            doDBPlugins();
+    virtual                 ~doDBPlugins();
 
+// append / remove
+    void                    append( doDBPlugin *dbPlugin );
+
+// prepare stuff
+    void                    eventPrepareDashboard( QLayout *dashboardLayout );
+    void                    eventPrepareTree( doDBtree *dbTree );
+    void                    eventPrepareItemView( QLayout *itemViewLayout );
+
+// all events
+    void                    eventTreeItemClicked( QTreeWidgetItem * item, int column );
+    void                    eventTreeItemExpanded( QTreeWidgetItem * item );
+    void                    eventTreeItemCollapsed( QTreeWidgetItem * item );
+
+public:
+    static doDBPlugins      *ptr;
 
 private:
-    void            treeUpdate();
+    QList<doDBPlugin*>      pluginList;
 
-private slots:
-    void            connectionEditorShow();
-    void            connectionEditorHide();
-    void            onBtnTableEditClick();
-    void            debugMessagesTrigger();
-    void            treeElementClicked( QTreeWidgetItem * item, int column );
-    void            entryEditorItemSaveNew( etDBObject *dbObject, const char *tableName );
-    void            entryEditorItemChanged( etDBObject *dbObject, const char *tableName );
-
-private:
-    Ui::doDBMainWindow          ui;
-    doDBtree                    *dataTree;
-    QLayout                     *itemViewLayout;
-
-    QString                     entryEditorConnID;
-    QString                     entryEditorLockID;
 
 
 };
 
-#endif // DODBMAINWINDOW_H
+
+
+
+
+
+
+#endif
+

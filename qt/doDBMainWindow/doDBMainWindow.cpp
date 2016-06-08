@@ -26,6 +26,8 @@
 #include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnectionEditor.h"
 #include "doDBFile/doDBFile.h"
+
+#include "doDBPlugin/doDBPlugins.h"
 #include "doDBRelation/doDBRelationPlugin.h"
 
 doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(parent){
@@ -49,27 +51,14 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
     connect( this->dataTree, SIGNAL (itemClicked(QTreeWidgetItem*,int)), this, SLOT (treeElementClicked(QTreeWidgetItem*,int)));
 
 // right item view
-    this->itemViewLayout = new QVBoxLayout();
-    QWidget *itemViewWidget = new QWidget( this );
-    itemViewWidget->setLayout( this->itemViewLayout );
-    this->ui.widgetContainerRight->addWidget( itemViewWidget );
+    this->itemViewLayout = this->ui.itemView->layout();
 
 
+// init plugins
+    doDBPlugins::ptr->eventPrepareDashboard( this->ui.page->layout() );
+    doDBPlugins::ptr->eventPrepareTree( this->dataTree );
+    doDBPlugins::ptr->eventPrepareItemView( this->ui.itemView->layout() );
 
-
-
-
-// entryEditor
-    this->entryEditor = new doDBEntryEditor(this);
-    this->entryEditor->setEnabled(false);
-    this->itemViewLayout->addWidget( this->entryEditor );
-    connect( this->entryEditor, SIGNAL (saveNew(etDBObject*,const char*)), this, SLOT (entryEditorItemSaveNew(etDBObject*,const char*)));
-    connect( this->entryEditor, SIGNAL (saveChanged(etDBObject*,const char*)), this, SLOT (entryEditorItemChanged(etDBObject*,const char*)));
-
-// relations
-    doDBRelationPlugin *dbRelation = new doDBRelationPlugin();
-    dbRelation->doDBTreeInit( this->dataTree );
-    dbRelation->doDBItemViewInit( this->itemViewLayout );
 
 // load plugins
     doDBFile *dbFile = new doDBFile();
@@ -127,41 +116,14 @@ void doDBMainWindow::           treeElementClicked( QTreeWidgetItem * item, int 
     etDBObject                  *dbObject;
 
 // get Stuff from the selected item
-    tableName = this->dataTree->itemTableName( item );
-    connectionID = this->dataTree->itemConnectionID( item );
-    itemID = this->dataTree->itemID( item );
-    itemType = this->dataTree->itemType( item );
-
-// if selected item is an entry
-    if(  itemType == doDBtree::typeTable || itemType == doDBtree::typeEntry ){
-
-        connection = doDBConnections::ptr->connectionGet( connectionID.toUtf8() );
-        if( connection == NULL ) return;
-
-    // get the dbobject
-        this->entryEditorConnID = connectionID;
-        dbObject = connection->dbObject;
-
-    // pick the table
-        etDBObjectTablePick( dbObject, tableName.toUtf8() );
-
-    // clear values
-        etDBObjectValueClean( dbObject );
+    tableName = doDBtree::itemTableName( item );
+    connectionID = doDBtree::itemConnectionID( item );
+    itemID = doDBtree::itemID( item );
+    itemType = doDBtree::itemType( item );
 
 
-        if(  itemType == doDBtree::typeEntry ){
-            connection->dbDataGet( tableName.toUtf8(), itemID.toUtf8() );
-        }
-
-    // show the object
-        this->entryEditor->dbObjectShow( dbObject, tableName.toUtf8() );
-        this->entryEditor->setEnabled(true);
-
-
-        this->entryEditor->setVisible(true);
-    } else {
-        this->entryEditor->setVisible(false);
-    }
+// before WE doing something with it, call all plugins
+    doDBPlugins::ptr->eventTreeItemClicked( item, column );
 
 
 /*
@@ -237,6 +199,7 @@ void doDBMainWindow::           debugMessagesTrigger(){
         this->ui.historyMessages->setEnabled( true );
         this->ui.historyMessages->setVisible( true );
         this->ui.historyMessages->resizeColumnsToContents();
+        this->ui.historyMessages->resizeRowsToContents();
     }
 }
 

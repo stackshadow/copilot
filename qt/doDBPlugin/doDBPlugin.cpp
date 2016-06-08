@@ -16,14 +16,18 @@
     along with doDB.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+
+
 #include "doDBPlugin.h"
 
-doDBPlugin::doDBPlugin()
-{
+
+doDBPlugin::doDBPlugin() : QObject() {
     //ctor
 }
 
-doDBPlugin::~doDBPlugin()
-{
+
+doDBPlugin::~doDBPlugin(){
     //dtor
 }
+
+
