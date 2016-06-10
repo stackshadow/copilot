@@ -98,6 +98,8 @@ void doDBPlugins::      eventPrepareItemView( QLayout *itemViewLayout ){
 
 // all events
 void doDBPlugins::      eventTreeItemClicked( QTreeWidgetItem * item, int column ){
+// only if item is enabled
+    if( item->isDisabled() ) return;
 
 // vars
     doDBPlugin *plugin = NULL;
@@ -117,6 +119,9 @@ void doDBPlugins::      eventTreeItemClicked( QTreeWidgetItem * item, int column
 
 
 void doDBPlugins::      eventTreeItemExpanded( QTreeWidgetItem * item ){
+// only if item is enabled
+    if( item->isDisabled() ) return;
+
 // vars
     doDBPlugin *plugin = NULL;
 
@@ -135,6 +140,9 @@ void doDBPlugins::      eventTreeItemExpanded( QTreeWidgetItem * item ){
 
 
 void doDBPlugins::      eventTreeItemCollapsed( QTreeWidgetItem * item ){
+// only if item is enabled
+    if( item->isDisabled() ) return;
+
 // vars
     doDBPlugin *plugin = NULL;
 
