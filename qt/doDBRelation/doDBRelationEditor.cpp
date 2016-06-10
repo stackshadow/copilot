@@ -89,6 +89,10 @@ void doDBRelationEditor::       showRelation( etDBObject *dbObject, doDBRelation
     const char      *tableName = NULL;
     const char      *tableDisplayName = NULL;
 
+// clean combobox
+    this->ui.cBoxSrcTable->clear();
+    this->ui.cBoxRelTable->clear();
+
 // appent all tables
     if( etDBObjectIterationReset( dbObject ) != etID_YES ) return;
     while( etDBObjectTableNext(dbObject,tableName) == etID_YES ){
@@ -135,7 +139,6 @@ void doDBRelationEditor::       fillTableWithColumns( const char *tableName, QTa
         item->setText(columnDisplayName);
         tableWidget->setItem( 0, 1, item );
 
-
     }
 
     this->refreshRelation();
@@ -168,8 +171,8 @@ void doDBRelationEditor::       refreshRelation(){
     this->ui.tblRelations->setRowCount(0);
 
 
-    bool dataAviable = this->dbRelation->relationGetFirst( &srcTable, &srcColumn, &relatedTable, &relatedColumn );
-    while( dataAviable == true ){
+    this->dbRelation->relationGetReset();
+    while( this->dbRelation->relationGetNext( &srcTable, &srcColumn, &relatedTable, &relatedColumn ) ){
 
     // append a column
         this->ui.tblRelations->insertRow(0);
@@ -195,17 +198,10 @@ void doDBRelationEditor::       refreshRelation(){
         this->ui.tblRelations->setItem( 0, 3, item );
 
 
-        dataAviable = this->dbRelation->relationGetNext( &srcTable, &srcColumn, &relatedTable, &relatedColumn );
     }
 
 
-
-
-
-
-
-
-
+    this->ui.tblRelations->resizeColumnsToContents();
 }
 
 

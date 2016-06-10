@@ -87,6 +87,13 @@
     </widget>
    </item>
    <item>
+    <widget class="QPushButton" name="btnSave">
+     <property name="text">
+      <string>Speichern</string>
+     </property>
+    </widget>
+   </item>
+   <item>
     <widget class="QPushButton" name="btnClose">
      <property name="text">
       <string>Schließen</string>

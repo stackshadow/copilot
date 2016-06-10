@@ -63,19 +63,40 @@ public:
 private slots:
     void                    editorShow();
     void                    editorClosed();
+    void                    connectionStart();
+    void                    connectionCheck();
+    void                    connectionCancel();
+    void                    connectionSave();
 
 
 private:
-    doDBRelation            *dbRelation;
-    doDBRelationEditor      *dbRelationEditor;
+    doDBRelation*           dbRelation;
+    doDBRelationEditor*     dbRelationEditor;
     QString                 connectionID;
 
-    QPushButton             *btnEditRelations;
-    QPushButton             *btnConnectRelation;
-
 // db tree
-    doDBtree                *dbTree;
+    doDBtree*               dbTree;
     int                     dbTreeItemTypeRelatedTable;
+
+// connection
+    bool                    connectionMode;
+    QLineEdit*              srcInfos;
+    QPushButton*            btnEditRelations;
+    QPushButton*            btnConnectRelation;
+    QHBoxLayout*            connectToTablesLayout;
+    QPushButton*            btnConnectRelationSave;
+    QPushButton*            btnConnectRelationCancel;
+    QLineEdit*              connectionTables;
+
+// remember thinls
+    QString                 srcDislpayName;
+    QString                 srcTable;
+    QString                 srcItemID;
+    QString                 srcColumn;
+
+    QString                 relTable;
+    QString                 relItemID;
+    QString                 relColumn;
 
 };
 

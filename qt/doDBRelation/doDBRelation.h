@@ -48,15 +48,12 @@ public:
     bool                    relationAppend( const char *srcTable, const char *relatedTable, const char *srcColumn, const char *relatedColumn );
     bool                    relationRemove( const char *srcTable, const char *relatedTable, const char *srcColumn, const char *relatedColumn );
 
-    bool                    relationGetFirst( const char **srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
+    void                    relationGetReset();
     bool                    relationGetNext( const char **srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
+    bool                    relatedTableGetNext( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
+    bool                    relatedTableFindNext( const char *srcTable, const char **srcColumn, const char *relatedTable, const char **relatedColumn );
 
-    bool                    relatedTableGetFirst( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
-    bool                    relatedTableGetNext( const char **srcColumn, const char **relatedTable, const char **relatedColumn );
-
-
-    bool                    relatedTableFindFirst( const char *srcTable, const char **srcColumn, const char *relatedTable, const char **relatedColumn );
-    bool                    relatedTableFindNext( const char **srcColumn, const char *relatedTable, const char **relatedColumn );
+    bool                    relatedTableFindNext( const char **srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
 
     bool                    dbRelationLoad( const char *connectionID );
     bool                    dbRelationSave( const char *connectionID );

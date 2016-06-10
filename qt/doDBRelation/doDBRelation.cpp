@@ -127,8 +127,8 @@ bool doDBRelation::             relationRemove( const char *srcTable, const char
     const char *localrelColumn;
 
 // get the first table
-    bool relationAviable = this->relationGetFirst( &localsrcTable, &localsrcColumn, &localrelTable, &localrelColumn );
-    while( relationAviable == true ){
+    this->relationGetReset();
+    while( this->relationGetNext( &localsrcTable, &localsrcColumn, &localrelTable, &localrelColumn ) ){
 
         std::string tempString;
 
@@ -154,60 +154,14 @@ bool doDBRelation::             relationRemove( const char *srcTable, const char
 
         }
 
-
-        relationAviable = this->relationGetNext( &localsrcTable, &localsrcColumn, &localrelTable, &localrelColumn );
     }
 
 
 }
 
 
-bool doDBRelation::             relationGetFirst( const char **srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
-
-// vars
-    json_t      *jsonRelatedTable = NULL;
-    json_t      *jsonValue = NULL;
-
-
-// iterate from the beginning
-    this->jsonSrcTableItrerator = json_object_iter( this->jsonRelation );
-
-// get first related-table
-    this->jsonRelationSrcTable = json_object_iter_value( this->jsonSrcTableItrerator );
-    if( this->jsonRelationSrcTable == NULL ) return false;
-
-// reset arrayindex
-    this->jsonRelationIndex = 0;
-
-// get the table
-    jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
-    if( jsonRelatedTable == NULL ) return false;
-
-
-// src-Table
-    if( srcTable != NULL ){
-        *srcTable = json_object_iter_key(this->jsonSrcTableItrerator);
-    }
-
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "srcColumn" );
-    if( srcColumn != NULL ){
-        *srcColumn = json_string_value(jsonValue);
-    }
-
-// rel-Table
-    jsonValue = json_object_get( jsonRelatedTable, "relTable" );
-    if( relatedTable != NULL ){
-        *relatedTable = json_string_value(jsonValue);
-    }
-
-// rel-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relColumn" );
-    if( relatedColumn != NULL ){
-        *relatedColumn = json_string_value(jsonValue);
-    }
-
-    return true;
+void doDBRelation::             relationGetReset(){
+    this->jsonSrcTableItrerator = NULL;
 }
 
 
@@ -218,11 +172,22 @@ bool doDBRelation::             relationGetNext( const char **srcTable, const ch
     json_t      *jsonValue = NULL;
 
 
+// start iteration ?
+    if( this->jsonSrcTableItrerator == NULL ){
+        this->jsonSrcTableItrerator = json_object_iter( this->jsonRelation );
+        if( this->jsonSrcTableItrerator == NULL ) return false;
+
+        this->jsonRelationSrcTable = json_object_iter_value( this->jsonSrcTableItrerator );
+        this->jsonRelationIndex = -1;
+    }
+
 // next in the array
     this->jsonRelationIndex++;
 
 // get the next related table ( if possible )
     jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
+
+// NULL if no more relation is inside -> next table
     if( jsonRelatedTable == NULL ){
 
     // next source table
@@ -279,60 +244,25 @@ bool doDBRelation::             relationGetNext( const char **srcTable, const ch
 }
 
 
-bool doDBRelation::             relatedTableGetFirst( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
 
-// check
-    if( srcTable == NULL ) return false;
+bool doDBRelation::             relatedTableGetNext( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
 
 
 // vars
     json_t      *jsonRelatedTable = NULL;
     json_t      *jsonValue = NULL;
 
-// get first related-table
-    this->jsonRelationSrcTable = json_object_get( this->jsonRelation, srcTable );
-    if( this->jsonRelationSrcTable == NULL ) return false;
+// start iteration ?
+    if( this->jsonSrcTableItrerator == NULL ){
+        this->jsonSrcTableItrerator = json_object_iter( this->jsonRelation );
+        if( this->jsonSrcTableItrerator == NULL ) return false;
 
-// reset arrayindex
-    this->jsonRelationIndex = 0;
-
-// get the table
-    jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
-    if( jsonRelatedTable == NULL ) return false;
-
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "srcColumn" );
-    if( srcColumn != NULL ){
-        *srcColumn = json_string_value(jsonValue);
+        this->jsonRelationSrcTable = json_object_get( this->jsonRelation, srcTable );
+        this->jsonRelationIndex = -1;
     }
 
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relTable" );
-    if( relatedTable != NULL ){
-        *relatedTable = json_string_value(jsonValue);
-    }
 
-// rel-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relColumn" );
-    if( relatedColumn != NULL ){
-        *relatedColumn = json_string_value(jsonValue);
-    }
-
-    return true;
-}
-
-
-
-
-
-bool doDBRelation::             relatedTableGetNext( const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
-
-
-// vars
-    json_t      *jsonRelatedTable = NULL;
-    json_t      *jsonValue = NULL;
-
-// get first related-table
+// no table present
     if( this->jsonRelationSrcTable == NULL ) return false;
 
 // reset arrayindex
@@ -364,22 +294,11 @@ bool doDBRelation::             relatedTableGetNext( const char **srcColumn, con
 }
 
 
-
-
-
-bool doDBRelation::             relatedTableFindFirst( const char *srcTable, const char **srcColumn, const char *relatedTable, const char **relatedColumn ){
+bool doDBRelation::             relatedTableFindNext( const char *srcTable, const char **srcColumn, const char *relatedTable, const char **relatedColumn ){
 
     const char *relatedTableLocal = NULL;
 
-// get first
-    if( relatedTableGetFirst(srcTable,srcColumn,&relatedTableLocal,relatedColumn) ){
-        if( QString(relatedTableLocal) == relatedTable ){
-            return true;
-        }
-    }
-
-
-    while( relatedTableGetNext(srcColumn,&relatedTableLocal,relatedColumn) ){
+    while( relatedTableGetNext(srcTable,srcColumn,&relatedTableLocal,relatedColumn) ){
         if( QString(relatedTableLocal) == relatedTable ){
             return true;
         }
@@ -389,19 +308,89 @@ bool doDBRelation::             relatedTableFindFirst( const char *srcTable, con
 }
 
 
-bool doDBRelation::             relatedTableFindNext( const char **srcColumn, const char *relatedTable, const char **relatedColumn ){
 
-    const char *relatedTableLocal = NULL;
 
-    while( relatedTableGetNext(srcColumn,&relatedTableLocal,relatedColumn) ){
-        if( QString(relatedTableLocal) == relatedTable ){
-            return true;
+bool doDBRelation::             relatedTableFindNext( const char **srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
+// nothing should be NULL
+    if( srcTable == NULL || srcColumn == NULL || relatedTable == NULL || relatedColumn == NULL ){
+        return false;
+    }
+
+findAgain:
+
+// vars
+    json_t*         jsonRelatedTable = NULL;
+    json_t*         jsonValue = NULL;
+    const char*     jsonValueChar = NULL;
+    std::string     jsonValueString;
+
+// start ?
+    if( this->jsonSrcTableItrerator ){
+        this->jsonSrcTableItrerator = json_object_iter( this->jsonRelation );
+        this->jsonRelationIndex = -1;
+    }
+//    this->jsonSrcTableItrerator = json_object_iter_next( this->jsonRelation, this->jsonSrcTableItrerator );
+
+
+// reset arrayindex
+    this->jsonRelationIndex = this->jsonRelationIndex + 1;
+
+// get the related table
+    jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
+
+// no related table, get next source table
+    if( jsonRelatedTable == NULL ){
+
+        this->jsonSrcTableItrerator = json_object_iter_next( this->jsonRelation, this->jsonSrcTableItrerator );
+        if( this->jsonSrcTableItrerator == NULL ) return false;
+
+        this->jsonRelationIndex = 0;
+        jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
+        if( jsonRelatedTable == NULL ) return false;
+    }
+
+
+// src-Table
+    jsonValueChar = json_object_iter_key(this->jsonSrcTableItrerator);
+    if( *srcTable != NULL ){
+        jsonValueString = jsonValueChar;
+        if( jsonValueString != *srcTable ){
+            goto findAgain;
         }
     }
 
-    return false;
-}
+// src-Column
+    jsonValue = json_object_get( jsonRelatedTable, "srcColumn" );
+    jsonValueChar = json_string_value(jsonValue);
+    if( *srcColumn != NULL ){
+        jsonValueString = jsonValueChar;
+        if( jsonValueString != *srcColumn ){
+            goto findAgain;
+        }
+    }
 
+// src-Column
+    jsonValue = json_object_get( jsonRelatedTable, "relTable" );
+    jsonValueChar = json_string_value(jsonValue);
+    if( *relatedTable != NULL ){
+        jsonValueString = jsonValueChar;
+        if( jsonValueString != *relatedTable ){
+            goto findAgain;
+        }
+    }
+
+// rel-Column
+    jsonValue = json_object_get( jsonRelatedTable, "relColumn" );
+    jsonValueChar = json_string_value(jsonValue);
+    if( *relatedColumn != NULL ){
+        jsonValueString = jsonValueChar;
+        if( jsonValueString != *relatedColumn ){
+            goto findAgain;
+        }
+    }
+
+
+}
 
 
 
@@ -493,8 +482,8 @@ bool doDBRelation::             dbDataGet( const char *connectionID, const char 
 
 
 // get the related columns
-    bool relationPresent = this->relatedTableFindFirst( srcTable, &srcColumn, relatedTable, &relColumn );
-    while( relationPresent ){
+    this->relationGetReset();
+    while( this->relatedTableFindNext( srcTable, &srcColumn, relatedTable, &relColumn ) ){
 
 
     // get all columns from selected row
@@ -521,7 +510,7 @@ bool doDBRelation::             dbDataGet( const char *connectionID, const char 
 
     // run the query
         if( etDBDriverDataGet( dbDriver, dbObject ) != etID_YES ) {
-            goto next;
+            continue;
         }
 
 
@@ -543,8 +532,6 @@ bool doDBRelation::             dbDataGet( const char *connectionID, const char 
 
         }
 
-        next:
-        relationPresent = this->relatedTableFindNext( &srcColumn, relatedTable, &relColumn );
 
     }
 
