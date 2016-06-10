@@ -47,16 +47,12 @@ private slots:
     void            onBtnTableEditClick();
     void            debugMessagesTrigger();
     void            treeElementClicked( QTreeWidgetItem * item, int column );
-    void            entryEditorItemSaveNew( etDBObject *dbObject, const char *tableName );
-    void            entryEditorItemChanged( etDBObject *dbObject, const char *tableName );
 
 private:
     Ui::doDBMainWindow          ui;
     doDBtree                    *dataTree;
     QLayout                     *itemViewLayout;
 
-    QString                     entryEditorConnID;
-    QString                     entryEditorLockID;
 
 
 };

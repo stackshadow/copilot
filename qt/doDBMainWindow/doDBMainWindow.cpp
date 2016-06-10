@@ -21,6 +21,7 @@
 //#include "qt/moc_doDBMainWindow.cpp"
 #include <QDebug>
 #include <QStackedWidget>
+#include <QSplitter>
 
 #include "main.h"
 #include "doDBConnection/doDBConnections.h"
@@ -42,20 +43,27 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
     doDBDebug::ptr->registerHistroyWidget( this->ui.historyMessages );
     this->ui.historyMessages->setVisible(false);
 
-
-
-
 // left - tree
     this->dataTree = new doDBtree( this );
-    this->ui.toolBox->addItem( this->dataTree, "Struktur" );
+    this->ui.structuredView->addWidget(this->dataTree);
     connect( this->dataTree, SIGNAL (itemClicked(QTreeWidgetItem*,int)), this, SLOT (treeElementClicked(QTreeWidgetItem*,int)));
 
 // right item view
     this->itemViewLayout = this->ui.itemView->layout();
 
 
+// setup splitter
+    this->ui.layoutWidgetContainer->removeWidget( this->ui.widgetContainerLeft );
+    this->ui.layoutWidgetContainer->removeWidget( this->ui.widgetContainerRight );
+    QSplitter *splitter = new QSplitter();
+    splitter->addWidget( this->ui.widgetContainerLeft );
+    splitter->addWidget( this->ui.widgetContainerRight );
+    this->ui.layoutWidgetContainer->addWidget( splitter );
+
+
+
 // init plugins
-    doDBPlugins::ptr->eventPrepareDashboard( this->ui.page->layout() );
+//    doDBPlugins::ptr->eventPrepareDashboard( this->ui.page->layout() );
     doDBPlugins::ptr->eventPrepareTree( this->dataTree );
     doDBPlugins::ptr->eventPrepareItemView( this->ui.itemView->layout() );
 
@@ -160,7 +168,7 @@ void doDBMainWindow::           connectionEditorShow(){
     connect( editor, SIGNAL (finished()), this, SLOT (connectionEditorHide()));
 
 // show the widget
-    this->ui.toolBox->setVisible(false);
+    this->ui.widgetContainerLeft->setVisible(false);
 
 
     this->ui.widgetContainerRight->addWidget( editor );
@@ -177,7 +185,7 @@ void doDBMainWindow::           connectionEditorHide(){
     delete widgetTemp;
 
 // enable the connections-editor-button
-    this->ui.toolBox->setVisible(true);
+    this->ui.widgetContainerLeft->setVisible(true);
     this->ui.widgetContainerRight->setVisible( true );
 
 
@@ -209,30 +217,6 @@ void doDBMainWindow::           onBtnTableEditClick(){
 
 }
 
-
-
-
-
-void doDBMainWindow::           entryEditorItemSaveNew( etDBObject *dbObject, const char *tableName ){
-
-    doDBConnection *connection = doDBConnections::ptr->connectionGet( this->entryEditorConnID.toUtf8() );
-    if( connection == NULL ) return;
-
-    connection->dbDataNew( tableName );
-
-
-}
-
-
-void doDBMainWindow::           entryEditorItemChanged( etDBObject *dbObject, const char *tableName ){
-
-    doDBConnection *connection = doDBConnections::ptr->connectionGet( this->entryEditorConnID.toUtf8() );
-    if( connection == NULL ) return;
-
-    connection->dbDataChange( tableName );
-
-
-}
 
 
 
