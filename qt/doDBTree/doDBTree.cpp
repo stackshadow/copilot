@@ -126,6 +126,46 @@ QTreeWidgetItem* doDBtree::             find( QTreeWidgetItem *parentItem, QStri
 }
 
 
+void doDBtree::                         disableAllTables( bool disable ){
+
+//vars
+    QTreeWidgetItem*        topLevelItem = NULL;
+    int                     topLevelItemCount = 0;
+    int                     topLevelItemIndex = 0;
+
+// iterate items
+    topLevelItemCount = this->topLevelItemCount();
+    for( topLevelItemIndex = 0; topLevelItemIndex < topLevelItemCount; topLevelItemIndex++ ){
+
+    // get item and disable it
+        topLevelItem = this->topLevelItem(topLevelItemIndex);
+        topLevelItem->setDisabled(disable);
+
+    }
+
+}
+
+
+void doDBtree::                         enableTable( QString tableName ){
+//vars
+    QTreeWidgetItem*        topLevelItem = NULL;
+    int                     topLevelItemCount = 0;
+    int                     topLevelItemIndex = 0;
+
+// iterate items
+    topLevelItemCount = this->topLevelItemCount();
+    for( topLevelItemIndex = 0; topLevelItemIndex < topLevelItemCount; topLevelItemIndex++ ){
+
+    // find item and enable it
+        topLevelItem = this->topLevelItem(topLevelItemIndex);
+        if( doDBtree::itemTableName(topLevelItem) == tableName ){
+            topLevelItem->setDisabled(false);
+            return;
+        }
+
+    }
+}
+
 
 int doDBtree::                          newItemType(){
     this->treeItemTypeLast++;
@@ -325,6 +365,9 @@ void doDBtree::                         collapsed( QTreeWidgetItem * item ){
     if( itemType == doDBtree::typeTable || itemType == doDBtree::typeEntry ){
         item->takeChildren();
     }
+
+// fire all plugins
+    doDBPlugins::ptr->eventTreeItemCollapsed( item );
 }
 
 QTreeWidgetItem* doDBtree::             findItem( QString parentTableName ){

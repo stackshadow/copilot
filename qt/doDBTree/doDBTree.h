@@ -46,6 +46,10 @@ public:
     QTreeWidgetItem*        append( QTreeWidgetItem *parentItem, QString displayName, QString table, QString connectionID, QString itemId, treeItemType itemType );
     QTreeWidgetItem*        find( QTreeWidgetItem *parentItem, QString displayName );
 
+    void                    disableAllTables( bool disable = true );
+    void                    enableTable( QString tableName );
+
+
 // request an new type or an new column
     int                     newItemType();
     int                     newTreeColumn( QString columnName, bool hide );
