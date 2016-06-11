@@ -41,7 +41,7 @@ void doDBPlugins::      append( doDBPlugin *dbPlugin ){
 
 
 // prepare stuff
-void doDBPlugins::      eventPrepareDashboard( QLayout *dashboardLayout ){
+void doDBPlugins::      eventPrepareToolBar( QLayout *layout ){
 
 // vars
     doDBPlugin *plugin = NULL;
@@ -50,7 +50,7 @@ void doDBPlugins::      eventPrepareDashboard( QLayout *dashboardLayout ){
     foreach( plugin, this->pluginList ){
 
     // run function
-        plugin->prepareDashboard( dashboardLayout );
+        plugin->prepareToolBar( layout );
 
     }
 
@@ -75,7 +75,7 @@ void doDBPlugins::      eventPrepareTree( doDBtree *dbTree ){
 }
 
 
-void doDBPlugins::      eventPrepareItemView( QLayout *itemViewLayout ){
+void doDBPlugins::      eventPrepareItemView( QLayout *layout ){
 
 // vars
     doDBPlugin *plugin = NULL;
@@ -84,7 +84,7 @@ void doDBPlugins::      eventPrepareItemView( QLayout *itemViewLayout ){
     foreach( plugin, this->pluginList ){
 
     // run function
-        plugin->prepareItemView( itemViewLayout );
+        plugin->prepareItemView( layout );
 
     }
 
@@ -151,6 +151,25 @@ void doDBPlugins::      eventTreeItemCollapsed( QTreeWidgetItem * item ){
 
     // run function
         if( plugin->dbTreeItemCollapsed( item ) != true ){
+            return;
+        }
+
+    }
+
+    return;
+}
+
+
+void doDBPlugins::      eventItemChanged( const char * columnName, const char * newColumnValue ){
+
+// vars
+    doDBPlugin *plugin = NULL;
+
+// iterate
+    foreach( plugin, this->pluginList ){
+
+    // run function
+        if( plugin->itemChanged( columnName, newColumnValue ) != true ){
             return;
         }
 

@@ -29,14 +29,16 @@ class doDBPlugin : public QObject {
         virtual ~doDBPlugin();
 
 // prepare stuff
-        virtual void prepareDashboard( QLayout *dashboardLayout ){ return; }
+        virtual void prepareToolBar( QLayout *layout ){ return; }
         virtual void prepareTree( doDBtree *dbTree ){ return; }
-        virtual void prepareItemView( QLayout *itemViewLayout ){ return; }
+        virtual void prepareItemView( QLayout *layout ){ return; }
 
 // events
         virtual bool dbTreeItemClicked( QTreeWidgetItem * item, int column ){ return true; }
         virtual bool dbTreeItemExpanded( QTreeWidgetItem * item ){ return true; }
         virtual bool dbTreeItemCollapsed( QTreeWidgetItem * item ){ return true; }
+
+        virtual bool itemChanged( const char * columnName, const char * newColumnValue ){ return true; }
 
 
 
