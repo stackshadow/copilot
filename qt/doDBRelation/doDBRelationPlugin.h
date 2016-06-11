@@ -31,7 +31,9 @@
 #include "db/etDBObjectTableColumn.h"
 #include "dbdriver/etDBDriver.h"
 
+
 #include "doDBPlugin/doDBPlugin.h"
+#include "doDBPlugin/doDBPlugins.h"
 #include "doDBTree/doDBTree.h"
 #include "doDBRelation.h"
 #include "doDBRelation/doDBRelationEditor.h"
@@ -46,18 +48,13 @@ public:
                             doDBRelationPlugin();
                             ~doDBRelationPlugin();
 
-// overloaded plugin functions
-// prepare stuff
-//  void                    prepareDashboard( QLayout *dashboardLayout );
+// overload
     void                    prepareTree( doDBtree *dbTree );
-    void                    prepareItemView( QLayout *itemViewLayout );
+    void                    prepareItemView( QLayout *layout );
 
-// events
     bool                    dbTreeItemClicked( QTreeWidgetItem * item, int column );
     bool                    dbTreeItemExpanded( QTreeWidgetItem * item );
     bool                    dbTreeItemCollapsed( QTreeWidgetItem * item );
-
-
 
 
 private slots:
@@ -88,12 +85,14 @@ private:
     QPushButton*            btnConnectRelationCancel;
     QLineEdit*              connectionTables;
 
-// remember thinls
+// remember thinks
+    QTreeWidgetItem*        srcItem;
     QString                 srcDislpayName;
     QString                 srcTable;
     QString                 srcItemID;
     QString                 srcColumn;
 
+    bool                    relSelected;
     QString                 relTable;
     QString                 relItemID;
     QString                 relColumn;

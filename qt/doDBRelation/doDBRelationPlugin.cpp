@@ -66,36 +66,36 @@ void doDBRelationPlugin::       prepareTree( doDBtree *dbTree ){
 }
 
 
-void doDBRelationPlugin::       prepareItemView( QLayout *itemViewLayout ){
+void doDBRelationPlugin::       prepareItemView( QLayout *layout ){
 
 
 // basic infos
     this->srcInfos = new QLineEdit();
     this->srcInfos->setReadOnly(true);
     this->srcInfos->setVisible( false );
-    itemViewLayout->addWidget( this->srcInfos );
+    layout->addWidget( this->srcInfos );
 
 // edit button
     this->btnEditRelations = new QPushButton( "Relation Bearbeiten" );
     this->btnEditRelations->setVisible( false );
     connect( this->btnEditRelations, SIGNAL(clicked()), this, SLOT(editorShow()) );
-    itemViewLayout->addWidget( this->btnEditRelations );
+    layout->addWidget( this->btnEditRelations );
 
 // connect button
     this->btnConnectRelation = new QPushButton( "Verbinden" );
     this->btnConnectRelation->setVisible( false );
     connect( this->btnConnectRelation, SIGNAL(clicked()), this, SLOT(connectionStart()) );
-    itemViewLayout->addWidget( this->btnConnectRelation );
+    layout->addWidget( this->btnConnectRelation );
 
     this->btnConnectRelationSave = new QPushButton( "Verbinden abschießen" );
     this->btnConnectRelationSave->setVisible( false );
     connect( this->btnConnectRelationSave, SIGNAL(clicked()), this, SLOT(connectionSave()) );
-    itemViewLayout->addWidget( this->btnConnectRelationSave );
+    layout->addWidget( this->btnConnectRelationSave );
 
     this->btnConnectRelationCancel = new QPushButton( "Verbinden abbrechen" );
     this->btnConnectRelationCancel->setVisible( false );
     connect( this->btnConnectRelationCancel, SIGNAL(clicked()), this, SLOT(connectionCancel()) );
-    itemViewLayout->addWidget( this->btnConnectRelationCancel );
+    layout->addWidget( this->btnConnectRelationCancel );
 
 
 
@@ -158,6 +158,7 @@ bool doDBRelationPlugin::       dbTreeItemClicked( QTreeWidgetItem * item, int c
 
         // remember
             this->connectionID = doDBtree::itemConnectionID( item );
+            this->srcItem = item;
             this->srcDislpayName = doDBtree::itemDisplayValue( item );
             this->srcTable = doDBtree::itemTableName( item );
             this->srcItemID = doDBtree::itemID( item );
@@ -346,11 +347,8 @@ void doDBRelationPlugin::       connectionStart(){
         this->dbTree->enableTable( relatedTable );
     }
 
-
-    QTreeWidgetItem *item = this->dbTree->topLevelItem(0);
-    item->setDisabled(true);
-
 // now we activate the connection-mode
+    this->relSelected = false;
     this->connectionMode = true;
 }
 
@@ -378,7 +376,7 @@ void doDBRelationPlugin::       connectionCheck(){
         if( etDBObjectTablePick( connection->dbObject, this->srcTable.toUtf8() ) != etID_YES ) return;
         if( etDBObjectTableColumnPrimaryGet( connection->dbObject, srcPrimaryKeyColumn ) != etID_YES ) return;
         if( QString(srcColumn) == srcPrimaryKeyColumn ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "You could not write to the primary column ! Fix your relation" );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Your action will overwrite the uuid of your source, this is forbidden !" );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
             this->btnConnectRelationSave->setVisible(false);
@@ -398,6 +396,8 @@ void doDBRelationPlugin::       connectionCheck(){
 
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Prepare to save column content of column '%s' from table '%s' to '%s'", relatedColumn, relatedTable, srcColumn );
         etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
+
+        this->relSelected = true;
 
 /*
     // request original column-data
@@ -432,12 +432,43 @@ void doDBRelationPlugin::       connectionCancel(){
     this->dbTree->disableAllTables(false);
 
 // disable connection mode
+    this->relSelected = false;
     this->connectionMode = false;
 }
 
 
 void doDBRelationPlugin::       connectionSave(){
+// no correct relation selected
+    if( this->relSelected != true ){
+        return;
+    }
 
+// get value of related column
+    doDBConnection *connection = NULL;
+    connection = doDBConnections::ptr->connectionGet( this->connectionID.toUtf8() );
+    if( connection == NULL ) return;
+
+// get related data
+    if( ! connection->dbDataGet( this->relTable.toUtf8(), this->relItemID.toUtf8() ) ) return;
+
+// get relColumn-Value
+    const char*     relColumnValueChar = NULL;
+    QString         relColumnValue;
+    if( etDBObjectValueGet( connection->dbObject, this->relColumn.toUtf8(), relColumnValueChar ) != etID_YES ) return;
+    relColumnValue = relColumnValueChar;
+
+// get source data
+    if( ! connection->dbDataGet( this->srcTable.toUtf8(), this->srcItemID.toUtf8() ) ) return;
+
+// set the src-column with the related-colum
+    etDBObjectValueSet( connection->dbObject, this->srcColumn.toUtf8(), relColumnValue.toUtf8() );
+    connection->dbDataChange( this->srcTable.toUtf8() );
+
+// finish
+    this->connectionCancel();
+
+// fire the plugins
+    doDBPlugins::ptr->eventTreeItemClicked( this->srcItem, 0 );
 }
 
 

@@ -38,14 +38,16 @@ public:
     void                    append( doDBPlugin *dbPlugin );
 
 // prepare stuff
-    void                    eventPrepareDashboard( QLayout *dashboardLayout );
+    void                    eventPrepareToolBar( QLayout *layout );
     void                    eventPrepareTree( doDBtree *dbTree );
-    void                    eventPrepareItemView( QLayout *itemViewLayout );
+    void                    eventPrepareItemView( QLayout *layout );
 
 // all events
     void                    eventTreeItemClicked( QTreeWidgetItem * item, int column );
     void                    eventTreeItemExpanded( QTreeWidgetItem * item );
     void                    eventTreeItemCollapsed( QTreeWidgetItem * item );
+    void                    eventItemChanged( const char * columnName, const char * newColumnValue );
+
 
 public:
     static doDBPlugins      *ptr;
