@@ -17,6 +17,20 @@
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
+      <widget class="QPushButton" name="btnNew">
+       <property name="text">
+        <string>Neu</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnCopy">
+       <property name="text">
+        <string>Kopieren</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QPushButton" name="btnEdit">
        <property name="text">
         <string>Bearbeiten</string>
@@ -26,13 +40,6 @@
        </property>
        <property name="checked">
         <bool>false</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnNew">
-       <property name="text">
-        <string>Neu</string>
        </property>
       </widget>
      </item>

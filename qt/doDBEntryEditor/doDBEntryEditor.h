@@ -71,6 +71,7 @@ private:
 private slots:
     void            btnEntryEditClicked( bool checked );
     void            btnEntryCreateClicked();
+    void            btnEntryCopyClicked();
     void            btnEntrySaveClicked();
     void            btnEntryDeleteReqClicked();
     void            btnEntryDeleteAckClicked();

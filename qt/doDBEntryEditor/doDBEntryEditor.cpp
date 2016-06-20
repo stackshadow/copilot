@@ -45,6 +45,7 @@ doDBEntryEditor::               doDBEntryEditor( QWidget *parent ) : QWidget(par
 // connections
     connect( this->ui.btnEdit, SIGNAL( toggled(bool) ), this, SLOT( btnEntryEditClicked(bool) ) );
     connect( this->ui.btnNew , SIGNAL (clicked()), this, SLOT( btnEntryCreateClicked() ) );
+    connect( this->ui.btnCopy , SIGNAL (clicked()), this, SLOT( btnEntryCopyClicked() ) );
     connect( this->ui.btnSave , SIGNAL (clicked()), this, SLOT( btnEntrySaveClicked() ) );
     connect( this->ui.btnDelete , SIGNAL (clicked()), this, SLOT( btnEntryDeleteReqClicked() ) );
     connect( this->ui.btnDeleteAck , SIGNAL (clicked()), this, SLOT( btnEntryDeleteAckClicked() ) );
@@ -236,6 +237,7 @@ void doDBEntryEditor::          showButtons(){
 
 // default
     this->ui.btnNew->setVisible(true);
+    this->ui.btnCopy->setVisible(true);
     this->ui.btnEdit->setVisible(true);
     this->ui.btnDelete->setVisible(true);
     this->ui.btnDeleteAck->setVisible(false);
@@ -251,6 +253,8 @@ void doDBEntryEditor::          showButtons(){
             break;
 
         case doDBEntryEditor::modeCreate:
+            this->ui.btnNew->setVisible(false);
+            this->ui.btnCopy->setVisible(false);
             this->ui.btnEdit->setVisible(false);
             this->ui.btnDelete->setVisible(false);
             this->ui.btnSave->setVisible(true);
@@ -259,6 +263,7 @@ void doDBEntryEditor::          showButtons(){
 
         case doDBEntryEditor::modeEdit:
             this->ui.btnNew->setVisible(false);
+            this->ui.btnCopy->setVisible(false);
             this->ui.btnDelete->setVisible(false);
             this->ui.tableWidget->setEditTriggers( QAbstractItemView::AllEditTriggers );
             this->ui.btnSave->setVisible(true);
@@ -266,6 +271,7 @@ void doDBEntryEditor::          showButtons(){
 
         case doDBEntryEditor::modeRemove:
             this->ui.btnNew->setVisible(false);
+            this->ui.btnCopy->setVisible(false);
             this->ui.btnEdit->setVisible(false);
             this->ui.btnDeleteAck->setVisible(false);
             this->ui.btnDeleteCancel->setVisible(true);
@@ -273,6 +279,7 @@ void doDBEntryEditor::          showButtons(){
 
         default:
             this->ui.btnNew->setVisible(false);
+            this->ui.btnCopy->setVisible(false);
             this->ui.btnEdit->setVisible(false);
             this->ui.btnDelete->setVisible(false);
             break;
@@ -324,6 +331,15 @@ void doDBEntryEditor::          btnEntryEditClicked( bool checked ){
 
 void doDBEntryEditor::          btnEntryCreateClicked(){
 
+// clear all values
+    this->valueCleanAll();
+
+// copy the empty stuff
+    this->btnEntryCopyClicked();
+
+}
+
+void doDBEntryEditor::          btnEntryCopyClicked(){
 // vars
     int                     rowIndex = 0;
     QTableWidgetItem        *item = NULL;
@@ -340,7 +356,6 @@ void doDBEntryEditor::          btnEntryCreateClicked(){
 // set the mode to create
     this->editMode = modeCreate;
     this->showButtons();
-
 }
 
 void doDBEntryEditor::          btnEntrySaveClicked(){
