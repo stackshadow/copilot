@@ -52,7 +52,7 @@ sourcesUI =
 # from here on, you can add your own variables
 
 
-sourcePath	= $(PWD)
+sourcePath	= ./
 buildPath   = /tmp/dodb/build
 targetPath  = /tmp/dodb/target
 
@@ -66,6 +66,8 @@ sourcesQT   += ./src/main.cpp
 sourcesQT   += ./qt/doDBDebug/doDBDebug.cpp
 
 sourcesQT   += ./qt/doDBSettings/doDBSettings.cpp
+
+sourcesQT   += ./qt/doDBEntry/doDBEntry.cpp
 
 sourcesQT   += ./qt/doDBMainWindow/doDBMainWindow.cpp
 sourcesUI   += ./qt/doDBMainWindow/doDBMainWindowUi.ui

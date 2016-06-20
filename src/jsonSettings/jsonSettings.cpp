@@ -48,25 +48,7 @@ bool jsonSettings::             open( const char *fileName ){
 // check if file exist
     FILE *fp = fopen( fileName, "r" );
     if( fp == NULL ){
-
-    // okay try to create the file
-        fp = fopen( fileName, "w" );
-        if( fp == NULL ){
-            fprintf( stderr, "Error opening config file '%s': %s", fileName, strerror(errno) );
-            exit(-1);
-        }
-
-        fclose(fp);
-
-    // create json root
-        this->jsonRoot = json_object();
-
-    // save it one time
-        if( json_dump_file( this->jsonRoot, json_string_value(this->jsonFilename), JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
-            return true;
-        }
-
-        exit(-1);
+        return false;
     }
     fclose(fp);
 
@@ -75,6 +57,29 @@ bool jsonSettings::             open( const char *fileName ){
     if( this->jsonRoot == NULL ) return false;
 
     return true;
+}
+
+
+bool jsonSettings::             createFile( const char *fileName ){
+
+// okay try to create the file
+    FILE *fp = fopen( fileName, "w" );
+    if( fp == NULL ){
+        fprintf( stderr, "Error opening config file '%s': %s", fileName, strerror(errno) );
+        exit(-1);
+    }
+
+    fclose(fp);
+
+// create json root
+    this->jsonRoot = json_object();
+
+// save it one time
+    if( json_dump_file( this->jsonRoot, json_string_value(this->jsonFilename), JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
+        return true;
+    }
+
+    return false;
 }
 
 

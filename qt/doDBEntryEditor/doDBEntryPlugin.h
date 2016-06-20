@@ -45,21 +45,22 @@ public:
                             doDBEntryPlugin();
                             ~doDBEntryPlugin();
 
-// overloaded plugin functions
-// prepare stuff
-//  void                    prepareDashboard( QLayout *dashboardLayout );
-//  void                    prepareTree( doDBtree *dbTree );
-    void                    prepareItemView( QLayout *itemViewLayout );
+// overload
+    void                    prepareItemView( QLayout *layout );
+    bool                    dbTreeItemClicked( doDBEntry *entry );
 
-// events
-    bool                    dbTreeItemClicked( QTreeWidgetItem * item, int column );
-//  bool                    dbTreeItemExpanded( QTreeWidgetItem * item );
-//  bool                    dbTreeItemCollapsed( QTreeWidgetItem * item );
+
+
+public slots:
+    void                    entryEditStart( etDBObject *dbObject, const char *tableName );
+    void                    entryEditAbort( etDBObject *dbObject, const char *tableName );
+    void                    entryEditorItemSaveNew( etDBObject *dbObject, const char *tableName );
+    void                    entryEditorItemChanged( etDBObject *dbObject, const char *tableName );
+    void                    entryEditorItemDelete( etDBObject *dbObject, const char *tableName, const char *itemID );
 
 private:
+    doDBEntry*              selectedEntry;
     doDBEntryEditor*        dbEntryEditor;
-    QString                 connectionID;
-    doDBConnection*         connection;
 
 
 

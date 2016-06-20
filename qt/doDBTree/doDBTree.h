@@ -48,6 +48,7 @@ public:
 
     void                    disableAllTables( bool disable = true );
     void                    enableTable( QString tableName );
+    void                    enableTableItem( QString tableName );
 
 
 // request an new type or an new column
@@ -75,6 +76,7 @@ public:
 private slots:
     void                    expand( QTreeWidgetItem * item );
     void                    collapsed( QTreeWidgetItem * item );
+    void                    clicked( QTreeWidgetItem * item, int column );
 
 public:
     static void             callbackTableAdd( void *userdata, const char *connID, const char *tableName, const char *tableDisplayName );

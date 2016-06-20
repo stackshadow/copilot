@@ -32,6 +32,7 @@
 #include "dbdriver/etDBDriver.h"
 
 #include "doDBTree/doDBTree.h"
+#include "doDBConnection/doDBConnection.h"
 
 
 class doDBRelation {
@@ -52,19 +53,21 @@ public:
     bool                    relationGetNext( const char **srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
     bool                    relatedTableGetNext( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
     bool                    relatedTableFindNext( const char *srcTable, const char **srcColumn, const char *relatedTable, const char **relatedColumn );
+    bool                    relatedTableFindNext( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
 
-    bool                    relatedTableFindNext( const char **srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn );
-
-    bool                    dbRelationLoad( const char *connectionID );
-    bool                    dbRelationSave( const char *connectionID );
+    bool                    dbRelationLoad( doDBConnection* connection );
+    bool                    dbRelationSave( doDBConnection* connection );
     bool                    dbDataGet( const char *connectionID, const char *srcTable, const char *srcTableItemID, const char *relatedTable, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) );
 
 private:
 
+// remember which connection was loaded
+    doDBConnection*         loadedConnection;
+
 // basic
-    json_t                  *jsonRelation;
-    void                    *jsonSrcTableItrerator;
-    json_t                  *jsonRelationSrcTable;
+    json_t*                 jsonRelation;
+    void*                   jsonSrcTableItrerator;
+    json_t*                 jsonRelationSrcTable;
     int                     jsonRelationIndex;
 
 

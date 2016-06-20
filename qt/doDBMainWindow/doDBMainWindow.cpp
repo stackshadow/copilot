@@ -27,6 +27,7 @@
 #include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnectionEditor.h"
 #include "doDBFile/doDBFile.h"
+#include "doDBEntry/doDBEntry.h"
 
 #include "doDBPlugin/doDBPlugins.h"
 #include "doDBRelation/doDBRelationPlugin.h"
@@ -46,7 +47,6 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
 // left - tree
     this->dataTree = new doDBtree( this );
     this->ui.structuredView->addWidget(this->dataTree);
-    connect( this->dataTree, SIGNAL (itemClicked(QTreeWidgetItem*,int)), this, SLOT (treeElementClicked(QTreeWidgetItem*,int)));
 
 // right item view
     this->itemViewLayout = this->ui.itemView->layout();
@@ -68,10 +68,6 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
     doDBPlugins::ptr->eventPrepareItemView( this->ui.itemView->layout() );
 
 
-// load plugins
-    doDBFile *dbFile = new doDBFile();
-    dbFile->doDBTreeInit( this->dataTree );
-    dbFile->doDBItemViewInit( this->itemViewLayout );
 
 
 // toolbar
@@ -106,56 +102,6 @@ void doDBMainWindow::           treeUpdate(){
     this->dataTree->setSortingEnabled(true);
     this->dataTree->resizeColumnToContents(0);
     this->dataTree->setEnabled( true );
-}
-
-
-
-
-
-
-void doDBMainWindow::           treeElementClicked( QTreeWidgetItem * item, int column ){
-
-    // vars
-    doDBConnection              *connection;
-    QString                     tableName;
-    QString                     connectionID;
-    QString                     itemID;
-    doDBtree::treeItemType      itemType;
-    etDBObject                  *dbObject;
-
-// get Stuff from the selected item
-    tableName = doDBtree::itemTableName( item );
-    connectionID = doDBtree::itemConnectionID( item );
-    itemID = doDBtree::itemID( item );
-    itemType = doDBtree::itemType( item );
-
-
-// before WE doing something with it, call all plugins
-    doDBPlugins::ptr->eventTreeItemClicked( item, column );
-
-
-/*
-    this->entryEditor->setEnabled(true);
-
-// basic info about selected item in the tree
-    QString connectionID = doDBtree::connectionID( item );
-    QString primaryKeyValue = doDBtree::itemID( item );
-    QString tableName = doDBtree::tableName( item );
-
-// get connection id
-    doDBConnection      *connection = doDBCore->connectionGet( connectionID.toUtf8() );
-    if( connection == NULL ) return;
-
-// show it in the editor
-    this->entryEditor->showEntry( connection, tableName, primaryKeyValue );
-
-*/
-
-
-
-
-
-
 }
 
 

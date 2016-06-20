@@ -46,7 +46,6 @@ private slots:
     void            connectionEditorHide();
     void            onBtnTableEditClick();
     void            debugMessagesTrigger();
-    void            treeElementClicked( QTreeWidgetItem * item, int column );
 
 private:
     Ui::doDBMainWindow          ui;

@@ -158,6 +158,7 @@ public:
 
         btnColumnDelete = new QPushButton(groupColumns);
         btnColumnDelete->setObjectName(QStringLiteral("btnColumnDelete"));
+        btnColumnDelete->setEnabled(false);
 
         verticalLayout_4->addWidget(btnColumnDelete);
 

@@ -42,7 +42,8 @@ class doDBConnection
 public:
     enum connectionType {
         CONN_NOTHING = 0,
-        CONN_SQLITE
+        CONN_SQLITE,
+        CONN_POSTGRES
     };
 
 public:
@@ -97,6 +98,7 @@ public:
     bool                    dbDataGet( const char *table, const char *tableItemID, void *userdata, void (*callback)( void *userdata, const char *columnName, const char *columnValue ) );
     bool                    dbDataNew( const char *tableName );
     bool                    dbDataChange( const char *tableName );
+    bool                    dbDataDelete( const char *table, const char *tableItemID );
 
 
     bool                    dbDoDBValueGet( const char *key, const char **value );
@@ -129,7 +131,16 @@ private:
     connectionType          type;
     etString                *uuid;
     etString                *displayName;
+
+public:
     QString                 fileName;
+    QString                 hostname;
+    QString                 hostip;
+    QString                 port;
+    QString                 database;
+    QString                 username;
+    QString                 password;
+
 
 public:
 // database stuff

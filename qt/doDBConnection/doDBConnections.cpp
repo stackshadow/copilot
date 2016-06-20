@@ -156,8 +156,48 @@ void doDBConnections::                      connectionsLoad(){
         jsonValue = json_object_get( jsonConnection, "filename" );
         if( jsonValue != NULL ){
             tempValue = json_string_value(jsonValue);
+            connection->fileNameSet( tempValue );
         }
-        connection->fileNameSet( tempValue );
+
+        jsonValue = json_object_get( jsonConnection, "hostname" );
+        if( jsonValue != NULL ){
+            tempValue = json_string_value(jsonValue);
+            connection->hostname = tempValue;
+        }
+
+        jsonValue = json_object_get( jsonConnection, "hostip" );
+        if( jsonValue != NULL ){
+            tempValue = json_string_value(jsonValue);
+            connection->hostip = tempValue;
+        }
+
+        jsonValue = json_object_get( jsonConnection, "port" );
+        if( jsonValue != NULL ){
+            tempValue = json_string_value(jsonValue);
+            connection->port = tempValue;
+        }
+
+        jsonValue = json_object_get( jsonConnection, "database" );
+        if( jsonValue != NULL ){
+            tempValue = json_string_value(jsonValue);
+            connection->database = tempValue;
+        }
+
+        jsonValue = json_object_get( jsonConnection, "username" );
+        if( jsonValue != NULL ){
+            tempValue = json_string_value(jsonValue);
+            connection->username = tempValue;
+        }
+
+        jsonValue = json_object_get( jsonConnection, "password" );
+        if( jsonValue != NULL ){
+            tempValue = json_string_value(jsonValue);
+            connection->password = tempValue;
+        }
+
+
+
+
 
 
         this->connectionAppend( connection );
@@ -187,6 +227,13 @@ void doDBConnections::                      connectionsSave(){
         json_object_set_new( jsonConnection, "type", json_integer(connection->typeGet()) );
         json_object_set_new( jsonConnection, "displayName", json_string(connection->displayNameGet() ) );
         json_object_set_new( jsonConnection, "filename", json_string(connection->fileNameGet().toUtf8() ) );
+
+        json_object_set_new( jsonConnection, "hostname", json_string(connection->hostname.toUtf8() ) );
+        json_object_set_new( jsonConnection, "hostip", json_string(connection->hostip.toUtf8() ) );
+        json_object_set_new( jsonConnection, "port", json_string(connection->port.toUtf8() ) );
+        json_object_set_new( jsonConnection, "database", json_string(connection->database.toUtf8() ) );
+        json_object_set_new( jsonConnection, "username", json_string(connection->username.toUtf8() ) );
+        json_object_set_new( jsonConnection, "password", json_string(connection->password.toUtf8() ) );
 
         json_object_set_new( doDBSettingsGlobal->jsonGroup, connection->UUIDGet(), jsonConnection );
 

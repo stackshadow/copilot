@@ -48,5 +48,6 @@
 #include "dbdriver/etDBSQL.c"
 #include "dbdriver/etDBDriver.c"
 #include "dbdriver/etDBSQLite.c"
+#include "dbdriver/etDBPSQL.c"
 
 #undef ET_INTERNAL

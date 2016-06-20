@@ -30,6 +30,7 @@
 #include "db/etDBObjectValue.h"
 #include "dbdriver/etDBDriver.h"
 #include "dbdriver/etDBSQLite.h"
+#include "dbdriver/etDBPSQL.h"
 
 #include "doDBConnections.h"
 
@@ -167,6 +168,31 @@ bool doDBConnection::               connect(){
 
     }
 
+// postgres
+    if( this->type == doDBConnection::CONN_POSTGRES ){
+
+    // check if the driver is already there
+        if( this->dbDriver != NULL ) return false;
+
+    // allocate memory for the driver
+        this->dbDriver = (etDBDriver*)malloc( sizeof(etDBDriver) );
+        memset( this->dbDriver, 0, sizeof(etDBDriver) );
+
+    // init postgres
+        etDBPSQLDriverInit( this->dbDriver,
+                           this->hostname.toUtf8(),
+                           this->hostip.toUtf8(),
+                           this->port.toUtf8(),
+                           this->username.toUtf8(),
+                           this->password.toUtf8(),
+                           this->database.toUtf8(),
+                           "require"
+                           );
+
+        doDBDebug::ptr->print( QString("%1: Init POSTGRESQL %2").arg(displayName).arg(this->fileName) );
+
+    }
+
 // connect
     etDBDriverConnect( this->dbDriver );
 
@@ -180,20 +206,31 @@ bool doDBConnection::               connect(){
 
 // load the version of the db
     if( this->dbDoDBValueGet("doDBVersion",&doDBCoreVersion) != true ){
-        this->doDBVersion = doDBCoreVersion;
+
+    // create do DB
+        etDBObjectTablePick( dbObjectCore, "doDB" );
+        etDBDriverTableAdd( this->dbDriver, dbObjectCore );
+
+    // create doDBVersion
+        if( this->dbDoDBValueGet( "doDBVersion",&doDBCoreVersion ) != true ){
+            exit(-1);
+        }
+
+        doDBCoreVersion = "001";
+
+        if( this->dbDoDBValueSet( "doDBVersion", doDBCoreVersion ) != true ){
+            exit(-1);
+        }
+
     }
+
+    this->doDBVersion = doDBCoreVersion;
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "%1: Version of doDB: %2", displayName, this->doDBVersion.toUtf8() );
     etDebugMessage( etID_LEVEL_DETAIL_DB, etDebugTempMessage );
 
 
 // load dbObject from db
     this->dbObjectLoad();
-
-
-
-// test
-    //this->relatedTableAppend( "storage", "storage", "parentID", "uuid" );
-    //this->dbRelationSave();
 
 
     return true;
@@ -218,7 +255,7 @@ etID_STATE doDBConnection::         queryAck( etDBDriver *dbDriver, etDBObject *
     const char *queryChar;
     etStringCharGet( sqlquery, queryChar );
 
-    doDBDebug::ptr->print( queryChar );
+
 
     return etID_YES;
 }
@@ -607,6 +644,35 @@ bool doDBConnection::               dbDataChange( const char *tableName ){
 
 // change data
     etDBDriverDataChange( this->dbDriver, this->dbObject );
+
+    return true;
+}
+
+
+bool doDBConnection::               dbDataDelete( const char *table, const char *tableItemID ){
+// check if connected
+    if( this->isConnected() == false ){
+        return false;
+    }
+
+// vars
+    const char      *primaryColumn = NULL;
+
+// pick table
+    if( etDBObjectTablePick( this->dbObject, table ) != etID_YES ){
+        return false;
+    }
+
+// get primary column
+   if( etDBObjectTableColumnPrimaryGet( this->dbObject, primaryColumn ) != etID_YES ){
+        return false;
+    }
+
+    etDBObjectValueClean( this->dbObject );
+    etDBObjectValueSet( this->dbObject, primaryColumn, tableItemID );
+
+// remove the data
+    if( etDBDriverDataRemove( this->dbDriver, this->dbObject ) != etID_YES ) return false;
 
     return true;
 }

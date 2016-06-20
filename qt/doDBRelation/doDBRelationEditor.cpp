@@ -212,6 +212,10 @@ void doDBRelationEditor::       srcTableSelected( int selectedItem ){
 // get table name
     QString             tableName = this->ui.cBoxSrcTable->currentData().toString();
 
+// clean table
+    this->ui.tblSrcColumns->clear();
+    this->ui.tblSrcColumns->setRowCount(0);
+
     this->fillTableWithColumns( tableName.toUtf8(), this->ui.tblSrcColumns );
 
 }
@@ -221,6 +225,10 @@ void doDBRelationEditor::       relTableSelected( int selectedItem ){
 
 // get table name
     QString             tableName = this->ui.cBoxRelTable->currentData().toString();
+
+// clean table
+    this->ui.tblRelColumns->clear();
+    this->ui.tblRelColumns->setRowCount(0);
 
     this->fillTableWithColumns( tableName.toUtf8(), this->ui.tblRelColumns );
 

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>782</width>
+    <width>1080</width>
     <height>482</height>
    </rect>
   </property>
@@ -118,15 +118,29 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
-        <item>
+       <layout class="QGridLayout" name="gridLayout" columnstretch="0,0" columnminimumwidth="0,0">
+        <item row="0" column="0">
          <widget class="QLabel" name="labelConnectionID">
           <property name="text">
            <string>ID</string>
           </property>
          </widget>
         </item>
-        <item>
+        <item row="2" column="0">
+         <widget class="QLabel" name="labelConnectionDisplayName">
+          <property name="text">
+           <string>Anzeigename</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QLabel" name="labelUserName">
+          <property name="text">
+           <string>Benutzername</string>
+          </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
          <widget class="QLineEdit" name="lineEditConnectionID">
           <property name="enabled">
            <bool>false</bool>
@@ -142,18 +156,7 @@
           </property>
          </widget>
         </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
-        <item>
-         <widget class="QLabel" name="labelConnectionDisplayName">
-          <property name="text">
-           <string>Anzeigename</string>
-          </property>
-         </widget>
-        </item>
-        <item>
+        <item row="2" column="1">
          <widget class="QLineEdit" name="lineEditConnectionDisplayName">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -163,25 +166,78 @@
           </property>
          </widget>
         </item>
+        <item row="5" column="1">
+         <widget class="QLineEdit" name="lineEditUserName"/>
+        </item>
+        <item row="4" column="1">
+         <widget class="QLabel" name="label_2">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <italic>false</italic>
+           </font>
+          </property>
+          <property name="text">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Der Anzeigename wird überall in der Applikation &lt;br/&gt;angezeigt und ist frei wählbar&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+         </widget>
+        </item>
+        <item row="1" column="1">
+         <widget class="QLabel" name="label_4">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <italic>false</italic>
+           </font>
+          </property>
+          <property name="text">
+           <string>Wird automatisch erzeugt.</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+         </widget>
+        </item>
+        <item row="6" column="1">
+         <widget class="QLabel" name="label_3">
+          <property name="enabled">
+           <bool>true</bool>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>10</pointsize>
+            <italic>false</italic>
+           </font>
+          </property>
+          <property name="text">
+           <string>Dein Benutzername</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+          </property>
+         </widget>
+        </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_2">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Maximum" vsizetype="Preferred">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Der Anzeigename wird überall in &lt;br/&gt;der Applikation angezeigt und ist frei wählbar&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-        </property>
-       </widget>
       </item>
       <item>
        <widget class="QTabWidget" name="tabConnections">
         <property name="currentIndex">
-         <number>0</number>
+         <number>1</number>
         </property>
         <widget class="QWidget" name="sqlite">
          <attribute name="title">
@@ -215,6 +271,70 @@
              </widget>
             </item>
            </layout>
+          </item>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="pgsql">
+         <attribute name="title">
+          <string>Postgresql</string>
+         </attribute>
+         <layout class="QGridLayout" name="gridLayout_2">
+          <item row="1" column="0">
+           <widget class="QLabel" name="labelPQIP">
+            <property name="text">
+             <string>IP</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="0">
+           <widget class="QLabel" name="labelPQServer">
+            <property name="text">
+             <string>Server</string>
+            </property>
+           </widget>
+          </item>
+          <item row="0" column="1">
+           <widget class="QLineEdit" name="lineEditPQServer"/>
+          </item>
+          <item row="1" column="1">
+           <widget class="QLineEdit" name="lineEditPQIP"/>
+          </item>
+          <item row="2" column="0">
+           <widget class="QLabel" name="labelPQPort">
+            <property name="text">
+             <string>Port</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="0">
+           <widget class="QLabel" name="labelPQDB">
+            <property name="text">
+             <string>Datenbank</string>
+            </property>
+           </widget>
+          </item>
+          <item row="5" column="0">
+           <widget class="QLabel" name="labelPQPassword">
+            <property name="text">
+             <string>Passwort</string>
+            </property>
+           </widget>
+          </item>
+          <item row="2" column="1">
+           <widget class="QLineEdit" name="lineEditPQPort"/>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLineEdit" name="lineEditPQDB"/>
+          </item>
+          <item row="5" column="1">
+           <widget class="QLineEdit" name="lineEditPQPassword">
+            <property name="inputMethodHints">
+             <set>Qt::ImhHiddenText|Qt::ImhNoAutoUppercase|Qt::ImhNoPredictiveText|Qt::ImhSensitiveData</set>
+            </property>
+            <property name="echoMode">
+             <enum>QLineEdit::Password</enum>
+            </property>
+           </widget>
           </item>
          </layout>
         </widget>

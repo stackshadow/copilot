@@ -97,9 +97,9 @@ void doDBPlugins::      eventPrepareItemView( QLayout *layout ){
 
 
 // all events
-void doDBPlugins::      eventTreeItemClicked( QTreeWidgetItem * item, int column ){
+void doDBPlugins::      eventTreeItemClicked( doDBEntry* entry ){
 // only if item is enabled
-    if( item->isDisabled() ) return;
+    if( entry->treeWidgetItemEnabled() == false ) return;
 
 // vars
     doDBPlugin *plugin = NULL;
@@ -108,7 +108,7 @@ void doDBPlugins::      eventTreeItemClicked( QTreeWidgetItem * item, int column
     foreach( plugin, this->pluginList ){
 
     // run function
-        if( plugin->dbTreeItemClicked( item, column ) != true ){
+        if( plugin->dbTreeItemClicked( entry ) != true ){
             return;
         }
 
@@ -118,9 +118,9 @@ void doDBPlugins::      eventTreeItemClicked( QTreeWidgetItem * item, int column
 }
 
 
-void doDBPlugins::      eventTreeItemExpanded( QTreeWidgetItem * item ){
+void doDBPlugins::      eventTreeItemExpanded( doDBEntry* entry ){
 // only if item is enabled
-    if( item->isDisabled() ) return;
+    if( entry->treeWidgetItemEnabled() == false ) return;
 
 // vars
     doDBPlugin *plugin = NULL;
@@ -129,7 +129,7 @@ void doDBPlugins::      eventTreeItemExpanded( QTreeWidgetItem * item ){
     foreach( plugin, this->pluginList ){
 
     // run function
-        if( plugin->dbTreeItemExpanded( item ) != true ){
+        if( plugin->dbTreeItemExpanded( entry ) != true ){
             return;
         }
 
@@ -139,9 +139,9 @@ void doDBPlugins::      eventTreeItemExpanded( QTreeWidgetItem * item ){
 }
 
 
-void doDBPlugins::      eventTreeItemCollapsed( QTreeWidgetItem * item ){
+void doDBPlugins::      eventTreeItemCollapsed( doDBEntry* entry ){
 // only if item is enabled
-    if( item->isDisabled() ) return;
+    if( entry->treeWidgetItemEnabled() == false ) return;
 
 // vars
     doDBPlugin *plugin = NULL;
@@ -150,7 +150,7 @@ void doDBPlugins::      eventTreeItemCollapsed( QTreeWidgetItem * item ){
     foreach( plugin, this->pluginList ){
 
     // run function
-        if( plugin->dbTreeItemCollapsed( item ) != true ){
+        if( plugin->dbTreeItemCollapsed( entry ) != true ){
             return;
         }
 

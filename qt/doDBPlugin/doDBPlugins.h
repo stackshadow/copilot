@@ -43,9 +43,9 @@ public:
     void                    eventPrepareItemView( QLayout *layout );
 
 // all events
-    void                    eventTreeItemClicked( QTreeWidgetItem * item, int column );
-    void                    eventTreeItemExpanded( QTreeWidgetItem * item );
-    void                    eventTreeItemCollapsed( QTreeWidgetItem * item );
+    void                    eventTreeItemClicked( doDBEntry* entry );
+    void                    eventTreeItemExpanded( doDBEntry* entry );
+    void                    eventTreeItemCollapsed( doDBEntry* entry );
     void                    eventItemChanged( const char * columnName, const char * newColumnValue );
 
 

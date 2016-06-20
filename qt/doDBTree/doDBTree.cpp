@@ -167,6 +167,40 @@ void doDBtree::                         enableTable( QString tableName ){
 }
 
 
+void doDBtree::                         enableTableItem( QString tableName ){
+//vars
+    QTreeWidgetItem*        topLevelItem = NULL;
+    int                     topLevelItemCount = 0;
+    int                     topLevelItemIndex = 0;
+
+// get all items with the table name
+    QList<QTreeWidgetItem*>     itemList = this->findItems( tableName, Qt::MatchExactly | Qt::MatchRecursive, 3 );
+    QTreeWidgetItem*            item;
+    doDBtree::treeItemType      itemType = doDBtree::typeNothing;
+
+
+
+    foreach( item, itemList ){
+
+        itemType = doDBtree::itemType(item);
+        if( itemType == doDBtree::typeEntry ){
+
+            topLevelItem = item->parent();
+            while( topLevelItem != NULL ){
+                topLevelItem->setDisabled(false);
+                topLevelItem = topLevelItem->parent();
+            }
+
+            item->setDisabled(false);
+
+        }
+
+    }
+
+
+}
+
+
 int doDBtree::                          newItemType(){
     this->treeItemTypeLast++;
     return this->treeItemTypeLast++;
@@ -225,9 +259,15 @@ QString doDBtree::                      itemConnectionID( QTreeWidgetItem *treeI
 // if no item is passed, we use the selecte
     if( treeItem == NULL ) return "";
 
-    return treeItem->text(2);
+    QString             connectionID;
+    QTreeWidgetItem*    parentItem = treeItem->parent();
 
-    return "";
+    connectionID = treeItem->text(2);
+    while( connectionID == "" && parentItem != NULL ){
+        connectionID = parentItem->text(2);
+    }
+
+    return connectionID;
 }
 
 QString doDBtree::                      itemTableName(){
@@ -317,57 +357,113 @@ void doDBtree::                         refresh(){
 void doDBtree::                         expand( QTreeWidgetItem * item ){
 
 // vars
+    QString                     lockID = "doDBTree";
     doDBConnection              *connection;
-    QString                     tableName;
-    QString                     connectionID;
-    QString                     itemID;
     doDBtree::treeItemType      itemType;
 
     this->selectedItem = item;
 
-// get Stuff from the selected item
-    tableName = this->itemTableName();
-    connectionID = this->itemConnectionID();
-    itemID = this->itemID();
-    itemType = this->itemType();
+
+// save the entry to global
+    doDBEntry *dbEntry = new doDBEntry();
+    doDBEntry::connectionIDSet( &dbEntry, doDBtree::itemConnectionID( item ) );
+    doDBEntry::itemSet( &dbEntry, doDBtree::itemTableName( item ), doDBtree::itemID( item ), doDBtree::itemType( item ) );
+    doDBEntry::treeWidgetItemSet( &dbEntry, item );
+    doDBEntry::treeWidgetItemEnabledSet( &dbEntry, ! item->isDisabled() );
+    dbEntry->incRef();
+
+
+    itemType = (doDBtree::treeItemType)doDBtree::itemType( item );
 
 // if selected item is a table
     if( itemType == doDBtree::typeTable ){
 
     // item is selected
-        connection = doDBConnections::ptr->connectionGet( connectionID.toUtf8() );
+        connection = dbEntry->connection();
         if( connection == NULL ){
             return;
         }
 
-        connection->dbDataGet( tableName.toUtf8(), this, doDBtree::callbackEntryAdd );
+        connection->dbDataGet( doDBtree::itemTableName( item ).toUtf8(), this, doDBtree::callbackEntryAdd );
 
 
     }
 
 // call the plugins
-    doDBPlugins::ptr->eventTreeItemExpanded( item );
+    doDBPlugins::ptr->eventTreeItemExpanded( dbEntry );
 
-
+    dbEntry->decRef();
 }
 
 void doDBtree::                         collapsed( QTreeWidgetItem * item ){
 
+
 // vars
+    QString                     lockID = "doDBTree";
+    doDBConnection              *connection;
     doDBtree::treeItemType      itemType;
 
-// set selected item
     this->selectedItem = item;
 
 
-    itemType = this->itemType();
+
+// save the entry to global
+    doDBEntry *dbEntry = new doDBEntry();
+    doDBEntry::connectionIDSet( &dbEntry, doDBtree::itemConnectionID( item ) );
+    doDBEntry::itemSet( &dbEntry, doDBtree::itemTableName( item ), doDBtree::itemID( item ), doDBtree::itemType( item ) );
+    doDBEntry::treeWidgetItemSet( &dbEntry, item );
+    doDBEntry::treeWidgetItemEnabledSet( &dbEntry, ! item->isDisabled() );
+    dbEntry->incRef();
+
+    itemType = (doDBtree::treeItemType)doDBtree::itemType( item );
 
     if( itemType == doDBtree::typeTable || itemType == doDBtree::typeEntry ){
         item->takeChildren();
     }
 
 // fire all plugins
-    doDBPlugins::ptr->eventTreeItemCollapsed( item );
+    doDBPlugins::ptr->eventTreeItemCollapsed( dbEntry );
+    dbEntry->decRef();
+}
+
+void doDBtree::                         clicked( QTreeWidgetItem * item, int column ){
+
+
+
+// save the entry to global
+    doDBEntry *dbEntry = new doDBEntry();
+
+    doDBEntry::connectionIDSet( &dbEntry, doDBtree::itemConnectionID( item ) );
+    doDBEntry::itemSet( &dbEntry, doDBtree::itemTableName( item ), doDBtree::itemID( item ), doDBtree::itemType( item ) );
+    doDBEntry::treeWidgetItemSet( &dbEntry, item );
+    doDBEntry::treeWidgetItemEnabledSet( &dbEntry, ! item->isDisabled() );
+    dbEntry->incRef();
+
+
+// before WE doing something with it, call all plugins
+    doDBPlugins::ptr->eventTreeItemClicked( dbEntry );
+    dbEntry->decRef();
+
+/*
+    this->entryEditor->setEnabled(true);
+
+// basic info about selected item in the tree
+    QString connectionID = doDBtree::connectionID( item );
+    QString primaryKeyValue = doDBtree::itemID( item );
+    QString tableName = doDBtree::tableName( item );
+
+// get connection id
+    doDBConnection      *connection = doDBCore->connectionGet( connectionID.toUtf8() );
+    if( connection == NULL ) return;
+
+// show it in the editor
+    this->entryEditor->showEntry( connection, tableName, primaryKeyValue );
+
+*/
+
+
+
+
 }
 
 QTreeWidgetItem* doDBtree::             findItem( QString parentTableName ){

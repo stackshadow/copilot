@@ -31,6 +31,8 @@
 
 #include "doDBConnection/doDBConnections.h"
 
+#include "doDBEntry/doDBEntry.h"
+
 #include "doDBPlugin/doDBPlugins.h"
 #include "doDBRelation/doDBRelationPlugin.h"
 #include "doDBEntryEditor/doDBEntryPlugin.h"
@@ -50,7 +52,7 @@ libblkid-dev libsqlite3-dev
 int main(int argc, char *argv[])
 {
     etInit(argc,(const char**)argv);
-    etDebugLevelSet( etID_LEVEL_ALL );
+    etDebugLevelSet( etID_LEVEL_DETAIL_DB );
     etDebugProgramNameSet( "doDB" );
 
 // init the qt-application
@@ -66,7 +68,8 @@ int main(int argc, char *argv[])
     new doDBConnections();
     doDBConnections::ptr->connectionsLoad();
 
-
+// create the global actual entry
+    new doDBEntry();
 
 // our plugins
     new doDBPlugins();

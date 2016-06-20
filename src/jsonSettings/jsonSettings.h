@@ -29,6 +29,7 @@ public:
 
 // default stuff
     bool            open( const char *fileName );
+    bool            createFile( const char *fileName );
     bool            save();
     void            langCodeSet( const char langCode[3] );
 

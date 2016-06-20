@@ -38,14 +38,17 @@ Q_OBJECT
 public:
     typedef enum mode {
         modeNothing = 0,
+        modeView,
         modeCreate,
-        modeChanged,
+        modeEdit,
         modeRemove
     } mode;
 
 public:
     doDBEntryEditor( QWidget *parentWidget );
     ~doDBEntryEditor();
+
+    static doDBEntryEditor *ptr;
 
 
 public:
@@ -57,28 +60,34 @@ private:
     void            columnClean();
     int             columnAppend( QString columnName, QString columnDisplayName );
     int             columnFind( QString columnName );
+    void            showButtons();
 
-    QString         tableName();
+//    QString         tableName();
     QString         columnName( int row );
     QString         columnDisplayName( int row );
     QString         oldValue( int row );
     QString         newValue( int row );
 
 private slots:
-    void            entryCreate();
-    void            entrySave();
-    void            entryDeleteStep1();
-    void            entryDeleteStep2();
+    void            btnEntryEditClicked( bool checked );
+    void            btnEntryCreateClicked();
+    void            btnEntrySaveClicked();
+    void            btnEntryDeleteReqClicked();
+    void            btnEntryDeleteAckClicked();
+    void            btnEntryDeleteCancelClicked();
 
 signals:
-    void            saveNew( etDBObject *dbObject, const char *tableName );
-    void            saveChanged( etDBObject *dbObject, const char *tableName );
+    void            entryEditStart( etDBObject *dbObject, const char *tableName );
+    void            entryEditAbort( etDBObject *dbObject, const char *tableName );
+    void            entryNew( etDBObject *dbObject, const char *tableName );
+    void            entryChanged( etDBObject *dbObject, const char *tableName );
+    void            entryDelete( etDBObject *dbObject, const char *tableName, const char *itemID );
 
 private:
     Ui::doDBEntryEditor     ui;
-    doDBtree                *dbTree;
-    etDBObject              *dbObject;
-
+    doDBtree*               dbTree;
+    etDBObject*             dbObject;
+    QString                 tableName;
 
     mode                    editMode;
 

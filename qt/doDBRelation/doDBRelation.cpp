@@ -31,6 +31,8 @@
 
 doDBRelation::                  doDBRelation() {
 
+    this->loadedConnection = NULL;
+
 // init member vars
     this->jsonRelation = NULL;
     this->jsonRelationSrcTable = NULL;
@@ -122,40 +124,17 @@ bool doDBRelation::             relationAppend( const char *srcTable, const char
 bool doDBRelation::             relationRemove( const char *srcTable, const char *relatedTable, const char *srcColumn, const char *relatedColumn ){
 
     const char *localsrcTable;
-    const char *localrelTable;
-    const char *localsrcColumn;
-    const char *localrelColumn;
+    const char *localsrcColumn = srcColumn;
+    const char *localrelTable = relatedTable;
+    const char *localrelColumn = relatedColumn;
 
 // get the first table
     this->relationGetReset();
-    while( this->relationGetNext( &localsrcTable, &localsrcColumn, &localrelTable, &localrelColumn ) ){
+    if( this->relatedTableFindNext( srcTable, &localsrcColumn, &localrelTable, &localrelColumn ) ){
 
-        std::string tempString;
-
-        tempString = localsrcTable;
-        if( tempString == srcTable ){
-
-            tempString = localsrcColumn;
-            if( tempString == srcColumn ){
-
-                tempString = localrelTable;
-                if( tempString == relatedTable ){
-
-                    tempString = localrelColumn;
-                    if( tempString == relatedColumn ){
-
-                        json_array_remove( this->jsonRelationSrcTable, this->jsonRelationIndex );
-
-                    }
-
-                }
-
-            }
-
-        }
+        json_array_remove( this->jsonRelationSrcTable, this->jsonRelationIndex );
 
     }
-
 
 }
 
@@ -194,7 +173,9 @@ bool doDBRelation::             relationGetNext( const char **srcTable, const ch
         this->jsonSrcTableItrerator = json_object_iter_next( this->jsonRelation, this->jsonSrcTableItrerator );
         while( this->jsonSrcTableItrerator != NULL ){
 
+            this->jsonRelationSrcTable = json_object_iter_value( this->jsonSrcTableItrerator );
             this->jsonRelationIndex = 0;
+
             jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
             if( jsonRelatedTable != NULL ){
                 break;
@@ -310,113 +291,114 @@ bool doDBRelation::             relatedTableFindNext( const char *srcTable, cons
 
 
 
-bool doDBRelation::             relatedTableFindNext( const char **srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
+bool doDBRelation::             relatedTableFindNext( const char *srcTable, const char **srcColumn, const char **relatedTable, const char **relatedColumn ){
 // nothing should be NULL
-    if( srcTable == NULL || srcColumn == NULL || relatedTable == NULL || relatedColumn == NULL ){
+    if( srcTable == NULL ){
         return false;
     }
-
-findAgain:
 
 // vars
     json_t*         jsonRelatedTable = NULL;
     json_t*         jsonValue = NULL;
-    const char*     jsonValueChar = NULL;
-    std::string     jsonValueString;
+    const char*     tempValue = NULL;
+    const char*     tempParameter = NULL;
 
-// start ?
-    if( this->jsonSrcTableItrerator ){
+// start iteration ?
+    if( this->jsonSrcTableItrerator == NULL ){
         this->jsonSrcTableItrerator = json_object_iter( this->jsonRelation );
-        this->jsonRelationIndex = -1;
-    }
-//    this->jsonSrcTableItrerator = json_object_iter_next( this->jsonRelation, this->jsonSrcTableItrerator );
-
-
-// reset arrayindex
-    this->jsonRelationIndex = this->jsonRelationIndex + 1;
-
-// get the related table
-    jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
-
-// no related table, get next source table
-    if( jsonRelatedTable == NULL ){
-
-        this->jsonSrcTableItrerator = json_object_iter_next( this->jsonRelation, this->jsonSrcTableItrerator );
         if( this->jsonSrcTableItrerator == NULL ) return false;
 
-        this->jsonRelationIndex = 0;
+        this->jsonRelationSrcTable = json_object_get( this->jsonRelation, srcTable );
+        this->jsonRelationIndex = -1;
+    }
+
+
+// no table present
+    if( this->jsonRelationSrcTable == NULL ) return false;
+
+
+// next index
+    this->jsonRelationIndex = this->jsonRelationIndex + 1;
+
+// get the table
+    jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
+    while( jsonRelatedTable != NULL ){
+
+    // src-Column
+        jsonValue = json_object_get( jsonRelatedTable, "srcColumn" );
+        tempValue = json_string_value(jsonValue);
+        tempParameter = *srcColumn;
+        if( srcColumn != NULL ){
+            if( *srcColumn != NULL ){
+                if( strncmp(tempValue,*srcColumn,strlen(tempValue)) != 0 ){
+                    goto nextRelatedTable;
+                }
+            } else {
+                *srcColumn = tempValue;
+            }
+        }
+
+    // src-Column
+        jsonValue = json_object_get( jsonRelatedTable, "relTable" );
+        tempValue = json_string_value(jsonValue);
+        tempParameter = *relatedTable;
+        if( relatedTable != NULL ){
+            if( *relatedTable != NULL ){
+                if( strncmp(tempValue,*relatedTable,strlen(tempValue)) != 0 ){
+                    goto nextRelatedTable;
+                }
+            } else {
+                *relatedTable = tempValue;
+            }
+        }
+
+    // rel-Column
+        jsonValue = json_object_get( jsonRelatedTable, "relColumn" );
+        tempValue = json_string_value(jsonValue);
+        tempParameter = *relatedColumn;
+        if( relatedColumn != NULL ){
+            if( *relatedColumn != NULL ){
+                if( strncmp(tempValue,*relatedColumn,strlen(tempValue)) != 0 ){
+                    goto nextRelatedTable;
+                }
+            } else {
+                *relatedColumn = tempValue;
+            }
+        }
+
+    // when we are here, we found our item
+        return true;
+
+    nextRelatedTable:
+        this->jsonRelationIndex = this->jsonRelationIndex + 1;
         jsonRelatedTable = json_array_get( this->jsonRelationSrcTable, this->jsonRelationIndex );
-        if( jsonRelatedTable == NULL ) return false;
     }
 
-
-// src-Table
-    jsonValueChar = json_object_iter_key(this->jsonSrcTableItrerator);
-    if( *srcTable != NULL ){
-        jsonValueString = jsonValueChar;
-        if( jsonValueString != *srcTable ){
-            goto findAgain;
-        }
-    }
-
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "srcColumn" );
-    jsonValueChar = json_string_value(jsonValue);
-    if( *srcColumn != NULL ){
-        jsonValueString = jsonValueChar;
-        if( jsonValueString != *srcColumn ){
-            goto findAgain;
-        }
-    }
-
-// src-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relTable" );
-    jsonValueChar = json_string_value(jsonValue);
-    if( *relatedTable != NULL ){
-        jsonValueString = jsonValueChar;
-        if( jsonValueString != *relatedTable ){
-            goto findAgain;
-        }
-    }
-
-// rel-Column
-    jsonValue = json_object_get( jsonRelatedTable, "relColumn" );
-    jsonValueChar = json_string_value(jsonValue);
-    if( *relatedColumn != NULL ){
-        jsonValueString = jsonValueChar;
-        if( jsonValueString != *relatedColumn ){
-            goto findAgain;
-        }
-    }
-
-
+    return false;
 }
 
 
 
 
-bool doDBRelation::             dbRelationLoad( const char *connectionID ){
-// check
-    if( connectionID == NULL ) return false;
-
+bool doDBRelation::             dbRelationLoad( doDBConnection* connection ){
+    if( connection == NULL ) return false;
 
 // vars
-    doDBConnection              *connection = NULL;
     const char                  *displayName = NULL;
     const char                  *dbValueString = NULL;
 
 
-// get connection
-    connection = doDBConnections::ptr->connectionGet( connectionID );
-    if( connection == NULL ) return false;
+// already loaded from this connection
+    if( this->loadedConnection == connection ) return true;
 
 // get display name ( for debugging purpose )
     displayName = connection->displayNameGet();
 
 
-
     if( connection->dbDoDBValueGet( "doDBRelations", &dbValueString ) ){
-        this->relationImport( dbValueString );
+        if( this->relationImport( dbValueString ) == true ){
+            this->loadedConnection = connection;
+        }
     }
 
 
@@ -424,30 +406,23 @@ bool doDBRelation::             dbRelationLoad( const char *connectionID ){
 }
 
 
-bool doDBRelation::             dbRelationSave( const char *connectionID ){
-// check
-    if( connectionID == NULL ) return false;
-
+bool doDBRelation::             dbRelationSave( doDBConnection* connection ){
+    if( connection == NULL ) return false;
 
 // vars
-    doDBConnection              *connection = NULL;
     const char                  *displayName = NULL;
     const char                  *jsonDump = NULL;
-
-// get connection
-    connection = doDBConnections::ptr->connectionGet( connectionID );
-    if( connection == NULL ) return false;
+    bool                        returnValue = false;
 
     this->relationExport( &jsonDump );
     if( jsonDump != NULL ){
-        connection->dbDoDBValueSet( "doDBRelations", jsonDump );
+        returnValue = connection->dbDoDBValueSet( "doDBRelations", jsonDump );
         free( (void*)jsonDump );
     }
 
-
-
-
+    return returnValue;
 }
+
 
 
 bool doDBRelation::             dbDataGet( const char *connectionID, const char *srcTable, const char *srcTableItemID, const char *relatedTable, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) ){

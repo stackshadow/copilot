@@ -23,12 +23,26 @@
 
 doDBSettings::              doDBSettings() : jsonSettings() {
 
-// we need the home directory
-    QString configFileName = QDir::homePath();
-    configFileName += "/doDB.json";
 
-// okay, we load the settings
-    this->open( configFileName.toUtf8() );
+    QString configFileName = "";
+
+
+    configFileName = QDir::homePath();
+    configFileName += "/doDB.json";
+    if( ! this->open( configFileName.toUtf8() ) ){
+
+    // we need the home directory
+        configFileName = QDir::currentPath();
+        configFileName += "/doDB.json";
+
+    //
+        if( ! this->open( configFileName.toUtf8() ) ){
+
+            if( ! this->createFile( configFileName.toUtf8() ) ) exit(-1);
+
+        }
+    }
+
 
     this->settingPick( "global", "debugging" );
 

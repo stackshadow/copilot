@@ -15,26 +15,67 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
      <item>
-      <widget class="QLabel" name="label">
+      <widget class="QPushButton" name="btnEdit">
        <property name="text">
-        <string>Verbindung:</string>
+        <string>Bearbeiten</string>
+       </property>
+       <property name="checkable">
+        <bool>true</bool>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="linceConnectionName"/>
-     </item>
-     <item>
-      <widget class="QLabel" name="label_2">
+      <widget class="QPushButton" name="btnNew">
        <property name="text">
-        <string>Tabelle:</string>
+        <string>Neu</string>
        </property>
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="lineTableName"/>
+      <widget class="QPushButton" name="btnDelete">
+       <property name="text">
+        <string>Löschen</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnDeleteAck">
+       <property name="text">
+        <string>Bestätigen</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnDeleteCancel">
+       <property name="text">
+        <string>Abbruch</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btnSave">
+       <property name="text">
+        <string>Speichern</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -56,51 +97,6 @@
       <bool>false</bool>
      </attribute>
     </widget>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="btnNew">
-       <property name="text">
-        <string>Neu</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnSave">
-       <property name="text">
-        <string>Speichern</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnDelete">
-       <property name="text">
-        <string>Löschen</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btnDeleteAck">
-       <property name="text">
-        <string>Bestätigen</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
    </item>
   </layout>
  </widget>

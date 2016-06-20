@@ -33,9 +33,11 @@
 
 doDBEntryPlugin::               doDBEntryPlugin() : doDBPlugin() {
 
-
+    this->selectedEntry = NULL;
     this->dbEntryEditor = new doDBEntryEditor(NULL);
-
+    connect( this->dbEntryEditor, SIGNAL(entryNew(etDBObject*,const char*)), this, SLOT(entryEditorItemSaveNew(etDBObject*,const char*)) );
+    connect( this->dbEntryEditor, SIGNAL(entryChanged(etDBObject*,const char*)), this, SLOT(entryEditorItemChanged(etDBObject*,const char*)) );
+    connect( this->dbEntryEditor, SIGNAL(entryDelete(etDBObject*,const char*,const char*)), this, SLOT(entryEditorItemDelete(etDBObject*,const char*,const char*)) );
 
 }
 
@@ -56,53 +58,54 @@ void doDBEntryPlugin::          prepareItemView( QLayout *itemViewLayout ){
 }
 
 
-bool doDBEntryPlugin::          dbTreeItemClicked( QTreeWidgetItem * item, int column ){
+bool doDBEntryPlugin::          dbTreeItemClicked( doDBEntry *entry ){
 
-    // vars
-    QString                     tableName;
-    QString                     connectionID;
+// vars
+    QString                     itemTableName;
     QString                     itemID;
     doDBtree::treeItemType      itemType;
-    etDBObject                  *dbObject;
+    etDBObject*                 dbObject;
+    doDBConnection*             connection;
+
+
+    if( this->selectedEntry != entry ){
+
+        if( this->selectedEntry != NULL ){
+
+        // release the old one
+            this->selectedEntry->decRef();
+            this->selectedEntry = NULL;
+        }
+
+    // lock the new one
+        this->selectedEntry = entry;
+        this->selectedEntry->incRef();
+    }
 
 // get Stuff from the selected item
-    tableName = doDBtree::itemTableName( item );
-    connectionID = doDBtree::itemConnectionID( item );
-    itemID = doDBtree::itemID( item );
-    itemType = doDBtree::itemType( item );
+    connection = this->selectedEntry->connection();
+    this->selectedEntry->item( &itemTableName, &itemID, (int*)&itemType );
 
 // if selected item is an entry
     if(  itemType == doDBtree::typeTable || itemType == doDBtree::typeEntry ){
 
-    // if connection changed, we get the new one
-        if( connectionID != this->connectionID || this->connection == NULL ){
-
-        // get the connection
-            this->connection = doDBConnections::ptr->connectionGet( connectionID.toUtf8() );
-            if( this->connection == NULL ) return true;
-
-        // get the dbobject
-            this->connectionID = connectionID;
-        }
-
-
     // dbObject
-        dbObject = this->connection->dbObject;
+        dbObject = connection->dbObject;
 
     // pick the table
-        etDBObjectTablePick( dbObject, tableName.toUtf8() );
+        etDBObjectTablePick( dbObject, itemTableName.toUtf8() );
 
     // clear values
         etDBObjectValueClean( dbObject );
 
 
-        if(  itemType == doDBtree::typeEntry ){
-            this->connection->dbDataGet( tableName.toUtf8(), itemID.toUtf8() );
+        if( itemType == doDBtree::typeEntry ){
+            connection->dbDataGet( itemTableName.toUtf8(), itemID.toUtf8() );
         }
 
 
     // show the editor
-        this->dbEntryEditor->dbObjectShow( dbObject, tableName );
+        this->dbEntryEditor->dbObjectShow( dbObject, itemTableName );
         this->dbEntryEditor->setVisible( true );
 
     } else {
@@ -116,30 +119,77 @@ bool doDBEntryPlugin::          dbTreeItemClicked( QTreeWidgetItem * item, int c
 }
 
 
-/*
-// if selected item is an entry
-    if(  itemType == doDBtree::typeTable || itemType == doDBtree::typeEntry ){
-
-        connection = doDBConnections::ptr->connectionGet( connectionID.toUtf8() );
-        if( connection == NULL ) return;
-
-    // get the dbobject
-        this->entryEditorConnID = connectionID;
-        dbObject = connection->dbObject;
-
-    // pick the table
-        etDBObjectTablePick( dbObject, tableName.toUtf8() );
-
-    // clear values
-        etDBObjectValueClean( dbObject );
 
 
-        if(  itemType == doDBtree::typeEntry ){
-            connection->dbDataGet( tableName.toUtf8(), itemID.toUtf8() );
-        }
+void doDBEntryPlugin::          entryEditStart( etDBObject *dbObject, const char *tableName ){
+
+}
+
+
+void doDBEntryPlugin::          entryEditAbort( etDBObject *dbObject, const char *tableName ){
+
+}
+
+
+void doDBEntryPlugin::          entryEditorItemSaveNew( etDBObject *dbObject, const char *tableName ){
+
+    doDBConnection *connection = this->selectedEntry->connection();
+    if( connection == NULL ) return;
+
+    if( connection->dbDataNew( tableName ) == true ){
+
+        const char* primaryKeyColumn;
+        const char* primaryKey;
+
+        if( etDBObjectTableColumnPrimaryGet( dbObject, primaryKeyColumn ) != etID_YES ) return;
+        if( etDBObjectValueGet( dbObject, primaryKeyColumn, primaryKey ) != etID_YES ) return;
+
+    // set the selected item
+    // TODO
+    /*
+        this->selectedEntry->tableName = tableName;
+        this->selectedEntry->itemID = primaryKey;
+        this->selectedEntry->type = (int)doDBtree::typeEntry;
+
+        this->dbTreeItemClicked( this->selectedEntry );
+        */
 
     }
-*/
 
+
+}
+
+
+void doDBEntryPlugin::          entryEditorItemChanged( etDBObject *dbObject, const char *tableName ){
+
+    doDBConnection *connection = this->selectedEntry->connection();
+    if( connection == NULL ) return;
+
+    connection->dbDataChange( tableName );
+}
+
+
+void doDBEntryPlugin::          entryEditorItemDelete( etDBObject *dbObject, const char *tableName, const char *itemID ){
+
+    doDBConnection *connection = this->selectedEntry->connection();
+    if( connection == NULL ) return;
+
+    if( connection->dbDataDelete( tableName, itemID ) == true ){
+        this->dbEntryEditor->valueCleanAll();
+
+        // remove the item from the dbTree
+        QTreeWidgetItem* treeItem = this->selectedEntry->treeWidgetItem();
+        if( treeItem != NULL ){
+            QFont font = treeItem->font(0);
+            font.setStrikeOut(true);
+            treeItem->setFont(0,font);
+            treeItem->setDisabled(true);
+        }
+
+
+    }
+
+
+}
 
 

@@ -52,9 +52,9 @@ public:
     void                    prepareTree( doDBtree *dbTree );
     void                    prepareItemView( QLayout *layout );
 
-    bool                    dbTreeItemClicked( QTreeWidgetItem * item, int column );
-    bool                    dbTreeItemExpanded( QTreeWidgetItem * item );
-    bool                    dbTreeItemCollapsed( QTreeWidgetItem * item );
+    bool                    dbTreeItemClicked( doDBEntry* entry );
+    bool                    dbTreeItemExpanded( doDBEntry* entry );
+    bool                    dbTreeItemCollapsed( doDBEntry* entry );
 
 
 private slots:
@@ -69,7 +69,6 @@ private slots:
 private:
     doDBRelation*           dbRelation;
     doDBRelationEditor*     dbRelationEditor;
-    QString                 connectionID;
 
 // db tree
     doDBtree*               dbTree;
@@ -86,8 +85,14 @@ private:
     QLineEdit*              connectionTables;
 
 // remember thinks
-    QTreeWidgetItem*        srcItem;
-    QString                 srcDislpayName;
+    doDBEntry*              itemSelected;
+
+// this is for normal mode
+    QString                 parentTable;
+    QString                 parentID;
+
+
+// This is for connection-mode !
     QString                 srcTable;
     QString                 srcItemID;
     QString                 srcColumn;

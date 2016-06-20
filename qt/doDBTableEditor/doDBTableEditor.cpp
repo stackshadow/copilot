@@ -326,6 +326,9 @@ void doDBTableEditor::                  columnSave(){
     etDBColumnType      columnType = etDBCOLUMN_TYPE_STRING;
     int                 columnOption = etDBCOLUMN_OPTION_NOTHING;
 
+// pick selected table
+    if( etDBObjectTablePick( this->dbObject, tableName.toUtf8() ) != etID_YES ) return;
+
 // get column type
     if( this->ui.columnType->currentIndex() == 0 ){
         columnType = etDBCOLUMN_TYPE_STRING;
@@ -384,6 +387,10 @@ void doDBTableEditor::                  columnSave(){
 
 // refresh
     this->listColumnsRefresh();
+
+// visible / enable
+    this->ui.groupColumn->setVisible(false);
+
 }
 
 
@@ -401,3 +408,5 @@ void doDBTableEditor::                  close(){
 
     delete this;
 }
+
+

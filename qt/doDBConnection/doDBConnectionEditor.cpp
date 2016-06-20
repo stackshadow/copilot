@@ -126,6 +126,7 @@ void doDBConnectionEditor::         showSelectedConnection(){
 
     displayName = this->selectedConnection->displayNameGet();
     this->ui.lineEditConnectionDisplayName->setText( displayName );
+    this->ui.lineEditUserName->setText( this->selectedConnection->username );
 
 // set infos about the type of db
     switch( this->selectedConnection->typeGet() ){
@@ -134,9 +135,22 @@ void doDBConnectionEditor::         showSelectedConnection(){
         case doDBConnection::CONN_SQLITE:
         {
             QString fileName = this->selectedConnection->fileNameGet();
+            this->ui.lineEditSQLiteFileName->setText( fileName );
 
             this->ui.tabConnections->setCurrentIndex(0);
-            this->ui.lineEditSQLiteFileName->setText( fileName );
+            break;
+        }
+
+        case doDBConnection::CONN_POSTGRES:
+        {
+            this->ui.lineEditPQServer->setText( this->selectedConnection->hostname );
+            this->ui.lineEditPQIP->setText( this->selectedConnection->hostip );
+            this->ui.lineEditPQPort->setText( this->selectedConnection->port );
+            this->ui.lineEditPQDB->setText( this->selectedConnection->database );
+            this->ui.lineEditPQPassword->setText( this->selectedConnection->password );
+
+
+            this->ui.tabConnections->setCurrentIndex(1);
             break;
         }
 
@@ -187,6 +201,7 @@ void doDBConnectionEditor::         connectionSave(){
 // save display-name
     QString     displayName = this->ui.lineEditConnectionDisplayName->text();
     this->selectedConnection->displayNameSet( displayName.toUtf8() );
+    this->selectedConnection->username = this->ui.lineEditUserName->text();
 
 // set the type
 // SQLITE
@@ -196,7 +211,17 @@ void doDBConnectionEditor::         connectionSave(){
         this->selectedConnection->typeSet( doDBConnection::CONN_SQLITE );
         this->selectedConnection->fileNameSet( fileName );
     }
+// postgresql
+    if( test == 1 ){
+        this->selectedConnection->typeSet( doDBConnection::CONN_POSTGRES );
 
+        this->selectedConnection->hostname = this->ui.lineEditPQServer->text();
+        this->selectedConnection->hostip = this->ui.lineEditPQIP->text();
+        this->selectedConnection->port = this->ui.lineEditPQPort->text();
+        this->selectedConnection->database = this->ui.lineEditPQDB->text();
+        this->selectedConnection->password = this->ui.lineEditPQPassword->text();
+
+    }
 
 // refresh list
     this->tblConnectionRefresh();

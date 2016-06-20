@@ -20,9 +20,9 @@ objectsQTRel        += $(sourcesQTMocRel:.moc.cpp=.moc.o)
 objectsQTFull       += $(addprefix $(buildPath)/,$(objectsQTRel))
 
 
-sourcesUiRel        += $(subst ./,,$(sourcesUI))
-headersUiRel        += $(sourcesUiRel:.ui=.ui.h)
-headersUiFull       += $(addprefix $(sourcePath)/,$(headersUiRel))
+sourcesUiRel        =  $(subst ./,,$(sourcesUI))
+headersUiRel        =  $(sourcesUiRel:.ui=.ui.h)
+headersUiFull       += $(addprefix $(sourcePath),$(headersUiRel))
 
 
 objects: $(objectsQTFull)

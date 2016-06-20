@@ -106,8 +106,8 @@ void doDBDebug::            print( QString programName, QString levelName, QStri
     if( this->tableWidget != NULL ){
 
     // limit debug lines to 200
-        if( this->tableWidget->rowCount() > 200 ){
-            this->tableWidget->setRowCount(200);
+        if( this->tableWidget->rowCount() > 1000 ){
+            this->tableWidget->setRowCount(1000);
         }
 
         this->tableWidget->insertRow(0);
@@ -136,6 +136,9 @@ void doDBDebug::            print( QString programName, QString levelName, QStri
 void doDBDebug::            evillibPrint( etDebug* etDebugActual ){
 
     doDBDebug *dbDebug = doDBDebug::ptr;
+
+// should we show this ?
+    if( etDebugActual->LevelVisible > etDebugActual->Level ) return;
 
 // level name
     const char *levelName = "DETAIL";

@@ -21,8 +21,11 @@
 
 #include <QUuid>
 
+doDBEntryEditor *doDBEntryEditor::ptr = NULL;
 
 doDBEntryEditor::               doDBEntryEditor( QWidget *parent ) : QWidget(parent){
+// save pointer
+    this->ptr = this;
 
 // setup ui
     this->ui.setupUi( this );
@@ -32,17 +35,26 @@ doDBEntryEditor::               doDBEntryEditor( QWidget *parent ) : QWidget(par
     this->ui.tableWidget->setColumnHidden( 2, true );
     //this->ui.tableWidget->setColumnHidden( 4, true );
 
-    this->editMode = doDBEntryEditor::modeChanged;
+
+
+
+    this->tableName = "";
+    this->editMode = doDBEntryEditor::modeNothing;
+    this->showButtons();
 
 // connections
-    connect( this->ui.btnNew , SIGNAL (clicked()), this, SLOT (entryCreate()));
-    connect( this->ui.btnSave , SIGNAL (clicked()), this, SLOT (entrySave()));
+    connect( this->ui.btnEdit, SIGNAL( toggled(bool) ), this, SLOT( btnEntryEditClicked(bool) ) );
+    connect( this->ui.btnNew , SIGNAL (clicked()), this, SLOT( btnEntryCreateClicked() ) );
+    connect( this->ui.btnSave , SIGNAL (clicked()), this, SLOT( btnEntrySaveClicked() ) );
+    connect( this->ui.btnDelete , SIGNAL (clicked()), this, SLOT( btnEntryDeleteReqClicked() ) );
+    connect( this->ui.btnDeleteAck , SIGNAL (clicked()), this, SLOT( btnEntryDeleteAckClicked() ) );
+    connect( this->ui.btnDeleteCancel , SIGNAL (clicked()), this, SLOT( btnEntryDeleteCancelClicked() ) );
 
 
 }
 
 doDBEntryEditor::               ~doDBEntryEditor(){
-
+    this->ptr = NULL;
 }
 
 
@@ -64,12 +76,13 @@ void doDBEntryEditor::          dbObjectShow( etDBObject *dbObject, QString tabl
 
 
 
-// fill columns
-    if( tableName != this->ui.lineTableName->text() ){
+// read all columns from dbObject and add it to the table
+    if( this->tableName != tableName ){
 
     // clear
         this->ui.tableWidget->setRowCount(0);
         this->ui.tableWidget->clear();
+        this->ui.tableWidget->setSortingEnabled( false );
 
     // initial set the
         etDBObjectIterationReset( dbObject );
@@ -80,8 +93,11 @@ void doDBEntryEditor::          dbObjectShow( etDBObject *dbObject, QString tabl
 
             this->columnAppend( columnName, columnDisplayName );
         }
+        this->ui.tableWidget->setSortingEnabled( true );
+        this->ui.tableWidget->sortItems( 0, Qt::AscendingOrder );
 
     // get the primary key column
+        this->primaryKeyRow = -1;
         if( etDBObjectTableColumnPrimaryGet(dbObject,primaryKeyColumnName) == etID_YES ){
 
             int primaryKeyRow = this->columnFind(primaryKeyColumnName);
@@ -94,12 +110,11 @@ void doDBEntryEditor::          dbObjectShow( etDBObject *dbObject, QString tabl
 
     // set the actual stuff
         this->dbObject = dbObject;
-        this->ui.lineTableName->setText(tableName);
+        this->tableName = tableName;
     }
 
 
-
-// fill selected data
+// clean all values in the table
     this->valueCleanAll();
 
 // show values
@@ -116,7 +131,8 @@ void doDBEntryEditor::          dbObjectShow( etDBObject *dbObject, QString tabl
     this->ui.tableWidget->resizeColumnsToContents();
 
 // set the mode to change
-    this->editMode = modeChanged;
+    this->editMode = doDBEntryEditor::modeView;
+    this->showButtons();
 
 }
 
@@ -216,6 +232,56 @@ int doDBEntryEditor::           columnFind( QString columnName ){
     return -1;
 }
 
+void doDBEntryEditor::          showButtons(){
+
+// default
+    this->ui.btnNew->setVisible(true);
+    this->ui.btnEdit->setVisible(true);
+    this->ui.btnDelete->setVisible(true);
+    this->ui.btnDeleteAck->setVisible(false);
+    this->ui.btnDeleteCancel->setVisible(false);
+    this->ui.btnSave->setVisible(false);
+
+    switch( this->editMode ){
+
+        case doDBEntryEditor::modeView:
+            this->ui.btnNew->setChecked(false);
+            this->ui.btnEdit->setChecked(false);
+            this->ui.tableWidget->setEditTriggers( QAbstractItemView::NoEditTriggers );
+            break;
+
+        case doDBEntryEditor::modeCreate:
+            this->ui.btnEdit->setVisible(false);
+            this->ui.btnDelete->setVisible(false);
+            this->ui.btnSave->setVisible(true);
+            this->ui.tableWidget->setEditTriggers( QAbstractItemView::AllEditTriggers );
+            break;
+
+        case doDBEntryEditor::modeEdit:
+            this->ui.btnNew->setVisible(false);
+            this->ui.btnDelete->setVisible(false);
+            this->ui.tableWidget->setEditTriggers( QAbstractItemView::AllEditTriggers );
+            this->ui.btnSave->setVisible(true);
+            break;
+
+        case doDBEntryEditor::modeRemove:
+            this->ui.btnNew->setVisible(false);
+            this->ui.btnEdit->setVisible(false);
+            this->ui.btnDeleteAck->setVisible(false);
+            this->ui.btnDeleteCancel->setVisible(true);
+            break;
+
+        default:
+            this->ui.btnNew->setVisible(false);
+            this->ui.btnEdit->setVisible(false);
+            this->ui.btnDelete->setVisible(false);
+            break;
+    }
+
+
+
+}
+
 
 
 
@@ -239,29 +305,45 @@ QString doDBEntryEditor::       newValue( int row ){
 
 
 
-void doDBEntryEditor::          entryCreate(){
+void doDBEntryEditor::          btnEntryEditClicked( bool checked ){
+
+    if( checked == true ){
+        this->editMode = doDBEntryEditor::modeEdit;
+        this->showButtons();
+
+        emit this->entryEditStart( this->dbObject, this->tableName.toUtf8() );
+    } else {
+        this->editMode = doDBEntryEditor::modeView;
+        this->showButtons();
+
+        emit this->entryEditAbort( this->dbObject, this->tableName.toUtf8() );
+    }
+
+
+}
+
+void doDBEntryEditor::          btnEntryCreateClicked(){
 
 // vars
     int                     rowIndex = 0;
     QTableWidgetItem        *item = NULL;
     QString                 uuid;
 
-// set the mode to create
-    this->editMode = modeCreate;
-
 // creat uuid
     uuid = QUuid::createUuid().toString();
     uuid.replace( "{", "" );
     uuid.replace( "}", "" );
 
-
     item = new QTableWidgetItem( uuid );
     this->ui.tableWidget->setItem( this->primaryKeyRow, 3, item );
 
+// set the mode to create
+    this->editMode = modeCreate;
+    this->showButtons();
 
 }
 
-void doDBEntryEditor::          entrySave(){
+void doDBEntryEditor::          btnEntrySaveClicked(){
 
 // save widget values to dbObject
 
@@ -285,21 +367,54 @@ void doDBEntryEditor::          entrySave(){
 
 // according to the mode, create or change data
     if( this->editMode == doDBEntryEditor::modeCreate ){
-        emit this->saveNew( this->dbObject, this->ui.lineTableName->text().toUtf8() );
-        return;
+        emit this->entryNew( this->dbObject, this->tableName.toUtf8() );
     }
-    if( this->editMode == doDBEntryEditor::modeChanged ){
-        emit this->saveChanged( this->dbObject, this->ui.lineTableName->text().toUtf8() );
-        return;
+    if( this->editMode == doDBEntryEditor::modeEdit ){
+        emit this->entryChanged( this->dbObject, this->tableName.toUtf8() );
     }
 
+// set the mode to create
+    this->editMode = modeView;
+    this->showButtons();
 }
 
-void doDBEntryEditor::          entryDeleteStep1(){
-
+void doDBEntryEditor::          btnEntryDeleteReqClicked(){
+// ack
+    this->ui.btnDelete->setVisible(false);
+    this->ui.btnDeleteAck->setVisible(true);
+    this->ui.btnDeleteCancel->setVisible(true);
 }
 
-void doDBEntryEditor::          entryDeleteStep2(){
+void doDBEntryEditor::          btnEntryDeleteAckClicked(){
 
+    if( this->primaryKeyRow < 0 ){
+        return;
+    }
+
+// get the primary key value
+    QString primaryKeyValue = this->newValue( this->primaryKeyRow );
+
+    emit this->entryDelete( this->dbObject, this->tableName.toUtf8(), primaryKeyValue.toUtf8() );
+
+// close
+    this->btnEntryDeleteCancelClicked();
+
+// set the mode to create
+    this->editMode = modeNothing;
+    this->showButtons();
 }
+
+void doDBEntryEditor::          btnEntryDeleteCancelClicked(){
+// hide new/save
+    this->ui.btnNew->setVisible(true);
+    this->ui.btnSave->setVisible(true);
+
+// ack
+    this->ui.btnDeleteAck->setVisible(false);
+    this->ui.btnDeleteCancel->setVisible(false);
+}
+
+
+
+
 

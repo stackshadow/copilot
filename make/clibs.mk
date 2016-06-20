@@ -13,6 +13,7 @@ CLIBS       += -ljansson
 
 
 CLIBS       += -lsqlite3
+CLIBS       += -lpq
 
 # libs for debugging-support
 ifneq ($(DEBUG),)
