@@ -43,7 +43,7 @@ doDBtree::                              doDBtree( QWidget *parent ) : QTreeWidge
     item->setText( 4, "type" );
     this->setHeaderItem(item);
 
-    if( ! doDBSettingsGlobal->debugModeEnabled() ){
+    if( ! doDBSettings::ptr->debugModeEnabled() ){
         this->setColumnHidden( 1, true );
         this->setColumnHidden( 2, true );
         this->setColumnHidden( 3, true );
@@ -53,7 +53,7 @@ doDBtree::                              doDBtree( QWidget *parent ) : QTreeWidge
 
 
 // get data directory from settings
-    this->picturePath = doDBSettingsGlobal->treePictureDirectory();
+    this->picturePath = doDBSettings::ptr->treePictureDirectory();
     //doDBSettingsGlobal
     //this->dataDirectory = doDBSettingsGlobal->
 
@@ -216,7 +216,7 @@ int doDBtree::                          newTreeColumn( QString columnName, bool 
     QTreeWidgetItem *headerItem = this->headerItem();
     headerItem->setText( this->treeColumnLast, columnName );
 
-    if( ! doDBSettingsGlobal->debugModeEnabled() ){
+    if( ! doDBSettings::ptr->debugModeEnabled() ){
         this->setColumnHidden( this->treeColumnLast, hide );
     }
 
@@ -390,7 +390,7 @@ void doDBtree::                         expand( QTreeWidgetItem * item ){
     }
 
 // call the plugins
-    doDBPlugins::ptr->eventTreeItemExpanded( dbEntry );
+    doDBPlugins::ptr->handleAction( "itemExpanded", dbEntry );
 
     dbEntry->decRef();
 }
@@ -422,7 +422,7 @@ void doDBtree::                         collapsed( QTreeWidgetItem * item ){
     }
 
 // fire all plugins
-    doDBPlugins::ptr->eventTreeItemCollapsed( dbEntry );
+    doDBPlugins::ptr->handleAction( "itemCollapsed", dbEntry );
     dbEntry->decRef();
 }
 
@@ -441,7 +441,7 @@ void doDBtree::                         clicked( QTreeWidgetItem * item, int col
 
 
 // before WE doing something with it, call all plugins
-    doDBPlugins::ptr->eventTreeItemClicked( dbEntry );
+    doDBPlugins::ptr->handleAction( "itemClicked", dbEntry );
     dbEntry->decRef();
 
 /*

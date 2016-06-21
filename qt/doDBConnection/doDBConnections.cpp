@@ -48,6 +48,7 @@ doDBConnections::                           doDBConnections(){
     etDBObjectTableColumnAdd( this->dbObjectCore, "value", etDBCOLUMN_TYPE_STRING, etDBCOLUMN_OPTION_NOTHING );
 
     this->connections.clear();
+    this->connectionsLoad();
 }
 
 
@@ -118,10 +119,10 @@ doDBConnection* doDBConnections::           connectionGet( const char *id ){
 void doDBConnections::                      connectionsLoad(){
 
 // pick the group
-    doDBSettingsGlobal->groupPick( "connections" );
+    doDBSettings::ptr->groupPick( "connections" );
 
 // iterate over connections
-    void *iterator = json_object_iter( doDBSettingsGlobal->jsonGroup );
+    void *iterator = json_object_iter( doDBSettings::ptr->jsonGroup );
     while( iterator != NULL ){
         json_t      *jsonConnection = NULL;
         json_t      *jsonValue;
@@ -202,7 +203,7 @@ void doDBConnections::                      connectionsLoad(){
 
         this->connectionAppend( connection );
 
-        iterator = json_object_iter_next( doDBSettingsGlobal->jsonGroup, iterator );
+        iterator = json_object_iter_next( doDBSettings::ptr->jsonGroup, iterator );
     }
 
 
@@ -213,11 +214,11 @@ void doDBConnections::                      connectionsLoad(){
 void doDBConnections::                      connectionsSave(){
 
 // pick the group
-    doDBSettingsGlobal->groupPick( "connections" );
+    doDBSettings::ptr->groupPick( "connections" );
 
 // delete all connections
-    doDBSettingsGlobal->jsonGroup = json_object();
-    json_object_set_new( doDBSettingsGlobal->jsonRoot, "connections", doDBSettingsGlobal->jsonGroup );
+    doDBSettings::ptr->jsonGroup = json_object();
+    json_object_set_new( doDBSettings::ptr->jsonRoot, "connections", doDBSettings::ptr->jsonGroup );
 
 // iterate
     doDBConnection *connection;
@@ -235,7 +236,7 @@ void doDBConnections::                      connectionsSave(){
         json_object_set_new( jsonConnection, "username", json_string(connection->username.toUtf8() ) );
         json_object_set_new( jsonConnection, "password", json_string(connection->password.toUtf8() ) );
 
-        json_object_set_new( doDBSettingsGlobal->jsonGroup, connection->UUIDGet(), jsonConnection );
+        json_object_set_new( doDBSettings::ptr->jsonGroup, connection->UUIDGet(), jsonConnection );
 
     }
 

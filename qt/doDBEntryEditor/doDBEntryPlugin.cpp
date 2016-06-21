@@ -47,18 +47,61 @@ doDBEntryPlugin::               ~doDBEntryPlugin(){
 
 
 
-void doDBEntryPlugin::          prepareItemView( QLayout *itemViewLayout ){
 
-// hide the itemEditor
-    this->dbEntryEditor->setVisible(false);
+QString doDBEntryPlugin::       valueGet( QString valueName ){
 
-// append the editor to the viewLayout
-    itemViewLayout->addWidget( this->dbEntryEditor );
+    if( valueName == "name" ){
+        return "entryEditor";
+    }
+    if( valueName == "creator" ){
+        return "stackshadow";
+    }
+    if( valueName == "description" ){
+        return "The default editor for values";
+    }
+
+
+    return "";
+}
+
+
+void doDBEntryPlugin::          prepareLayout( QString name, QLayout* layout ){
+
+    if( name == "detailView" ){
+
+    // hide the itemEditor
+        this->dbEntryEditor->setVisible(false);
+
+    // append the editor to the viewLayout
+        layout->addWidget( this->dbEntryEditor );
+
+    }
+
 
 }
 
 
-bool doDBEntryPlugin::          dbTreeItemClicked( doDBEntry *entry ){
+bool doDBEntryPlugin::          handleAction( QString action, doDBEntry* entry ){
+
+    if( action == "itemExpanded" ){
+        return true;
+    }
+
+    if( action == "itemCollapsed" ){
+        return true;
+    }
+
+    if( action == "itemClicked" ){
+        this->load( entry );
+        return true;
+    }
+
+}
+
+
+
+
+bool doDBEntryPlugin::          load( doDBEntry *entry ){
 
 // vars
     QString                     itemTableName;
@@ -117,8 +160,6 @@ bool doDBEntryPlugin::          dbTreeItemClicked( doDBEntry *entry ){
 // next event
     return true;
 }
-
-
 
 
 void doDBEntryPlugin::          entryEditStart( etDBObject *dbObject, const char *tableName ){

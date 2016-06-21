@@ -23,12 +23,12 @@
 
 doDBPlugins* doDBPlugins::ptr = NULL;
 
-doDBPlugins::doDBPlugins(){
+doDBPlugins::           doDBPlugins(){
     this->ptr = this;
 
 }
 
-doDBPlugins::~doDBPlugins(){
+doDBPlugins::           ~doDBPlugins(){
 
 }
 
@@ -40,8 +40,8 @@ void doDBPlugins::      append( doDBPlugin *dbPlugin ){
 
 
 
-// prepare stuff
-void doDBPlugins::      eventPrepareToolBar( QLayout *layout ){
+
+void doDBPlugins::      prepareLayout( QString name, QLayout* layout ){
 
 // vars
     doDBPlugin *plugin = NULL;
@@ -50,7 +50,7 @@ void doDBPlugins::      eventPrepareToolBar( QLayout *layout ){
     foreach( plugin, this->pluginList ){
 
     // run function
-        plugin->prepareToolBar( layout );
+        plugin->prepareLayout( name, layout );
 
     }
 
@@ -75,29 +75,13 @@ void doDBPlugins::      eventPrepareTree( doDBtree *dbTree ){
 }
 
 
-void doDBPlugins::      eventPrepareItemView( QLayout *layout ){
-
-// vars
-    doDBPlugin *plugin = NULL;
-
-// iterate
-    foreach( plugin, this->pluginList ){
-
-    // run function
-        plugin->prepareItemView( layout );
-
-    }
-
-    return;
-}
-
 
 
 
 
 
 // all events
-void doDBPlugins::      eventTreeItemClicked( doDBEntry* entry ){
+void doDBPlugins::      handleAction( QString action, doDBEntry* entry ){
 // only if item is enabled
     if( entry->treeWidgetItemEnabled() == false ) return;
 
@@ -108,49 +92,7 @@ void doDBPlugins::      eventTreeItemClicked( doDBEntry* entry ){
     foreach( plugin, this->pluginList ){
 
     // run function
-        if( plugin->dbTreeItemClicked( entry ) != true ){
-            return;
-        }
-
-    }
-
-    return;
-}
-
-
-void doDBPlugins::      eventTreeItemExpanded( doDBEntry* entry ){
-// only if item is enabled
-    if( entry->treeWidgetItemEnabled() == false ) return;
-
-// vars
-    doDBPlugin *plugin = NULL;
-
-// iterate
-    foreach( plugin, this->pluginList ){
-
-    // run function
-        if( plugin->dbTreeItemExpanded( entry ) != true ){
-            return;
-        }
-
-    }
-
-    return;
-}
-
-
-void doDBPlugins::      eventTreeItemCollapsed( doDBEntry* entry ){
-// only if item is enabled
-    if( entry->treeWidgetItemEnabled() == false ) return;
-
-// vars
-    doDBPlugin *plugin = NULL;
-
-// iterate
-    foreach( plugin, this->pluginList ){
-
-    // run function
-        if( plugin->dbTreeItemCollapsed( entry ) != true ){
+        if( plugin->handleAction( action, entry ) != true ){
             return;
         }
 

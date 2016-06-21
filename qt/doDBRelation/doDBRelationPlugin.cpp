@@ -32,7 +32,7 @@
 // we need the entryeditor
 #include "doDBEntryEditor/doDBEntryEditor.h"
 
-doDBRelationPlugin::            doDBRelationPlugin() : doDBPlugin() {
+doDBRelationPlugin::                doDBRelationPlugin() : doDBPlugin() {
 
 
 // create relation
@@ -49,14 +49,92 @@ doDBRelationPlugin::            doDBRelationPlugin() : doDBPlugin() {
 
 }
 
-doDBRelationPlugin::            ~doDBRelationPlugin(){
+doDBRelationPlugin::                ~doDBRelationPlugin(){
 
 }
 
 
 
 
-void doDBRelationPlugin::       prepareTree( doDBtree *dbTree ){
+
+QString doDBRelationPlugin::        valueGet( QString valueName ){
+
+    if( valueName == "name" ){
+        return "relation";
+    }
+    if( valueName == "creator" ){
+        return "stackshadow";
+    }
+    if( valueName == "description" ){
+        return "Handle relations of tables. \n - provide an relation-editor\n - add relations to tree-widget";
+    }
+
+
+    return "";
+}
+
+
+void doDBRelationPlugin::           prepareLayout( QString name, QLayout* layout ){
+
+    if( name == "detailView" ){
+
+    // basic infos
+        this->srcInfos = new QLineEdit();
+        this->srcInfos->setReadOnly(true);
+        this->srcInfos->setVisible( false );
+        layout->addWidget( this->srcInfos );
+
+    // edit button
+        this->btnEditRelations = new QPushButton( "Relation Bearbeiten" );
+        this->btnEditRelations->setVisible( false );
+        connect( this->btnEditRelations, SIGNAL(clicked()), this, SLOT(editorShow()) );
+        layout->addWidget( this->btnEditRelations );
+
+    // connect button
+        this->btnConnectRelation = new QPushButton( "Verbinden" );
+        this->btnConnectRelation->setVisible( false );
+        connect( this->btnConnectRelation, SIGNAL(clicked()), this, SLOT(connectionStart()) );
+        layout->addWidget( this->btnConnectRelation );
+
+        this->btnConnectRelationSave = new QPushButton( "Verbinden abschießen" );
+        this->btnConnectRelationSave->setVisible( false );
+        connect( this->btnConnectRelationSave, SIGNAL(clicked()), this, SLOT(connectionSave()) );
+        layout->addWidget( this->btnConnectRelationSave );
+
+        this->btnConnectRelationCancel = new QPushButton( "Verbinden abbrechen" );
+        this->btnConnectRelationCancel->setVisible( false );
+        connect( this->btnConnectRelationCancel, SIGNAL(clicked()), this, SLOT(connectionCancel()) );
+        layout->addWidget( this->btnConnectRelationCancel );
+
+    }
+
+
+}
+
+
+bool doDBRelationPlugin::           handleAction( QString action, doDBEntry* entry ){
+
+    if( action == "itemExpanded" ){
+        this->itemExpanded( entry );
+        return true;
+    }
+
+    if( action == "itemCollapsed" ){
+        this->itemCollapsed( entry );
+        return true;
+    }
+
+    if( action == "itemClicked" ){
+        this->itemClicked( entry );
+        return true;
+    }
+
+}
+
+
+
+
+void doDBRelationPlugin::           prepareTree( doDBtree *dbTree ){
 // save
     this->dbTree = dbTree;
 
@@ -65,100 +143,9 @@ void doDBRelationPlugin::       prepareTree( doDBtree *dbTree ){
 }
 
 
-void doDBRelationPlugin::       prepareItemView( QLayout *layout ){
 
 
-// basic infos
-    this->srcInfos = new QLineEdit();
-    this->srcInfos->setReadOnly(true);
-    this->srcInfos->setVisible( false );
-    layout->addWidget( this->srcInfos );
-
-// edit button
-    this->btnEditRelations = new QPushButton( "Relation Bearbeiten" );
-    this->btnEditRelations->setVisible( false );
-    connect( this->btnEditRelations, SIGNAL(clicked()), this, SLOT(editorShow()) );
-    layout->addWidget( this->btnEditRelations );
-
-// connect button
-    this->btnConnectRelation = new QPushButton( "Verbinden" );
-    this->btnConnectRelation->setVisible( false );
-    connect( this->btnConnectRelation, SIGNAL(clicked()), this, SLOT(connectionStart()) );
-    layout->addWidget( this->btnConnectRelation );
-
-    this->btnConnectRelationSave = new QPushButton( "Verbinden abschießen" );
-    this->btnConnectRelationSave->setVisible( false );
-    connect( this->btnConnectRelationSave, SIGNAL(clicked()), this, SLOT(connectionSave()) );
-    layout->addWidget( this->btnConnectRelationSave );
-
-    this->btnConnectRelationCancel = new QPushButton( "Verbinden abbrechen" );
-    this->btnConnectRelationCancel->setVisible( false );
-    connect( this->btnConnectRelationCancel, SIGNAL(clicked()), this, SLOT(connectionCancel()) );
-    layout->addWidget( this->btnConnectRelationCancel );
-
-
-
-}
-
-
-
-
-
-bool doDBRelationPlugin::       dbTreeItemClicked( doDBEntry* entry ){
-
-
-// vars
-    QString                     tableName;
-    QString                     itemID;
-    doDBtree::treeItemType      itemType;
-
-// get Stuff from the selected item
-    this->itemSelected = entry;
-
-    entry->item( &tableName, &itemID, (int*)&itemType );
-
-// clicked on table
-    if( itemType == doDBtree::typeTable ){
-
-    // connect mode
-        if( this->connectionMode ){
-            this->btnEditRelations->setVisible(false);
-            this->btnConnectRelation->setVisible(false);
-            this->btnConnectRelationSave->setVisible(false);
-            this->btnConnectRelationCancel->setVisible(false);
-        } else {
-        // show relation editor
-            this->btnEditRelations->setVisible(true);
-        }
-
-    } else {
-        this->btnEditRelations->setVisible(false);
-    }
-
-
-// clicked on table
-    if( itemType == doDBtree::typeEntry ){
-
-    // normal mode
-        if( ! this->connectionMode ){
-            this->btnConnectRelation->setVisible( true );
-        }
-    // connect mode
-        else {
-            this->connectionCheck();
-        }
-
-
-
-    } else {
-        this->btnConnectRelation->setVisible( false );
-    }
-
-    return true;
-}
-
-
-bool doDBRelationPlugin::       dbTreeItemExpanded( doDBEntry* entry ){
+bool doDBRelationPlugin::           itemExpanded( doDBEntry* entry ){
 
 // on connection mode, we do nothing
     if( this->connectionMode ){
@@ -243,7 +230,7 @@ bool doDBRelationPlugin::       dbTreeItemExpanded( doDBEntry* entry ){
 }
 
 
-bool doDBRelationPlugin::       dbTreeItemCollapsed( doDBEntry* entry ){
+bool doDBRelationPlugin::           itemCollapsed( doDBEntry* entry ){
 
 // vars
     int         itemType;
@@ -261,9 +248,64 @@ bool doDBRelationPlugin::       dbTreeItemCollapsed( doDBEntry* entry ){
 }
 
 
+bool doDBRelationPlugin::           itemClicked( doDBEntry* entry ){
 
 
-void doDBRelationPlugin::       editorShow(){
+// vars
+    QString                     tableName;
+    QString                     itemID;
+    doDBtree::treeItemType      itemType;
+
+// get Stuff from the selected item
+    this->itemSelected = entry;
+
+    entry->item( &tableName, &itemID, (int*)&itemType );
+
+// clicked on table
+    if( itemType == doDBtree::typeTable ){
+
+    // connect mode
+        if( this->connectionMode ){
+            this->btnEditRelations->setVisible(false);
+            this->btnConnectRelation->setVisible(false);
+            this->btnConnectRelationSave->setVisible(false);
+            this->btnConnectRelationCancel->setVisible(false);
+        } else {
+        // show relation editor
+            this->btnEditRelations->setVisible(true);
+        }
+
+    } else {
+        this->btnEditRelations->setVisible(false);
+    }
+
+
+// clicked on table
+    if( itemType == doDBtree::typeEntry ){
+
+    // normal mode
+        if( ! this->connectionMode ){
+            this->btnConnectRelation->setVisible( true );
+        }
+    // connect mode
+        else {
+            this->connectionCheck();
+        }
+
+
+
+    } else {
+        this->btnConnectRelation->setVisible( false );
+    }
+
+    return true;
+}
+
+
+
+
+
+void doDBRelationPlugin::           editorShow(){
 
 
 // vars
@@ -301,12 +343,12 @@ void doDBRelationPlugin::       editorShow(){
 }
 
 
-void doDBRelationPlugin::       editorClosed(){
+void doDBRelationPlugin::           editorClosed(){
     this->dbRelation->dbRelationSave( this->itemSelected->connection() );
 }
 
 
-void doDBRelationPlugin::       connectionStart(){
+void doDBRelationPlugin::           connectionStart(){
 
 // show / hide
     this->srcInfos->setVisible( true );
@@ -340,7 +382,7 @@ void doDBRelationPlugin::       connectionStart(){
 }
 
 
-void doDBRelationPlugin::       connectionCheck(){
+void doDBRelationPlugin::           connectionCheck(){
 
 // enable only tables with an relation
     const char *srcPrimaryKeyColumn;
@@ -411,7 +453,7 @@ void doDBRelationPlugin::       connectionCheck(){
 }
 
 
-void doDBRelationPlugin::       connectionCancel(){
+void doDBRelationPlugin::           connectionCancel(){
 
 // show / hide
     this->srcInfos->setVisible( false );
@@ -428,7 +470,7 @@ void doDBRelationPlugin::       connectionCancel(){
 }
 
 
-void doDBRelationPlugin::       connectionSave(){
+void doDBRelationPlugin::           connectionSave(){
 // no correct relation selected
     if( this->relSelected != true ){
         return;
@@ -467,7 +509,7 @@ void doDBRelationPlugin::       connectionSave(){
 //    this->srcItem->setChildIndicatorPolicy( QTreeWidgetItem::ShowIndicator );
 
 // fire the plugins
-    doDBPlugins::ptr->eventTreeItemClicked( this->itemSelected );
+    doDBPlugins::ptr->handleAction( "itemClicked", this->itemSelected );
 }
 
 

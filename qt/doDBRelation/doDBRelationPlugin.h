@@ -49,12 +49,18 @@ public:
                             ~doDBRelationPlugin();
 
 // overload
-    void                    prepareTree( doDBtree *dbTree );
-    void                    prepareItemView( QLayout *layout );
+    QString                 valueGet( QString valueName );
+    void                    prepareLayout( QString name, QLayout* layout );
+    bool                    handleAction( QString action, doDBEntry* entry );
 
-    bool                    dbTreeItemClicked( doDBEntry* entry );
-    bool                    dbTreeItemExpanded( doDBEntry* entry );
-    bool                    dbTreeItemCollapsed( doDBEntry* entry );
+
+
+// overload
+    void                    prepareTree( doDBtree *dbTree );
+
+    bool                    itemExpanded( doDBEntry* entry );
+    bool                    itemCollapsed( doDBEntry* entry );
+    bool                    itemClicked( doDBEntry* entry );
 
 
 private slots:

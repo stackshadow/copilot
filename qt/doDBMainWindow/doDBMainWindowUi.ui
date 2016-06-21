@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>951</width>
-    <height>726</height>
+    <width>919</width>
+    <height>646</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -67,7 +67,8 @@
            </size>
           </property>
           <property name="text">
-           <string>Verbindungen</string>
+           <string>Verbindungen
+Bearbeiten</string>
           </property>
          </widget>
         </item>
@@ -140,15 +141,18 @@
      </item>
      <item>
       <widget class="QStackedWidget" name="widgetContainerRight">
+       <property name="sizePolicy">
+        <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+         <horstretch>0</horstretch>
+         <verstretch>0</verstretch>
+        </sizepolicy>
+       </property>
        <widget class="QWidget" name="itemView">
         <layout class="QVBoxLayout" name="verticalLayout_2"/>
        </widget>
       </widget>
      </item>
     </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="actionButtonLayout"/>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -177,7 +181,7 @@
    <item>
     <widget class="QTableWidget" name="historyMessages">
      <property name="sizePolicy">
-      <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+      <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
        <horstretch>0</horstretch>
        <verstretch>1</verstretch>
       </sizepolicy>

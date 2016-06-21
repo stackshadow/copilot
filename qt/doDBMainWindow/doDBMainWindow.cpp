@@ -65,7 +65,7 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
 // init plugins
 //    doDBPlugins::ptr->eventPrepareDashboard( this->ui.page->layout() );
     doDBPlugins::ptr->eventPrepareTree( this->dataTree );
-    doDBPlugins::ptr->eventPrepareItemView( this->ui.itemView->layout() );
+    doDBPlugins::ptr->prepareLayout( "detailView", this->ui.itemView->layout() );
 
 
 
@@ -137,7 +137,7 @@ void doDBMainWindow::           connectionEditorHide(){
 
 // save
     doDBConnections::ptr->connectionsSave();
-    doDBSettingsGlobal->save();
+    doDBSettings::ptr->saveToFile();
     this->treeUpdate();
 }
 

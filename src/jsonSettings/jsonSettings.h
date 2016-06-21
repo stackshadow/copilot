@@ -30,7 +30,7 @@ public:
 // default stuff
     bool            open( const char *fileName );
     bool            createFile( const char *fileName );
-    bool            save();
+    bool            saveToFile();
     void            langCodeSet( const char langCode[3] );
 
 // group

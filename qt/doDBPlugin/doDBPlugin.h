@@ -29,22 +29,32 @@ class doDBPlugin : public QObject {
         doDBPlugin();
         virtual ~doDBPlugin();
 
+        virtual QString     valueGet( QString valueName ){ return ""; };
+
+        virtual void        prepareLayout( QString name, QLayout* layout ){ return; };
+        virtual bool        handleAction( QString action, doDBEntry* entry ){ return true; };
+
+
 // prepare stuff
-        virtual void prepareToolBar( QLayout *layout ){ return; }
-        virtual void prepareTree( doDBtree *dbTree ){ return; }
-        virtual void prepareItemView( QLayout *layout ){ return; }
+        virtual void        prepareToolBar( QLayout *layout ){ return; }
+        virtual void        prepareTree( doDBtree *dbTree ){ return; }
+        virtual void        prepareItemView( QLayout *layout ){ return; }
 
 // events
-        virtual bool dbTreeItemClicked( doDBEntry* entry ){ return true; }
-        virtual bool dbTreeItemExpanded( doDBEntry* entry ){ return true; }
-        virtual bool dbTreeItemCollapsed( doDBEntry* entry ){ return true; }
+        virtual bool        dbTreeItemClicked( doDBEntry* entry ){ return true; }
+        virtual bool        dbTreeItemExpanded( doDBEntry* entry ){ return true; }
+        virtual bool        dbTreeItemCollapsed( doDBEntry* entry ){ return true; }
 
-        virtual bool itemChanged( const char * columnName, const char * newColumnValue ){ return true; }
+        virtual bool        itemChanged( const char * columnName, const char * newColumnValue ){ return true; }
 
 
 
     protected:
     private:
+        QString         pluginName;
+        QString         pluginAuthor;
+        QString         pluginDescription;
+        bool            pluginEnabled;
 };
 
 #endif // doDBPlugin_H

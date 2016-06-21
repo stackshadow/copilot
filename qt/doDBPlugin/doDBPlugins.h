@@ -27,6 +27,12 @@
 #include "doDBTree/doDBTree.h"
 #include "doDBEntryEditor/doDBEntryEditor.h"
 
+#ifdef __gnu_linux__
+    #define pluginPath1 "./plugins"
+    #define pluginPath2 "~/doDB/plugins"
+    #define pluginPath3 "/usr/share/doDB/plugins"
+#endif
+
 class doDBPlugins
 {
 
@@ -34,18 +40,17 @@ public:
                             doDBPlugins();
     virtual                 ~doDBPlugins();
 
+    void                    load();
+
 // append / remove
     void                    append( doDBPlugin *dbPlugin );
 
 // prepare stuff
-    void                    eventPrepareToolBar( QLayout *layout );
+    void                    prepareLayout( QString name, QLayout* layout );
     void                    eventPrepareTree( doDBtree *dbTree );
-    void                    eventPrepareItemView( QLayout *layout );
 
 // all events
-    void                    eventTreeItemClicked( doDBEntry* entry );
-    void                    eventTreeItemExpanded( doDBEntry* entry );
-    void                    eventTreeItemCollapsed( doDBEntry* entry );
+    void                    handleAction( QString action, doDBEntry* entry );
     void                    eventItemChanged( const char * columnName, const char * newColumnValue );
 
 

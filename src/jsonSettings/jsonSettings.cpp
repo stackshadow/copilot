@@ -83,7 +83,7 @@ bool jsonSettings::             createFile( const char *fileName ){
 }
 
 
-bool jsonSettings::             save(){
+bool jsonSettings::             saveToFile(){
     if( this->jsonRoot == NULL ) return false;
     if( this->jsonFilename == NULL ) return false;
 

@@ -46,8 +46,12 @@ public:
                             ~doDBEntryPlugin();
 
 // overload
-    void                    prepareItemView( QLayout *layout );
-    bool                    dbTreeItemClicked( doDBEntry *entry );
+    QString                 valueGet( QString valueName );
+    void                    prepareLayout( QString name, QLayout* layout );
+    bool                    handleAction( QString action, doDBEntry* entry );
+
+// data handle
+    bool                    load( doDBEntry *entry );
 
 
 

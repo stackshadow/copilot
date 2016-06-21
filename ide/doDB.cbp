@@ -8,7 +8,7 @@
 		<Option execution_dir="/usr/src/projects/dodb" />
 		<Option pch_mode="2" />
 		<Option compiler="null" />
-		<Option virtualFolders="qt/;qt/doDBConnection/;qt/doDBDebug/;qt/doDBEntryEditor/;qt/doDBFile/;qt/doDBMainWIndow/;qt/doDBPlugin/;qt/doDBSettings/;qt/doDBTableEditor/;qt/doDBTree/;qt/doDBRelation/;src/;src/jsonSettings/;make/;make/generic/;make/postmake/;make/premake/;evillib/;evillib/core/;evillib/core/core/;evillib/core/memory/;evillib/extra/;evillib/extra/db/;evillib/extra/dbdriver/;qt/doDBEntry/;" />
+		<Option virtualFolders="qt/;qt/doDBConnection/;qt/doDBDebug/;qt/doDBEntryEditor/;qt/doDBFile/;qt/doDBMainWIndow/;qt/doDBPlugin/;qt/doDBSettings/;qt/doDBTableEditor/;qt/doDBTree/;qt/doDBRelation/;src/;src/jsonSettings/;make/;make/generic/;make/postmake/;make/premake/;evillib/;evillib/core/;evillib/core/core/;evillib/core/memory/;evillib/extra/;evillib/extra/db/;evillib/extra/dbdriver/;qt/doDBEntry/;qt/doDBLog/;" />
 		<Build>
 			<Target title="binary-qt-dbg">
 				<Option output="/tmp/dodb/target/bin/dodb" prefix_auto="1" extension_auto="1" />
@@ -887,8 +887,12 @@
 		<Unit filename="../qt/doDBEntry/doDBEntry.h">
 			<Option virtualFolder="qt/doDBEntry/" />
 		</Unit>
-		<Unit filename="../qt/doDBEntry/doDBEntryList.cpp" />
-		<Unit filename="../qt/doDBEntry/doDBEntryList.h" />
+		<Unit filename="../qt/doDBEntry/doDBEntryList.cpp">
+			<Option virtualFolder="qt/doDBEntry/" />
+		</Unit>
+		<Unit filename="../qt/doDBEntry/doDBEntryList.h">
+			<Option virtualFolder="qt/doDBEntry/" />
+		</Unit>
 		<Unit filename="../qt/doDBEntryEditor/doDBEntryEditor.cpp">
 			<Option virtualFolder="qt/doDBEntryEditor/" />
 		</Unit>
@@ -924,6 +928,12 @@
 		</Unit>
 		<Unit filename="../qt/doDBFile/doDBTableFoldersEditor.ui.h">
 			<Option virtualFolder="qt/doDBFile/" />
+		</Unit>
+		<Unit filename="../qt/doDBLog/doDBLog.cpp">
+			<Option virtualFolder="qt/doDBLog/" />
+		</Unit>
+		<Unit filename="../qt/doDBLog/doDBLog.h">
+			<Option virtualFolder="qt/doDBLog/" />
 		</Unit>
 		<Unit filename="../qt/doDBMainWindow/doDBMainWindow.cpp">
 			<Option virtualFolder="qt/doDBMainWIndow/" />
