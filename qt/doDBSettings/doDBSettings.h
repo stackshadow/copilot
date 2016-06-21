@@ -28,12 +28,14 @@ public:
     doDBSettings();
     ~doDBSettings();
 
+    static doDBSettings*      ptr;
+
 private:
-    bool debugginMode;
+    bool                            debugginMode;
 
 public:
-    bool        debugModeEnabled();
-    QString     treePictureDirectory();
+    bool                            debugModeEnabled();
+    QString                         treePictureDirectory();
 
 };
 

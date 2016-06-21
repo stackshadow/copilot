@@ -366,7 +366,7 @@ void doDBFile::             doDBTreeAppendFile( QTreeWidgetItem *parentItem, con
     QTreeWidgetItem* item = new QTreeWidgetItem();
 
 // icon-filename
-    QString iconFileName = doDBSettingsGlobal->treePictureDirectory();
+    QString iconFileName = doDBSettings::ptr->treePictureDirectory();
     iconFileName += "/file.png";
     QIcon tableIcon = QIcon(iconFileName);
     item->setIcon( 0, QIcon(iconFileName) );

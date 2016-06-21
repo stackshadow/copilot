@@ -37,8 +37,6 @@
 #include "doDBRelation/doDBRelationPlugin.h"
 #include "doDBEntryEditor/doDBEntryPlugin.h"
 
-doDBSettings        *doDBSettingsGlobal;
-t_globalSettings    globalSettings;
 
 /*
 apt install pkg-config libjansson-dev libqt5core5a libqt5gui5 qt5-qmake qtbase5-dev qtbase5-dev-tools qttools5-dev-tools
@@ -62,14 +60,10 @@ int main(int argc, char *argv[])
     new doDBDebug();
 
 // okay, we load the settings
-    doDBSettingsGlobal = new doDBSettings();
+    new doDBSettings();
 
 // create the list of all connections
     new doDBConnections();
-    doDBConnections::ptr->connectionsLoad();
-
-// create the global actual entry
-    new doDBEntry();
 
 // our plugins
     new doDBPlugins();
@@ -87,3 +81,6 @@ int main(int argc, char *argv[])
 
     return a.exec();
 }
+
+
+

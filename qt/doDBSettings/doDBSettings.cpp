@@ -17,11 +17,14 @@
 */
 
 #include "doDBSettings.h"
-
+doDBSettings* doDBSettings::ptr = NULL;
 
 #include <QDir>
 
 doDBSettings::              doDBSettings() : jsonSettings() {
+
+// save pointer
+    this->ptr = this;
 
 
     QString configFileName = "";
