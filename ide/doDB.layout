@@ -2,134 +2,98 @@
 <CodeBlocks_layout_file>
 	<FileVersion major="1" minor="0" />
 	<ActiveTarget name="binary-qt-dbg" />
-	<File name="../qt/doDBEntry/doDBEntry.h" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../../evillib/core/core/etInit.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2074" topLine="45" />
+			<Cursor1 position="2453" topLine="58" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+		</Folding>
+	</File>
+	<File name="../make/generic/bin.mk" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="726" topLine="5" />
 		</Cursor>
 	</File>
 	<File name="../../evillib/core/core/etDebug.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="9203" topLine="23" />
+			<Cursor1 position="4587" topLine="120" />
 		</Cursor>
 		<Folding>
-			<Collapse line="0" />
-			<Collapse line="18" />
-			<Collapse line="40" />
-			<Collapse line="54" />
-			<Collapse line="170" />
-			<Collapse line="181" />
-			<Collapse line="241" />
-			<Collapse line="251" />
-			<Collapse line="264" />
-			<Collapse line="283" />
-			<Collapse line="297" />
-			<Collapse line="316" />
-			<Collapse line="330" />
+			<Collapse line="336" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBConnection/doDBConnections.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBMainWindow/doDBMainWindowUi.ui.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1001" topLine="15" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBRelation/doDBRelationEditor.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3383" topLine="15" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="28" />
-			<Collapse line="113" />
-			<Collapse line="275" />
-			<Collapse line="305" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBFile/doDBFile.h" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2499" topLine="39" />
-		</Cursor>
-	</File>
-	<File name="../../evillib/extra/dbdriver/etDBSQL.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBFile/doDBTableFoldersEditor.ui.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4332" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="28" />
-			<Collapse line="43" />
-			<Collapse line="102" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBRelation/doDBRelation.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2449" topLine="18" />
+			<Cursor1 position="3559" topLine="48" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBTree/doDBTree.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../../evillib/core/evillib_defines.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="815" topLine="21" />
+			<Cursor1 position="2337" topLine="13" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-			<Collapse line="29" />
-		</Folding>
-	</File>
-	<File name="../../evillib/extra/dbdriver/etDBSQLite.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="7907" topLine="64" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="47" />
-			<Collapse line="145" />
-			<Collapse line="159" />
-			<Collapse line="170" />
-			<Collapse line="171" />
-			<Collapse line="185" />
+			<Collapse line="21" />
+			<Collapse line="53" />
+			<Collapse line="64" />
+			<Collapse line="71" />
+			<Collapse line="84" />
+			<Collapse line="112" />
+			<Collapse line="117" />
 			<Collapse line="193" />
-			<Collapse line="209" />
-			<Collapse line="247" />
-			<Collapse line="263" />
-			<Collapse line="272" />
-			<Collapse line="291" />
-			<Collapse line="304" />
-			<Collapse line="316" />
-			<Collapse line="322" />
-			<Collapse line="331" />
-			<Collapse line="343" />
-			<Collapse line="349" />
-			<Collapse line="358" />
-			<Collapse line="374" />
-			<Collapse line="379" />
-			<Collapse line="387" />
-			<Collapse line="400" />
-			<Collapse line="404" />
+			<Collapse line="198" />
+			<Collapse line="208" />
+			<Collapse line="213" />
 		</Folding>
 	</File>
-	<File name="../src/evillib.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBCollector/doDBCollectorPlugin.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1568" topLine="7" />
+			<Cursor1 position="1673" topLine="21" />
 		</Cursor>
 	</File>
-	<File name="../qt/doDBDebug/doDBDebug.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBConnection/doDBConnectionEditor.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3576" topLine="71" />
+			<Cursor1 position="1887" topLine="44" />
+		</Cursor>
+	</File>
+	<File name="../qt/doDBTableEditor/doDBTableEditor.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2169" topLine="0" />
 		</Cursor>
 		<Folding>
-			<Collapse line="26" />
-			<Collapse line="35" />
-			<Collapse line="40" />
-			<Collapse line="45" />
-			<Collapse line="75" />
-			<Collapse line="81" />
+			<Collapse line="38" />
+			<Collapse line="43" />
+		</Folding>
+	</File>
+	<File name="../../evillib/extra/db/etDBObjectTableColumn.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1213" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="32" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBMainWindow/doDBMainWindow.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1385" topLine="21" />
+		</Cursor>
+	</File>
+	<File name="../qt/doDBEntryEditor/doDBEntryPlugin.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2585" topLine="48" />
+		</Cursor>
+		<Folding>
+			<Collapse line="34" />
+			<Collapse line="53" />
+			<Collapse line="56" />
+			<Collapse line="59" />
+			<Collapse line="68" />
+			<Collapse line="173" />
 		</Folding>
 	</File>
 	<File name="../../evillib/core/core/etDebug.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -141,74 +105,142 @@
 			<Collapse line="150" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBEntry/doDBEntryList.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBDebug/doDBDebug.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="348" topLine="8" />
-		</Cursor>
-	</File>
-	<File name="../src/jsonSettings/jsonSettings.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2109" topLine="0" />
+			<Cursor1 position="3612" topLine="25" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-			<Collapse line="25" />
-			<Collapse line="34" />
+			<Collapse line="26" />
+			<Collapse line="35" />
 			<Collapse line="40" />
-			<Collapse line="49" />
-			<Collapse line="62" />
-			<Collapse line="66" />
-			<Collapse line="77" />
-			<Collapse line="85" />
-			<Collapse line="100" />
-			<Collapse line="107" />
-			<Collapse line="121" />
-			<Collapse line="129" />
-			<Collapse line="145" />
-			<Collapse line="170" />
-			<Collapse line="190" />
-			<Collapse line="202" />
-			<Collapse line="219" />
-			<Collapse line="226" />
+			<Collapse line="45" />
+			<Collapse line="75" />
+			<Collapse line="81" />
+			<Collapse line="141" />
 		</Folding>
+	</File>
+	<File name="../../evillib/core/string/etStringChar.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1931" topLine="27" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBFile/doDBTableFoldersEditor.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1642" topLine="28" />
+		</Cursor>
+		<Folding>
+			<Collapse line="42" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBCollector/doDBCollectorWidget.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="489" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="33" />
+			<Collapse line="53" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBLog/doDBLog.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="../../evillib/extra/dbdriver/etDBSQLite.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="827" topLine="0" />
+		</Cursor>
 	</File>
 	<File name="../qt/doDBMainWindow/doDBMainWindow.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2119" topLine="39" />
+			<Cursor1 position="2296" topLine="27" />
 		</Cursor>
 		<Folding>
-			<Collapse line="125" />
+			<Collapse line="0" />
+			<Collapse line="81" />
+			<Collapse line="87" />
+			<Collapse line="111" />
+			<Collapse line="127" />
+			<Collapse line="146" />
+			<Collapse line="162" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBSettings/doDBSettings.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBFile/doDBFile.cpp" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="957" topLine="0" />
+			<Cursor1 position="9770" topLine="67" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="30" />
+			<Collapse line="50" />
+			<Collapse line="55" />
+			<Collapse line="76" />
+			<Collapse line="97" />
+			<Collapse line="113" />
+			<Collapse line="120" />
+			<Collapse line="126" />
+			<Collapse line="174" />
+			<Collapse line="203" />
+			<Collapse line="214" />
+			<Collapse line="227" />
+			<Collapse line="234" />
+			<Collapse line="240" />
+			<Collapse line="267" />
+			<Collapse line="274" />
+			<Collapse line="303" />
+			<Collapse line="310" />
+			<Collapse line="312" />
+			<Collapse line="323" />
+			<Collapse line="384" />
+			<Collapse line="454" />
+			<Collapse line="461" />
+			<Collapse line="467" />
+			<Collapse line="485" />
+			<Collapse line="501" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBEntryEditor/doDBEntryEditor.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="39" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
 		</Folding>
 	</File>
-	<File name="../../evillib/develop/tests/etJsonDB.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBConnection/doDBConnectionEditor.cpp" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="13658" topLine="49" />
+			<Cursor1 position="2968" topLine="94" />
+		</Cursor>
+		<Folding>
+			<Collapse line="135" />
+			<Collapse line="208" />
+		</Folding>
+	</File>
+	<File name="../src/jsonSettings/jsonSettings.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1039" topLine="6" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-			<Collapse line="67" />
-			<Collapse line="84" />
-			<Collapse line="133" />
-			<Collapse line="141" />
-			<Collapse line="195" />
 		</Folding>
 	</File>
-	<File name="../make/clibs.mk" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../../evillib/app/evillib.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="471" topLine="0" />
+			<Cursor1 position="3260" topLine="38" />
 		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="31" />
+			<Collapse line="38" />
+		</Folding>
 	</File>
-	<File name="../qt/doDBConnection/doDBData.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../../evillib/extra/dbdriver/etDBDriver.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="745" topLine="0" />
+			<Cursor1 position="0" topLine="0" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
@@ -216,214 +248,13 @@
 	</File>
 	<File name="../make/sources.mk" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1679" topLine="40" />
+			<Cursor1 position="3230" topLine="68" />
 		</Cursor>
 	</File>
-	<File name="../qt/doDBRelation/doDBRelationPlugin.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../make/generic/qt.mk" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1551" topLine="21" />
+			<Cursor1 position="1219" topLine="17" />
 		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-		</Folding>
-	</File>
-	<File name="../make/generic/bin.mk" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="726" topLine="5" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBDebug/doDBDebug.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1372" topLine="7" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBSettings/doDBSettings.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="772" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="23" />
-			<Collapse line="62" />
-			<Collapse line="68" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBConnection/doDBConnectionEditor.cpp" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="10067" topLine="47" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="32" />
-			<Collapse line="74" />
-			<Collapse line="81" />
-			<Collapse line="92" />
-			<Collapse line="110" />
-			<Collapse line="135" />
-			<Collapse line="179" />
-			<Collapse line="193" />
-			<Collapse line="208" />
-			<Collapse line="233" />
-			<Collapse line="252" />
-			<Collapse line="263" />
-			<Collapse line="293" />
-			<Collapse line="329" />
-			<Collapse line="334" />
-			<Collapse line="344" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBEntryEditor/doDBEntryEditor.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="9505" topLine="16" />
-		</Cursor>
-		<Folding>
-			<Collapse line="80" />
-			<Collapse line="101" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBPlugin/doDBPlugin.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1174" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBEntryEditor/doDBEntryPlugin.cpp" open="1" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2548" topLine="41" />
-		</Cursor>
-		<Folding>
-			<Collapse line="50" />
-			<Collapse line="52" />
-			<Collapse line="55" />
-			<Collapse line="58" />
-			<Collapse line="67" />
-			<Collapse line="69" />
-			<Collapse line="103" />
-			<Collapse line="164" />
-			<Collapse line="169" />
-			<Collapse line="174" />
-			<Collapse line="203" />
-			<Collapse line="212" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBConnection/doDBConnection.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2611" topLine="43" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="38" />
-			<Collapse line="77" />
-			<Collapse line="89" />
-			<Collapse line="94" />
-			<Collapse line="100" />
-			<Collapse line="117" />
-			<Collapse line="123" />
-			<Collapse line="128" />
-			<Collapse line="239" />
-			<Collapse line="251" />
-			<Collapse line="265" />
-			<Collapse line="282" />
-			<Collapse line="295" />
-			<Collapse line="318" />
-			<Collapse line="348" />
-			<Collapse line="361" />
-			<Collapse line="368" />
-			<Collapse line="401" />
-			<Collapse line="423" />
-			<Collapse line="454" />
-			<Collapse line="518" />
-			<Collapse line="563" />
-			<Collapse line="623" />
-			<Collapse line="637" />
-			<Collapse line="651" />
-			<Collapse line="682" />
-			<Collapse line="720" />
-			<Collapse line="747" />
-			<Collapse line="758" />
-			<Collapse line="763" />
-			<Collapse line="768" />
-			<Collapse line="776" />
-			<Collapse line="790" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBEntry/doDBEntry.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2364" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="25" />
-			<Collapse line="45" />
-			<Collapse line="51" />
-			<Collapse line="57" />
-			<Collapse line="68" />
-			<Collapse line="73" />
-			<Collapse line="83" />
-			<Collapse line="107" />
-			<Collapse line="127" />
-			<Collapse line="131" />
-			<Collapse line="138" />
-			<Collapse line="156" />
-			<Collapse line="174" />
-			<Collapse line="189" />
-			<Collapse line="196" />
-			<Collapse line="211" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBRelation/doDBRelationEditor.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1886" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="37" />
-		</Folding>
-	</File>
-	<File name="../../evillib/extra/dbdriver/etDBSQLite.h" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="827" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBFile/doDBTableFoldersEditor.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="4515" topLine="4" />
-		</Cursor>
-		<Folding>
-			<Collapse line="26" />
-			<Collapse line="51" />
-			<Collapse line="57" />
-			<Collapse line="66" />
-			<Collapse line="92" />
-			<Collapse line="122" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBPlugin/doDBPlugin.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="408" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="../../evillib/extra/db/etDBObjectTableColumn.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1213" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="32" />
-		</Folding>
-	</File>
-	<File name="../make/progs.mk" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="118" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBEntryEditor/doDBEntryPlugin.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1361" topLine="6" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-		</Folding>
 	</File>
 	<File name="../qt/doDBTableEditor/doDBTableEditor.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
@@ -449,85 +280,63 @@
 			<Collapse line="382" />
 		</Folding>
 	</File>
-	<File name="../../evillib/extra/dbdriver/etDBSQL.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBPlugin/doDBPlugin.h" open="0" top="0" tabpos="8" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2824" topLine="23" />
+			<Cursor1 position="1866" topLine="12" />
 		</Cursor>
-		<Folding>
-			<Collapse line="97" />
-			<Collapse line="104" />
-			<Collapse line="126" />
-			<Collapse line="173" />
-			<Collapse line="185" />
-			<Collapse line="193" />
-			<Collapse line="223" />
-			<Collapse line="226" />
-			<Collapse line="260" />
-			<Collapse line="268" />
-			<Collapse line="300" />
-			<Collapse line="318" />
-			<Collapse line="322" />
-			<Collapse line="335" />
-			<Collapse line="342" />
-			<Collapse line="350" />
-			<Collapse line="374" />
-			<Collapse line="378" />
-			<Collapse line="395" />
-			<Collapse line="403" />
-			<Collapse line="420" />
-			<Collapse line="423" />
-			<Collapse line="466" />
-			<Collapse line="472" />
-			<Collapse line="523" />
-			<Collapse line="528" />
-		</Folding>
 	</File>
-	<File name="../qt/doDBMainWindow/doDBMainWindowUi.ui.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBConnection/doDBData.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="4870" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="45" />
-			<Collapse line="132" />
-			<Collapse line="141" />
-		</Folding>
-	</File>
-	<File name="../src/jsonSettings/jsonSettings.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1039" topLine="6" />
+			<Cursor1 position="745" topLine="0" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
 		</Folding>
 	</File>
-	<File name="../src/main.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBEntry/doDBEntry.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1009" topLine="0" />
+			<Cursor1 position="1813" topLine="0" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
 			<Collapse line="30" />
 		</Folding>
 	</File>
-	<File name="../../evillib/core/evillib_defines.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBPlugin/doDBPlugins.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2337" topLine="13" />
+			<Cursor1 position="1071" topLine="71" />
+		</Cursor>
+	</File>
+	<File name="../make/clibs.mk" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="471" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="../qt/doDBLog/doDBLog.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1482" topLine="0" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-			<Collapse line="21" />
-			<Collapse line="53" />
-			<Collapse line="64" />
-			<Collapse line="71" />
-			<Collapse line="84" />
-			<Collapse line="112" />
-			<Collapse line="117" />
-			<Collapse line="193" />
-			<Collapse line="198" />
-			<Collapse line="208" />
-			<Collapse line="213" />
 		</Folding>
+	</File>
+	<File name="../qt/doDBEntry/doDBEntryList.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="769" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="../qt/doDBPlugin/doDBPlugins.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1684" topLine="9" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+		</Folding>
+	</File>
+	<File name="../make/cflags.mk" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="620" topLine="0" />
+		</Cursor>
 	</File>
 	<File name="../../evillib/tests/etDBObject.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
@@ -539,6 +348,74 @@
 			<Collapse line="146" />
 			<Collapse line="219" />
 			<Collapse line="280" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBRelation/doDBRelationEditor.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1346" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="37" />
+		</Folding>
+	</File>
+	<File name="../../evillib/extra/db/etDBObjectValue.c" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="33" />
+			<Collapse line="45" />
+			<Collapse line="81" />
+			<Collapse line="114" />
+			<Collapse line="167" />
+			<Collapse line="193" />
+		</Folding>
+	</File>
+	<File name="../make/Makefile" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="901" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="../qt/doDBFile/doDBFile.h" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2499" topLine="39" />
+		</Cursor>
+	</File>
+	<File name="../src/jsonSettings/jsonSettings.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4961" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="40" />
+			<Collapse line="49" />
+			<Collapse line="62" />
+			<Collapse line="66" />
+			<Collapse line="77" />
+			<Collapse line="85" />
+			<Collapse line="100" />
+			<Collapse line="107" />
+			<Collapse line="121" />
+			<Collapse line="129" />
+			<Collapse line="145" />
+			<Collapse line="170" />
+			<Collapse line="190" />
+			<Collapse line="202" />
+			<Collapse line="219" />
+			<Collapse line="226" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBTree/doDBTree.cpp" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="13700" topLine="326" />
+		</Cursor>
+		<Folding>
+			<Collapse line="182" />
+			<Collapse line="185" />
+			<Collapse line="265" />
+			<Collapse line="356" />
+			<Collapse line="401" />
+			<Collapse line="435" />
 		</Folding>
 	</File>
 	<File name="../qt/doDBRelation/doDBRelation.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -586,108 +463,31 @@
 			<Collapse line="427" />
 		</Folding>
 	</File>
-	<File name="../../evillib/extra/dbdriver/etDBDriver.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-		</Folding>
-	</File>
 	<File name="../qt/doDBRelation/doDBRelationEditor.ui.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="5263" topLine="21" />
-		</Cursor>
-		<Folding>
-			<Collapse line="140" />
-		</Folding>
-	</File>
-	<File name="../src/main.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1944" topLine="19" />
+			<Cursor1 position="5263" topLine="0" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-			<Collapse line="40" />
+			<Collapse line="29" />
+			<Collapse line="54" />
+			<Collapse line="178" />
 		</Folding>
 	</File>
-	<File name="../../evillib/core/string/etStringChar.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBFile/doDBTableFoldersEditor.ui.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1931" topLine="27" />
+			<Cursor1 position="4332" topLine="0" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBTree/doDBTree.cpp" open="1" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="13092" topLine="308" />
-		</Cursor>
-		<Folding>
-			<Collapse line="26" />
-			<Collapse line="169" />
-			<Collapse line="182" />
-			<Collapse line="185" />
-			<Collapse line="227" />
-			<Collapse line="253" />
-			<Collapse line="257" />
-			<Collapse line="265" />
-			<Collapse line="272" />
-			<Collapse line="276" />
-			<Collapse line="289" />
-			<Collapse line="300" />
-			<Collapse line="468" />
-			<Collapse line="474" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBEntryEditor/doDBEntryEditor.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2136" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBPlugin/doDBPlugins.cpp" open="1" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1975" topLine="17" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-			<Collapse line="25" />
-			<Collapse line="30" />
-			<Collapse line="36" />
+			<Collapse line="28" />
 			<Collapse line="43" />
-			<Collapse line="60" />
-			<Collapse line="66" />
+			<Collapse line="102" />
 		</Folding>
-	</File>
-	<File name="../make/Makefile" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1456" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBConnection/doDBConnectionEditor.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1034" topLine="26" />
-		</Cursor>
-		<Folding>
-			<Collapse line="0" />
-		</Folding>
-	</File>
-	<File name="../make/generic/qt.mk" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1219" topLine="17" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBLog/doDBLog.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="0" topLine="0" />
-		</Cursor>
 	</File>
 	<File name="../qt/doDBConnection/doDBConnections.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="6930" topLine="32" />
+			<Cursor1 position="3618" topLine="91" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
@@ -699,116 +499,134 @@
 			<Collapse line="69" />
 			<Collapse line="86" />
 			<Collapse line="103" />
-			<Collapse line="118" />
 		</Folding>
 	</File>
-	<File name="../make/cflags.mk" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBConnection/doDBConnections.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="620" topLine="0" />
-		</Cursor>
-	</File>
-	<File name="../qt/doDBRelation/doDBRelationPlugin.cpp" open="1" top="1" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="14989" topLine="447" />
-		</Cursor>
-		<Folding>
-			<Collapse line="76" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBConnection/doDBConnection.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="3384" topLine="72" />
-		</Cursor>
-		<Folding>
-			<Collapse line="42" />
-		</Folding>
-	</File>
-	<File name="../qt/doDBPlugin/doDBPlugins.h" open="1" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="1635" topLine="12" />
+			<Cursor1 position="1625" topLine="3" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBLog/doDBLog.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../make/progs.mk" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1475" topLine="0" />
+			<Cursor1 position="118" topLine="0" />
 		</Cursor>
-		<Folding>
-			<Collapse line="30" />
-		</Folding>
 	</File>
-	<File name="../qt/doDBFile/doDBFile.cpp" open="0" top="0" tabpos="7" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBRelation/doDBRelationPlugin.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="9770" topLine="67" />
+			<Cursor1 position="14966" topLine="303" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-			<Collapse line="30" />
-			<Collapse line="50" />
-			<Collapse line="55" />
-			<Collapse line="76" />
-			<Collapse line="97" />
-			<Collapse line="113" />
-			<Collapse line="120" />
-			<Collapse line="126" />
-			<Collapse line="174" />
-			<Collapse line="203" />
-			<Collapse line="214" />
-			<Collapse line="227" />
-			<Collapse line="234" />
+			<Collapse line="35" />
+			<Collapse line="56" />
+			<Collapse line="64" />
+			<Collapse line="81" />
+			<Collapse line="93" />
+			<Collapse line="143" />
+			<Collapse line="165" />
+			<Collapse line="295" />
+			<Collapse line="306" />
+			<Collapse line="332" />
+			<Collapse line="373" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBEntryEditor/doDBEntryEditor.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4781" topLine="18" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="25" />
+			<Collapse line="56" />
+			<Collapse line="62" />
+			<Collapse line="80" />
+			<Collapse line="101" />
+			<Collapse line="141" />
+			<Collapse line="156" />
+			<Collapse line="187" />
+			<Collapse line="217" />
+			<Collapse line="235" />
 			<Collapse line="240" />
-			<Collapse line="267" />
-			<Collapse line="274" />
+			<Collapse line="299" />
 			<Collapse line="303" />
-			<Collapse line="310" />
-			<Collapse line="312" />
-			<Collapse line="323" />
-			<Collapse line="384" />
-			<Collapse line="454" />
-			<Collapse line="461" />
-			<Collapse line="467" />
-			<Collapse line="485" />
-			<Collapse line="501" />
+			<Collapse line="307" />
+			<Collapse line="311" />
+			<Collapse line="319" />
+			<Collapse line="336" />
+			<Collapse line="346" />
+			<Collapse line="365" />
+			<Collapse line="397" />
+			<Collapse line="404" />
+			<Collapse line="423" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBTableEditor/doDBTableEditor.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBRelation/doDBRelation.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="2169" topLine="0" />
-		</Cursor>
-		<Folding>
-			<Collapse line="38" />
-			<Collapse line="43" />
-		</Folding>
-	</File>
-	<File name="../../evillib/core/core/etInit.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
-		<Cursor>
-			<Cursor1 position="2453" topLine="58" />
+			<Cursor1 position="2449" topLine="18" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBEntryEditor/doDBEntryEditor.ui.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../../evillib/extra/dbdriver/etDBSQL.h" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1261" topLine="11" />
+			<Cursor1 position="0" topLine="0" />
+		</Cursor>
+	</File>
+	<File name="../qt/doDBEntryEditor/doDBEntryPlugin.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1085" topLine="26" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-			<Collapse line="45" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBEntry/doDBEntry.cpp" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1704" topLine="18" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="26" />
+			<Collapse line="49" />
+			<Collapse line="55" />
+			<Collapse line="61" />
+			<Collapse line="78" />
+			<Collapse line="83" />
+			<Collapse line="93" />
 			<Collapse line="122" />
-			<Collapse line="134" />
+			<Collapse line="142" />
+			<Collapse line="146" />
+			<Collapse line="153" />
+			<Collapse line="180" />
+			<Collapse line="202" />
+			<Collapse line="217" />
+			<Collapse line="224" />
+			<Collapse line="239" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBEntry/doDBEntryList.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBSettings/doDBSettings.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="769" topLine="0" />
+			<Cursor1 position="957" topLine="0" />
 		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+		</Folding>
 	</File>
-	<File name="../qt/doDBMainWindow/doDBMainWindow.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBCollector/doDBCollectorPlugin.cpp" open="1" top="1" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1385" topLine="21" />
+			<Cursor1 position="2103" topLine="48" />
+		</Cursor>
+		<Folding>
+			<Collapse line="41" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBEntry/doDBEntryList.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="348" topLine="8" />
 		</Cursor>
 	</File>
 	<File name="../../evillib/extra/dbdriver/etDBDriver.c" open="0" top="0" tabpos="1" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
@@ -828,22 +646,238 @@
 			<Collapse line="181" />
 		</Folding>
 	</File>
-	<File name="../qt/doDBFile/doDBTableFoldersEditor.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBConnection/doDBConnection.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="1642" topLine="28" />
+			<Cursor1 position="3384" topLine="72" />
 		</Cursor>
 		<Folding>
 			<Collapse line="42" />
 		</Folding>
 	</File>
-	<File name="../../evillib/app/evillib.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+	<File name="../qt/doDBRelation/doDBRelationPlugin.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
 		<Cursor>
-			<Cursor1 position="3260" topLine="38" />
+			<Cursor1 position="1718" topLine="24" />
 		</Cursor>
 		<Folding>
 			<Collapse line="0" />
-			<Collapse line="31" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBCollector/doDBCollectorWidget.h" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1333" topLine="22" />
+		</Cursor>
+	</File>
+	<File name="../../evillib/develop/tests/etJsonDB.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="13658" topLine="49" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="67" />
+			<Collapse line="84" />
+			<Collapse line="133" />
+			<Collapse line="141" />
+			<Collapse line="195" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBFile/doDBTableFoldersEditor.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="4515" topLine="4" />
+		</Cursor>
+		<Folding>
+			<Collapse line="26" />
+			<Collapse line="51" />
+			<Collapse line="57" />
+			<Collapse line="66" />
+			<Collapse line="92" />
+			<Collapse line="122" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBPlugin/doDBPlugin.cpp" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="408" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+		</Folding>
+	</File>
+	<File name="../src/main.cpp" open="0" top="0" tabpos="4" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="2283" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="50" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBSettings/doDBSettings.cpp" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1665" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="23" />
+			<Collapse line="62" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBConnection/doDBConnection.cpp" open="0" top="0" tabpos="6" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="5480" topLine="112" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
 			<Collapse line="38" />
+			<Collapse line="77" />
+			<Collapse line="89" />
+			<Collapse line="94" />
+			<Collapse line="100" />
+			<Collapse line="109" />
+			<Collapse line="117" />
+			<Collapse line="123" />
+			<Collapse line="128" />
+			<Collapse line="239" />
+			<Collapse line="251" />
+			<Collapse line="265" />
+			<Collapse line="282" />
+			<Collapse line="295" />
+			<Collapse line="318" />
+			<Collapse line="348" />
+			<Collapse line="361" />
+			<Collapse line="368" />
+			<Collapse line="401" />
+			<Collapse line="423" />
+			<Collapse line="454" />
+			<Collapse line="518" />
+			<Collapse line="563" />
+			<Collapse line="623" />
+			<Collapse line="639" />
+			<Collapse line="653" />
+			<Collapse line="684" />
+			<Collapse line="722" />
+			<Collapse line="749" />
+			<Collapse line="760" />
+			<Collapse line="765" />
+			<Collapse line="770" />
+			<Collapse line="778" />
+			<Collapse line="792" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBEntryEditor/doDBEntryEditor.ui.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1261" topLine="24" />
+		</Cursor>
+		<Folding>
+			<Collapse line="41" />
+			<Collapse line="123" />
+		</Folding>
+	</File>
+	<File name="../../evillib/extra/dbdriver/etDBSQL.c" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="10631" topLine="99" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="26" />
+			<Collapse line="97" />
+			<Collapse line="104" />
+			<Collapse line="126" />
+			<Collapse line="173" />
+			<Collapse line="185" />
+			<Collapse line="193" />
+			<Collapse line="223" />
+			<Collapse line="226" />
+			<Collapse line="268" />
+			<Collapse line="300" />
+			<Collapse line="318" />
+			<Collapse line="322" />
+			<Collapse line="335" />
+			<Collapse line="376" />
+			<Collapse line="380" />
+			<Collapse line="397" />
+			<Collapse line="405" />
+			<Collapse line="422" />
+			<Collapse line="425" />
+			<Collapse line="468" />
+			<Collapse line="474" />
+			<Collapse line="525" />
+			<Collapse line="530" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBRelation/doDBRelationEditor.cpp" open="0" top="0" tabpos="3" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="3531" topLine="29" />
+		</Cursor>
+		<Folding>
+			<Collapse line="28" />
+			<Collapse line="75" />
+			<Collapse line="83" />
+			<Collapse line="92" />
+			<Collapse line="124" />
+			<Collapse line="160" />
+			<Collapse line="220" />
+			<Collapse line="234" />
+			<Collapse line="251" />
+			<Collapse line="286" />
+			<Collapse line="316" />
+		</Folding>
+	</File>
+	<File name="../src/evillib.c" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1568" topLine="7" />
+		</Cursor>
+	</File>
+	<File name="../../evillib/extra/dbdriver/etDBSQLite.c" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="7907" topLine="64" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="47" />
+			<Collapse line="145" />
+			<Collapse line="159" />
+			<Collapse line="170" />
+			<Collapse line="171" />
+			<Collapse line="185" />
+			<Collapse line="193" />
+			<Collapse line="209" />
+			<Collapse line="247" />
+			<Collapse line="263" />
+			<Collapse line="272" />
+			<Collapse line="291" />
+			<Collapse line="304" />
+			<Collapse line="316" />
+			<Collapse line="322" />
+			<Collapse line="331" />
+			<Collapse line="343" />
+			<Collapse line="349" />
+			<Collapse line="358" />
+			<Collapse line="374" />
+			<Collapse line="379" />
+			<Collapse line="387" />
+			<Collapse line="400" />
+			<Collapse line="404" />
+		</Folding>
+	</File>
+	<File name="../src/main.h" open="0" top="0" tabpos="5" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1009" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="0" />
+			<Collapse line="30" />
+		</Folding>
+	</File>
+	<File name="../qt/doDBDebug/doDBDebug.h" open="0" top="0" tabpos="0" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="1372" topLine="7" />
+		</Cursor>
+	</File>
+	<File name="../qt/doDBTree/doDBTree.h" open="0" top="0" tabpos="2" split="0" active="1" splitpos="0" zoom_1="0" zoom_2="0">
+		<Cursor>
+			<Cursor1 position="815" topLine="0" />
+		</Cursor>
+		<Folding>
+			<Collapse line="25" />
+			<Collapse line="29" />
 		</Folding>
 	</File>
 </CodeBlocks_layout_file>

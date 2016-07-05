@@ -72,9 +72,9 @@ sourcesQT   += ./qt/doDBEntry/doDBEntry.cpp
 sourcesQT   += ./qt/doDBMainWindow/doDBMainWindow.cpp
 sourcesUI   += ./qt/doDBMainWindow/doDBMainWindowUi.ui
 
+# From here, PLUGINS:
 sourcesQT   += ./qt/doDBPlugin/doDBPlugins.cpp
 sourcesQT   += ./qt/doDBPlugin/doDBPlugin.cpp
-
 
 sourcesQT   += ./qt/doDBConnection/doDBConnections.cpp
 sourcesQT   += ./qt/doDBConnection/doDBConnection.cpp
@@ -99,6 +99,10 @@ sourcesUI   += ./qt/doDBFile/doDBTableFoldersEditor.ui
 sourcesQT   += ./qt/doDBEntryEditor/doDBEntryPlugin.cpp
 sourcesQT   += ./qt/doDBEntryEditor/doDBEntryEditor.cpp
 sourcesUI   += ./qt/doDBEntryEditor/doDBEntryEditor.ui
+
+# PLUGIN: Collector
+sourcesQT   += ./qt/doDBCollector/doDBCollectorWidget.cpp
+sourcesQT   += ./qt/doDBCollector/doDBCollectorPlugin.cpp
 
 # additional sources which compiles to an shared object
 sourcesLib  +=

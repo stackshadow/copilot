@@ -8,7 +8,7 @@
 		<Option execution_dir="/usr/src/projects/dodb" />
 		<Option pch_mode="2" />
 		<Option compiler="null" />
-		<Option virtualFolders="qt/;qt/doDBConnection/;qt/doDBDebug/;qt/doDBEntryEditor/;qt/doDBFile/;qt/doDBMainWIndow/;qt/doDBPlugin/;qt/doDBSettings/;qt/doDBTableEditor/;qt/doDBTree/;qt/doDBRelation/;src/;src/jsonSettings/;make/;make/generic/;make/postmake/;make/premake/;evillib/;evillib/core/;evillib/core/core/;evillib/core/memory/;evillib/extra/;evillib/extra/db/;evillib/extra/dbdriver/;qt/doDBEntry/;qt/doDBLog/;" />
+		<Option virtualFolders="qt/;qt/doDBConnection/;qt/doDBDebug/;qt/doDBEntryEditor/;qt/doDBFile/;qt/doDBMainWIndow/;qt/doDBPlugin/;qt/doDBSettings/;qt/doDBTableEditor/;qt/doDBTree/;qt/doDBRelation/;src/;src/jsonSettings/;make/;make/generic/;make/postmake/;make/premake/;evillib/;evillib/core/;evillib/core/core/;evillib/core/memory/;evillib/extra/;evillib/extra/db/;evillib/extra/dbdriver/;qt/doDBEntry/;qt/doDBLog/;qt/doDBCollector/;" />
 		<Build>
 			<Target title="binary-qt-dbg">
 				<Option output="/tmp/dodb/target/bin/dodb" prefix_auto="1" extension_auto="1" />
@@ -848,6 +848,18 @@
 			<Option virtualFolder="make/" />
 			<Option target="&lt;{~None~}&gt;" />
 		</Unit>
+		<Unit filename="../qt/doDBCollector/doDBCollectorPlugin.cpp">
+			<Option virtualFolder="qt/doDBCollector/" />
+		</Unit>
+		<Unit filename="../qt/doDBCollector/doDBCollectorPlugin.h">
+			<Option virtualFolder="qt/doDBCollector/" />
+		</Unit>
+		<Unit filename="../qt/doDBCollector/doDBCollectorWidget.cpp">
+			<Option virtualFolder="qt/doDBCollector/" />
+		</Unit>
+		<Unit filename="../qt/doDBCollector/doDBCollectorWidget.h">
+			<Option virtualFolder="qt/doDBCollector/" />
+		</Unit>
 		<Unit filename="../qt/doDBConnection/doDBConnection.cpp">
 			<Option virtualFolder="qt/doDBConnection/" />
 		</Unit>
@@ -1017,7 +1029,7 @@
 			<Option virtualFolder="src/" />
 		</Unit>
 		<Unit filename="../src/jsonSettings/jsonSettings.cpp">
-			<Option virtualFolder="src/jsonSettings/" />
+			<Option virtualFolder="qt/doDBMainWIndow/" />
 		</Unit>
 		<Unit filename="../src/jsonSettings/jsonSettings.h">
 			<Option virtualFolder="src/jsonSettings/" />
