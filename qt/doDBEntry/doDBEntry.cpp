@@ -16,14 +16,15 @@
     along with doDB.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#define doDBEntry_C
+
 #include "doDBEntry.h"
 #include "qt/doDBDebug/doDBDebug.h"
 #include "qt/doDBConnection/doDBConnections.h"
 
-///doDBEntry* doDBEntry::ptr = NULL;
 
 
-doDBEntry::doDBEntry(){
+doDBEntry::doDBEntry( QString originFunctionName ){
 
 // remember this item
 //    this->ptr = this;
@@ -37,9 +38,12 @@ doDBEntry::doDBEntry(){
     this->itemTableName = "";
     this->itemID = "";
     this->itemType = 0;
+    this->itemDisplayName = "";
 
     this->treeItem = NULL;
     this->treeItemEnabled = false;
+
+    doDBDebug::ptr->print( "doDB", "INFO", originFunctionName, QString("%1: Created").arg((long long int)this) );
 }
 
 
@@ -49,18 +53,26 @@ doDBEntry::~doDBEntry(){
 
 
 
-void doDBEntry::                    incRef(){
+void doDBEntry::                    incRefAtom( QString originFunctionName ){
     this->referenceCount = this->referenceCount + 1;
+    doDBDebug::ptr->print( "doDB", "INFO", originFunctionName, QString("%1: increment to %2").arg((long long int)this).arg(this->referenceCount) );
 }
 
 
-void doDBEntry::                    decRef(){
-    this->referenceCount = this->referenceCount - 1;
+void doDBEntry::                    decRefAtom( QString originFunctionName, doDBEntry **p_dbEntry ){
+    if( p_dbEntry == NULL ) return;
+    doDBEntry* dbEntry = *p_dbEntry;
+    if( dbEntry == NULL ) return;
 
-    if( this->referenceCount <= 0 ){
-        doDBDebug::ptr->print( "doDB", "INFO", __PRETTY_FUNCTION__, QString("%1: Entry not used anymore, delete it.").arg((long long int)this) );
-        delete this;
+    dbEntry->referenceCount = dbEntry->referenceCount - 1;
+    doDBDebug::ptr->print( "doDB", "INFO", originFunctionName, QString("%1: decrement to %2").arg((long long int)dbEntry).arg(dbEntry->referenceCount) );
+
+    if( dbEntry->referenceCount <= 0 ){
+        doDBDebug::ptr->print( "doDB", "INFO", originFunctionName, QString("%1: Entry not used anymore, delete it.").arg((long long int)dbEntry) );
+        delete dbEntry;
+        *p_dbEntry = NULL;
     }
+
 }
 
 
@@ -84,9 +96,10 @@ doDBEntry* doDBEntry::              requestWrite(){
     if( this->referenceCount == 0 ) return this;
 
 // somebody use this, create a new one
-    doDBEntry* newDBEntry = new doDBEntry();
+    doDBEntry* newDBEntry = new doDBEntry( __PRETTY_FUNCTION__ );
 
 // copy the stuff
+    newDBEntry->referenceCount = 1;
     newDBEntry->connectionIdent = this->connectionIdent;
     newDBEntry->dbConnection = this->dbConnection;
     newDBEntry->itemTableName = this->itemTableName;
@@ -95,7 +108,11 @@ doDBEntry* doDBEntry::              requestWrite(){
     newDBEntry->treeItem = this->treeItem;
     newDBEntry->treeItemEnabled = this->treeItemEnabled;
 
-    doDBDebug::ptr->print( "doDB", "WARNING", __PRETTY_FUNCTION__, QString("Entry was in use, create a copy.") );
+    doDBDebug::ptr->print( "doDB", "WARNING", __PRETTY_FUNCTION__, QString("%1: Entry was in use, create a copy. New one: %2").arg((long long int)this).arg((long long int)newDBEntry) );
+
+// because we return a new copy, we release the old one
+    doDBEntry* oldDBEntry = this;
+    doDBEntry::decRefAtom( __PRETTY_FUNCTION__, &oldDBEntry );
 
     return newDBEntry;
 }
@@ -134,17 +151,26 @@ doDBConnection* doDBEntry::         connection(){
 
 
 
-bool doDBEntry::                    itemSet( doDBEntry **p_dbEntry, QString tableName, QString itemID, int type ){
+bool doDBEntry::                    itemSet( doDBEntry **p_dbEntry, QString *tableName, QString *itemID, int *type, QString *displayName ){
 
     doDBEntry* dbEntry = *p_dbEntry;
 
 // we would like to write to it
     dbEntry = dbEntry->requestWrite();
 
-// get connection pointer
-    dbEntry->itemTableName = tableName;
-    dbEntry->itemID = itemID;
-    dbEntry->itemType = type;
+// write
+    if( tableName != NULL ){
+        dbEntry->itemTableName = *tableName;
+    }
+    if( itemID != NULL ){
+        dbEntry->itemID = *itemID;
+    }
+    if( type != NULL ){
+        dbEntry->itemType = *type;
+    }
+    if( displayName != NULL ){
+        dbEntry->itemDisplayName = *displayName;
+    }
 
 
 // return
@@ -152,7 +178,7 @@ bool doDBEntry::                    itemSet( doDBEntry **p_dbEntry, QString tabl
     return true;
 }
 
-void doDBEntry::                    item( QString* tableName, QString* itemID, int* type ){
+void doDBEntry::                    item( QString* tableName, QString* itemID, int* type, QString* displayName ){
 
     if( tableName != NULL ){
         *tableName = this->itemTableName;
@@ -164,6 +190,10 @@ void doDBEntry::                    item( QString* tableName, QString* itemID, i
 
     if( type != NULL ){
         *type = this->itemType;
+    }
+
+    if( displayName != NULL ){
+        *displayName = this->itemDisplayName;
     }
 }
 
@@ -217,7 +247,7 @@ bool doDBEntry::                    treeWidgetItemEnabled(){
 
 
 
-
+#undef doDBEntry_C
 
 
 

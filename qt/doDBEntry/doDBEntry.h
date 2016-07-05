@@ -31,16 +31,21 @@ class doDBEntry
 {
 
 public:
-    doDBEntry();
+    doDBEntry( QString originFunctionName );
     ~doDBEntry();
 
 //    static doDBEntry*   ptr;
 
 // reference count
 public:
-    void                incRef();
-    void                decRef();
+    void                incRefAtom( QString originFunctionName );
+    static void         decRefAtom( QString originFunctionName, doDBEntry **p_dbEntry );
     int                 refCount();
+
+#ifndef doDBEntry_C
+    void                incRef();
+    void                decRef( doDBEntry **p_dbEntry );
+#endif
 
     bool                isWriteable( doDBEntry *dbEntry );
 
@@ -52,8 +57,8 @@ public:
     QString             connectionID();
     doDBConnection*     connection();
 
-    static bool         itemSet( doDBEntry **p_dbEntry, QString tableName, QString itemID, int type );
-    void                item( QString* tableName, QString* itemID, int* type );
+    static bool         itemSet( doDBEntry **p_dbEntry, QString *tableName, QString *itemID, int *type, QString *displayName );
+    void                item( QString* tableName, QString* itemID, int* type, QString* displayName );
 
     static bool         treeWidgetItemSet( doDBEntry **p_dbEntry, QTreeWidgetItem* treeItem );
     QTreeWidgetItem*    treeWidgetItem();
@@ -72,12 +77,19 @@ private:
     QString             itemTableName;
     QString             itemID;
     int                 itemType;
+    QString             itemDisplayName;
 
     QTreeWidgetItem*    treeItem;
     bool                treeItemEnabled;
 };
 
+#ifndef doDBEntry_C
 
+    #define doDBEntry() doDBEntry( __PRETTY_FUNCTION__ )
+    #define incRef() incRefAtom( __PRETTY_FUNCTION__ )
+    #define decRef( entry ) doDBEntry::decRefAtom( __PRETTY_FUNCTION__, entry )
+
+#endif
 
 
 #endif
