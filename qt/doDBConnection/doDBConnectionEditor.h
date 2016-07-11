@@ -59,12 +59,6 @@ private slots:
     void        selectSQLiteFilename();
     void        dbConnect();
     void        dbDisconnect();
-    void        tablesEdit();
-    void        tablesEditorClosed();
-
-    void        tableNew( etDBObject *dbObject, QString newTableName );
-    void        columnNew(  etDBObject *dbObject, QString newTableName, QString newColumnName  );
-
     void        closeClicked();
 
 

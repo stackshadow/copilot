@@ -29,14 +29,16 @@
 #include "main.h"
 #include "core/etDebug.h"
 
+#include "doDBEntry/doDBEntry.h"
 #include "doDBConnection/doDBConnections.h"
 
-#include "doDBEntry/doDBEntry.h"
+
 
 #include "doDBPlugin/doDBPlugins.h"
+#include "doDBTableEditor/doDBTableEditorPlugin.h"
 #include "doDBRelation/doDBRelationPlugin.h"
 #include "doDBEntryEditor/doDBEntryPlugin.h"
-
+#include "doDBCollector/doDBCollectorPlugin.h"
 
 /*
 apt install pkg-config libjansson-dev libqt5core5a libqt5gui5 qt5-qmake qtbase5-dev qtbase5-dev-tools qttools5-dev-tools
@@ -67,13 +69,18 @@ int main(int argc, char *argv[])
 
 // our plugins
     new doDBPlugins();
+// table editor
+    doDBTableEditorPlugin *tableEditor = new doDBTableEditorPlugin();
+    doDBPlugins::ptr->append( tableEditor );
 // default entryEditor
     doDBEntryPlugin *entryEditor = new doDBEntryPlugin();
     doDBPlugins::ptr->append( entryEditor );
 // relations
     doDBRelationPlugin *dbRelation = new doDBRelationPlugin();
     doDBPlugins::ptr->append( dbRelation );
-
+// collector
+    doDBCollectorPlugin* itemCollector = new doDBCollectorPlugin();
+    doDBPlugins::ptr->append( itemCollector );
 
 
 // the main window

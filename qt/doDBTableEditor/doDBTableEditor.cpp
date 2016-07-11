@@ -26,10 +26,10 @@
 
 
 
-doDBTableEditor::                       doDBTableEditor( QWidget *parent, etDBObject *dbObject ) : QWidget(parent){
+doDBTableEditor::                       doDBTableEditor( QWidget *parent ) : QWidget(parent){
 
 // save
-    this->dbObject = dbObject;
+    this->dbObject = NULL;
     this->mode = MODE_NONE;
 
 // setup ui
@@ -45,7 +45,6 @@ doDBTableEditor::                       doDBTableEditor( QWidget *parent, etDBOb
     this->ui.listColumns->setColumnCount(2);
     this->ui.listColumns->setColumnHidden(0,true);
 
-    this->cBoxTablesRefresh();
 
 // hide "create of table in db" button
     this->ui.btnTableCreate->setVisible(false);
@@ -76,6 +75,12 @@ doDBTableEditor::                       ~doDBTableEditor(){
 }
 
 
+void doDBTableEditor::                  showObject( etDBObject *dbObject ){
+
+    this->dbObject = dbObject;
+    this->cBoxTablesRefresh();
+
+}
 
 
 void doDBTableEditor::                  cBoxTablesRefresh(){

@@ -1015,6 +1015,12 @@
 		<Unit filename="../qt/doDBTableEditor/doDBTableEditor.ui.h">
 			<Option virtualFolder="qt/doDBTableEditor/" />
 		</Unit>
+		<Unit filename="../qt/doDBTableEditor/doDBTableEditorPlugin.cpp">
+			<Option virtualFolder="qt/doDBTableEditor/" />
+		</Unit>
+		<Unit filename="../qt/doDBTableEditor/doDBTableEditorPlugin.h">
+			<Option virtualFolder="qt/doDBTableEditor/" />
+		</Unit>
 		<Unit filename="../qt/doDBTree/doDBTree.cpp">
 			<Option virtualFolder="qt/doDBTree/" />
 		</Unit>

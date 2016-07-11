@@ -87,13 +87,6 @@
          </layout>
         </item>
         <item>
-         <widget class="QPushButton" name="btnTableEdit">
-          <property name="text">
-           <string>Tabellen bearbeiten</string>
-          </property>
-         </widget>
-        </item>
-        <item>
          <widget class="QPushButton" name="btnClose">
           <property name="text">
            <string>Schließen</string>

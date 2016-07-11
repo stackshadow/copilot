@@ -79,11 +79,12 @@ sourcesQT   += ./qt/doDBPlugin/doDBPlugin.cpp
 sourcesQT   += ./qt/doDBConnection/doDBConnections.cpp
 sourcesQT   += ./qt/doDBConnection/doDBConnection.cpp
 
-sourcesQT   += ./qt/doDBTableEditor/doDBTableEditor.cpp
-sourcesUI   += ./qt/doDBTableEditor/doDBTableEditor.ui
-
 sourcesQT   += ./qt/doDBConnection/doDBConnectionEditor.cpp
 sourcesUI   += ./qt/doDBConnection/doDBConnectionEditor.ui
+
+sourcesQT   += ./qt/doDBTableEditor/doDBTableEditorPlugin.cpp
+sourcesQT   += ./qt/doDBTableEditor/doDBTableEditor.cpp
+sourcesUI   += ./qt/doDBTableEditor/doDBTableEditor.ui
 
 sourcesQT   += ./qt/doDBTree/doDBTree.cpp
 

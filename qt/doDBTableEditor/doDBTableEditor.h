@@ -48,9 +48,10 @@ public:
     };
 
 public:
-    doDBTableEditor( QWidget *parent, etDBObject *dbObject );
+    doDBTableEditor( QWidget *parent );
     ~doDBTableEditor();
 
+    void                showObject( etDBObject *dbObject );
     static void         cBoxTablesAppend( void *userdata, const char *connID, const char *tableName, const char *tableDisplayName );
 
 private:

@@ -24,6 +24,7 @@
 #include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnection.h"
 #include "doDBTableEditor/doDBTableEditor.h"
+#include "doDBPlugin/doDBPlugins.h"
 
 #include "doDBConnectionEditor.h"
 
@@ -46,7 +47,6 @@ doDBConnectionEditor::              doDBConnectionEditor( QWidget *parent ) : QW
     this->ui.btnConnectionRemove->setEnabled(false);
     this->ui.btnConnect->setEnabled(false);
     this->ui.btnDisconnect->setEnabled(false);
-    this->ui.btnTableEdit->setEnabled(false);
     this->ui.grpConnectionEdit->setVisible(false);
 
 // fill the connection table
@@ -60,7 +60,6 @@ doDBConnectionEditor::              doDBConnectionEditor( QWidget *parent ) : QW
     connect( this->ui.btnConnectionSave, SIGNAL( clicked() ), this, SLOT( connectionSave() ) );
     connect( this->ui.btnConnectionRemove, SIGNAL( clicked() ), this, SLOT( connectionDelete() ) );
     connect( this->ui.btnConnect, SIGNAL( clicked() ), this, SLOT( dbConnect() ) );
-    connect( this->ui.btnTableEdit, SIGNAL( clicked() ), this, SLOT( tablesEdit() ) );
     connect( this->ui.btnClose, SIGNAL( clicked() ), this, SLOT( closeClicked() ) );
 
 // default signals
@@ -162,17 +161,18 @@ void doDBConnectionEditor::         showSelectedConnection(){
     if( this->selectedConnection->isConnected() == true ){
         this->ui.btnConnect->setEnabled(false);
         this->ui.btnDisconnect->setEnabled(true);
-        this->ui.btnTableEdit->setEnabled(true);
     } else {
         this->ui.btnConnect->setEnabled(true);
         this->ui.btnDisconnect->setEnabled(false);
-        this->ui.btnTableEdit->setEnabled(false);
     }
 
 
 // show connection values
     this->ui.btnConnectionRemove->setEnabled(true);
     this->ui.grpConnectionEdit->setVisible(true);
+
+// fire message
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgConnectionSelected, this->selectedConnection );
 
 }
 
@@ -273,18 +273,17 @@ void doDBConnectionEditor::         dbConnect(){
     }
 
 // connect
-    this->selectedConnection->connect();
-
+    if( this->selectedConnection->connect() == true ){
+        doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgConnectionConnected, this->selectedConnection );
+    }
 
 // check connection state
     if( this->selectedConnection->isConnected() == true ){
         this->ui.btnConnect->setEnabled(false);
         this->ui.btnDisconnect->setEnabled(true);
-        this->ui.btnTableEdit->setEnabled(true);
     } else {
         this->ui.btnConnect->setEnabled(true);
         this->ui.btnDisconnect->setEnabled(false);
-        this->ui.btnTableEdit->setEnabled(false);
     }
 
 
@@ -293,53 +292,10 @@ void doDBConnectionEditor::         dbConnect(){
 
 void doDBConnectionEditor::         dbDisconnect(){
 
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgConnectionDisconnected, this->selectedConnection );
 }
 
 
-void doDBConnectionEditor::         tablesEdit(){
-// check
-    if( this->selectedConnection == NULL ) return;
-
-// vars
-    etDBObject          *dbObject;
-    QString             dbObjectLockID;
-
-    dbObject = this->selectedConnection->dbObject;
-
-    QStackedWidget      *stackedContainer = (QStackedWidget*)this->parentWidget();
-
-    doDBTableEditor     *tableEditor = new doDBTableEditor( stackedContainer, dbObject );
-    stackedContainer->addWidget( tableEditor );
-    stackedContainer->setCurrentWidget( tableEditor );
-    stackedContainer->setVisible( true );
-
-    connect( tableEditor, SIGNAL( newTable(etDBObject*, QString) ), this, SLOT( tableNew(etDBObject*, QString) ) );
-    connect( tableEditor, SIGNAL( newColumn(etDBObject*, QString, QString) ), this, SLOT( columnNew(etDBObject*, QString, QString) ) );
-    connect( tableEditor, SIGNAL( closed() ), this, SLOT( tablesEditorClosed() ) );
-
-
-
-}
-
-
-void doDBConnectionEditor::         tableNew( etDBObject *dbObject, QString newTableName ){
-    this->selectedConnection->tableAppend( newTableName.toUtf8() );
-}
-
-
-void doDBConnectionEditor::         columnNew(  etDBObject *dbObject, QString newTableName, QString newColumnName  ){
-    this->selectedConnection->columnAppend( newTableName.toUtf8(), newColumnName.toUtf8() );
-}
-
-
-void doDBConnectionEditor::         tablesEditorClosed(){
-// check
-    if( this->selectedConnection == NULL ) return;
-
-// just save it ;)
-    this->selectedConnection->dbObjectSave();
-
-}
 
 
 void doDBConnectionEditor::         closeClicked(){
