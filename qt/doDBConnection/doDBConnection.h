@@ -34,7 +34,9 @@
 #include "dbdriver/etDBDriver.h"
 
 #include "doDBTree/doDBTree.h"
+#include "doDBEntry/doDBEntry.h"
 
+class doDBEntry;
 
 class doDBConnection
 {
@@ -93,8 +95,12 @@ public:
     bool                    dbObjectSave();
 
 // data
+    bool                    dbDataRead( const char *tableName );
+    bool                    dbDataRead( const char *table, const char *tableItemID );
+    bool                    dbDataNext();
+    bool                    dbData( const char** p_columnName, const char** p_columnValue );
+
     bool                    dbDataGet( const char *tableName, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) );
-    bool                    dbDataGet( const char *table, const char *tableItemID );
     bool                    dbDataGet( const char *table, const char *tableItemID, void *userdata, void (*callback)( void *userdata, const char *columnName, const char *columnValue ) );
     bool                    dbDataNew( const char *tableName );
     bool                    dbDataChange( const char *tableName );

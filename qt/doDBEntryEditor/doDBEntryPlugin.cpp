@@ -18,6 +18,7 @@
 
 #include <QDebug>
 #include <QUuid>
+#include <QStackedWidget>
 
 #include "doDBEntryPlugin.h"
 #include "doDBEntryEditor.h"
@@ -25,6 +26,7 @@
 #include "doDBDebug/doDBDebug.h"
 #include "doDBConnection/doDBConnections.h"
 #include "doDBConnection/doDBConnection.h"
+#include "doDBPlugin/doDBPlugins.h"
 
 #include "db/etDBObjectValue.h"
 #include "db/etDBObjectFilter.h"
@@ -38,6 +40,11 @@ doDBEntryPlugin::               doDBEntryPlugin() : doDBPlugin() {
     connect( this->dbEntryEditor, SIGNAL(entryNew(etDBObject*,const char*)), this, SLOT(entryEditorItemSaveNew(etDBObject*,const char*)) );
     connect( this->dbEntryEditor, SIGNAL(entryChanged(etDBObject*,const char*)), this, SLOT(entryEditorItemChanged(etDBObject*,const char*)) );
     connect( this->dbEntryEditor, SIGNAL(entryDelete(etDBObject*,const char*,const char*)), this, SLOT(entryEditorItemDelete(etDBObject*,const char*,const char*)) );
+
+// register for messages
+    doDBPlugins::ptr->registerListener( this, doDBPlugin::msgInitStackedRight, true );
+    doDBPlugins::ptr->registerListener( this, doDBPlugin::msgItemSelected );
+    doDBPlugins::ptr->registerListener( this, doDBPlugin::msgItemDeleted );
 
 }
 
@@ -65,37 +72,41 @@ QString doDBEntryPlugin::       valueGet( QString valueName ){
 }
 
 
-void doDBEntryPlugin::          prepareLayout( QString name, QLayout* layout ){
 
-    if( name == "detailView" ){
+bool doDBEntryPlugin::          recieveMessage( messageID type, void* payload ){
 
-    // hide the itemEditor
-        this->dbEntryEditor->setVisible(false);
+// Item stuff
 
-    // append the editor to the viewLayout
-        layout->addWidget( this->dbEntryEditor );
+    if( type == doDBPlugin::msgItemSelected ){
+        doDBEntry* entry = (doDBEntry*)payload;
 
-    }
-
-
-}
-
-
-bool doDBEntryPlugin::          handleAction( QString action, doDBEntry* entry ){
-
-    if( action == "itemExpanded" ){
-        return true;
-    }
-
-    if( action == "itemCollapsed" ){
-        return true;
-    }
-
-    if( action == "itemClicked" ){
         this->load( entry );
         return true;
     }
 
+    if( type == doDBPlugin::msgItemDeleted ){
+        doDBEntry* entry = (doDBEntry*)payload;
+
+        if( this->selectedEntry == entry ){
+            doDBEntry::decRef( &this->selectedEntry );
+            this->selectedEntry = NULL;
+        }
+
+        return true;
+    }
+
+// inits
+    if( type == doDBPlugin::msgInitStackedRight ){
+        QStackedWidget* stackedWidget = (QStackedWidget*)payload;
+
+        this->dbEntryEditor->setVisible(false);
+        stackedWidget->addWidget( this->dbEntryEditor );
+        stackedWidget->setCurrentWidget( this->dbEntryEditor );
+
+        return true;
+    }
+
+    return true;
 }
 
 
@@ -113,12 +124,8 @@ bool doDBEntryPlugin::          load( doDBEntry *entry ){
 
     if( this->selectedEntry != entry ){
 
-        if( this->selectedEntry != NULL ){
-
-        // release the old one
-            this->selectedEntry->decRef();
-            this->selectedEntry = NULL;
-        }
+    // release the old one
+        doDBEntry::decRef( &this->selectedEntry );
 
     // lock the new one
         this->selectedEntry = entry;
@@ -127,7 +134,7 @@ bool doDBEntryPlugin::          load( doDBEntry *entry ){
 
 // get Stuff from the selected item
     connection = this->selectedEntry->connection();
-    this->selectedEntry->item( &itemTableName, &itemID, (int*)&itemType );
+    this->selectedEntry->item( &itemTableName, &itemID, (int*)&itemType, NULL );
 
 // if selected item is an entry
     if(  itemType == doDBtree::typeTable || itemType == doDBtree::typeEntry ){
@@ -141,18 +148,21 @@ bool doDBEntryPlugin::          load( doDBEntry *entry ){
     // clear values
         etDBObjectValueClean( dbObject );
 
-
+    // load all values
         if( itemType == doDBtree::typeEntry ){
-            connection->dbDataGet( itemTableName.toUtf8(), itemID.toUtf8() );
+            connection->dbDataRead( itemTableName.toUtf8(), itemID.toUtf8() );
+            connection->dbDataNext();
         }
 
 
     // show the editor
         this->dbEntryEditor->dbObjectShow( dbObject, itemTableName );
         this->dbEntryEditor->setVisible( true );
+        this->dbEntryEditor->modeSet( doDBEntryEditor::modeView );
 
     } else {
         this->dbEntryEditor->setVisible( false );
+        this->dbEntryEditor->modeSet( doDBEntryEditor::modeView );
     }
 
 
@@ -185,15 +195,17 @@ void doDBEntryPlugin::          entryEditorItemSaveNew( etDBObject *dbObject, co
         if( etDBObjectTableColumnPrimaryGet( dbObject, primaryKeyColumn ) != etID_YES ) return;
         if( etDBObjectValueGet( dbObject, primaryKeyColumn, primaryKey ) != etID_YES ) return;
 
-    // set the selected item
-    // TODO
-    /*
-        this->selectedEntry->tableName = tableName;
-        this->selectedEntry->itemID = primaryKey;
-        this->selectedEntry->type = (int)doDBtree::typeEntry;
+    // create a new doDBEntry
+        doDBEntry* dbEntryNew = new doDBEntry();
+        dbEntryNew->copy( this->selectedEntry );
 
-        this->dbTreeItemClicked( this->selectedEntry );
-        */
+    // set
+        int type = (int)doDBtree::typeEntry;
+        doDBEntry::itemSet( &dbEntryNew, tableName, primaryKey, &type, NULL );
+        doDBEntry::treeWidgetItemSet( &dbEntryNew, NULL );
+
+    // fire the broadcast
+        doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemSelected, dbEntryNew );
 
     }
 
@@ -206,7 +218,10 @@ void doDBEntryPlugin::          entryEditorItemChanged( etDBObject *dbObject, co
     doDBConnection *connection = this->selectedEntry->connection();
     if( connection == NULL ) return;
 
-    connection->dbDataChange( tableName );
+    if( connection->dbDataChange( tableName ) == true ){
+        doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemChanged, this->selectedEntry );
+    }
+
 }
 
 
@@ -216,7 +231,6 @@ void doDBEntryPlugin::          entryEditorItemDelete( etDBObject *dbObject, con
     if( connection == NULL ) return;
 
     if( connection->dbDataDelete( tableName, itemID ) == true ){
-        this->dbEntryEditor->valueCleanAll();
 
         // remove the item from the dbTree
         QTreeWidgetItem* treeItem = this->selectedEntry->treeWidgetItem();
@@ -226,6 +240,13 @@ void doDBEntryPlugin::          entryEditorItemDelete( etDBObject *dbObject, con
             treeItem->setFont(0,font);
             treeItem->setDisabled(true);
         }
+
+
+    // notice all that we delete the item
+        doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemDeleted, this->selectedEntry  );
+
+    // we dont need the entry anymore
+        doDBEntry::decRef( &this->selectedEntry );
 
 
     }

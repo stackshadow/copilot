@@ -85,6 +85,9 @@ void doDBEntryEditor::          dbObjectShow( etDBObject *dbObject, QString tabl
         this->ui.tableWidget->clear();
         this->ui.tableWidget->setSortingEnabled( false );
 
+    // select the table
+        etDBObjectTablePick( dbObject, tableName.toUtf8() );
+
     // initial set the
         etDBObjectIterationReset( dbObject );
         while( etDBObjectTableColumnNext( dbObject, columnName ) == etID_YES ){
@@ -231,6 +234,11 @@ int doDBEntryEditor::           columnFind( QString columnName ){
     }
 
     return -1;
+}
+
+void doDBEntryEditor::          modeSet( mode newMode ){
+    this->editMode = newMode;
+    this->showButtons();
 }
 
 void doDBEntryEditor::          showButtons(){
@@ -388,9 +396,6 @@ void doDBEntryEditor::          btnEntrySaveClicked(){
         emit this->entryChanged( this->dbObject, this->tableName.toUtf8() );
     }
 
-// set the mode to create
-    this->editMode = modeView;
-    this->showButtons();
 }
 
 void doDBEntryEditor::          btnEntryDeleteReqClicked(){
@@ -408,11 +413,13 @@ void doDBEntryEditor::          btnEntryDeleteAckClicked(){
 
 // get the primary key value
     QString primaryKeyValue = this->newValue( this->primaryKeyRow );
+    QString tableName = this->tableName.toUtf8();
 
-    emit this->entryDelete( this->dbObject, this->tableName.toUtf8(), primaryKeyValue.toUtf8() );
+    emit this->entryDelete( this->dbObject, tableName.toUtf8(), primaryKeyValue.toUtf8() );
 
 // close
     this->btnEntryDeleteCancelClicked();
+    this->valueCleanAll();
 
 // set the mode to create
     this->editMode = modeNothing;

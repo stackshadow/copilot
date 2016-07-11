@@ -27,6 +27,11 @@ doDBCollectorPlugin::               doDBCollectorPlugin(){
 
     this->collectorWidget = NULL;
     this->dbEntry = NULL;
+
+// register for messages
+    doDBPlugins::ptr->registerListener( this, doDBPlugin::msgInitCentralView, true );
+    doDBPlugins::ptr->registerListener( this, doDBPlugin::msgItemSelected );
+    doDBPlugins::ptr->registerListener( this, doDBPlugin::msgItemDeleted );
 }
 
 doDBCollectorPlugin::               ~doDBCollectorPlugin(){
@@ -39,9 +44,41 @@ QString doDBCollectorPlugin::       valueGet( QString valueName ){
 
 }
 
-void doDBCollectorPlugin::          prepareLayout( QString name, QLayout* layout ){
 
-    if( name == "centralView" ){
+bool doDBCollectorPlugin::          recieveMessage( messageID type, void* payload ){
+
+// Item stuff
+    doDBEntry* entry = (doDBEntry*)payload;
+
+    if( type == doDBPlugin::msgItemSelected ){
+
+
+        if( this->dbEntry != NULL ){
+            doDBEntry::decRef( &this->dbEntry );
+        }
+
+        this->dbEntry = entry;
+        this->dbEntry->incRef();
+
+        this->btnItemRemember->setEnabled( true );
+
+        return true;
+    }
+
+    if( type == doDBPlugin::msgItemDeleted ){
+
+        if( this->dbEntry == entry ){
+            doDBEntry::decRef( &this->dbEntry );
+            this->dbEntry = NULL;
+        }
+
+        return true;
+    }
+
+// Init stuff
+    QLayout*        layout = (QLayout*)payload;
+
+    if( type == doDBPlugin::msgInitCentralView ){
 
         if( this->collectorWidget == NULL ){
 
@@ -72,25 +109,7 @@ void doDBCollectorPlugin::          prepareLayout( QString name, QLayout* layout
 
     }
 
-
-}
-
-bool doDBCollectorPlugin::          handleAction( QString action, doDBEntry* entry ){
-
-    if( action == "itemSelected" ){
-
-        if( this->dbEntry != NULL ){
-            doDBEntry::decRef( &this->dbEntry );
-        }
-
-        this->dbEntry = entry;
-        this->dbEntry->incRef();
-
-        this->btnItemRemember->setEnabled( true );
-
-        return true;
-    }
-
+    return true;
 }
 
 
@@ -111,7 +130,7 @@ void doDBCollectorPlugin::          itemClicked( int row, int column ){
     if( clickedEntry == NULL ) return;
 
 // fire plugins
-    doDBPlugins::ptr->handleAction( "itemSelected", clickedEntry );
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemSelected, clickedEntry );
 
 }
 

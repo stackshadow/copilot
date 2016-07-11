@@ -27,6 +27,8 @@
 
 #include "jansson.h"
 
+class doDBConnection;
+
 class doDBEntry
 {
 
@@ -34,6 +36,7 @@ public:
     doDBEntry( QString originFunctionName );
     ~doDBEntry();
 
+    void                copy( doDBEntry* dbEntrySource );
 //    static doDBEntry*   ptr;
 
 // reference count
@@ -47,10 +50,8 @@ public:
     void                decRef( doDBEntry **p_dbEntry );
 #endif
 
-    bool                isWriteable( doDBEntry *dbEntry );
 
-private:
-    doDBEntry*          requestWrite();
+
 
 public:
     static bool         connectionIDSet( doDBEntry **p_dbEntry, QString connectionID );
@@ -58,6 +59,7 @@ public:
     doDBConnection*     connection();
 
     static bool         itemSet( doDBEntry **p_dbEntry, QString *tableName, QString *itemID, int *type, QString *displayName );
+    static bool         itemSet( doDBEntry **p_dbEntry, const char* tableName, const char* itemID, int *type, const char* displayName );
     void                item( QString* tableName, QString* itemID, int* type, QString* displayName );
 
     static bool         treeWidgetItemSet( doDBEntry **p_dbEntry, QTreeWidgetItem* treeItem );
@@ -66,14 +68,14 @@ public:
     static bool         treeWidgetItemEnabledSet( doDBEntry **p_dbEntry, bool enabled );
     bool                treeWidgetItemEnabled();
 
-
-
 private:
     int                 referenceCount;
 
-
+// Connection stuff
     QString             connectionIdent;
     doDBConnection*     dbConnection;
+
+// the item itselfe
     QString             itemTableName;
     QString             itemID;
     int                 itemType;

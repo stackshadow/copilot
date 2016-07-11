@@ -55,6 +55,7 @@ public:
     void            dbObjectShow( etDBObject *dbObject, QString tableName );
     void            valueCleanAll();
     static void     valueSet( void *userdata, const char *columnName, const char *columnValue );
+    void            modeSet( mode newMode );
 
 private:
     void            columnClean();

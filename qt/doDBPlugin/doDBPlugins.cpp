@@ -58,66 +58,50 @@ void doDBPlugins::      prepareLayout( QString name, QLayout* layout ){
 }
 
 
-void doDBPlugins::      eventPrepareTree( doDBtree *dbTree ){
 
-// vars
-    doDBPlugin *plugin = NULL;
 
-// iterate
-    foreach( plugin, this->pluginList ){
 
-    // run function
-        plugin->prepareTree( dbTree );
 
-    }
 
-    return;
+
+
+
+void doDBPlugins::      registerListener( doDBPlugin *plugin, doDBPlugin::messageID type, bool fireOnce ){
+
+    messageListener* tempMessage = new messageListener;
+
+    tempMessage->target = plugin;
+    tempMessage->type = type;
+    tempMessage->onlyOnce = fireOnce;
+
+// we do NOT check if the listener is already present. This is for performance
+
+// add it to the list
+    this->messageList.append( tempMessage );
+
 }
 
 
+void doDBPlugins::      sendBroadcast( doDBPlugin::messageID type, void *payload ){
+
+    messageListener*     listener;
+    foreach( listener, this->messageList ){
+
+        if( listener->type == type ){
+
+            listener->target->recieveMessage( type, payload );
+
+        // remove it from the list if only once is true
+            if( listener->onlyOnce == true ){
+                this->messageList.removeAll( listener );
+            }
 
 
-
-
-
-// all events
-void doDBPlugins::      handleAction( QString action, doDBEntry* entry ){
-// only if item is enabled
-    if( entry->treeWidgetItemEnabled() == false ) return;
-
-// vars
-    doDBPlugin *plugin = NULL;
-
-// iterate
-    foreach( plugin, this->pluginList ){
-
-    // run function
-        if( plugin->handleAction( action, entry ) != true ){
-            return;
         }
 
     }
 
-    return;
-}
 
-
-void doDBPlugins::      eventItemChanged( const char * columnName, const char * newColumnValue ){
-
-// vars
-    doDBPlugin *plugin = NULL;
-
-// iterate
-    foreach( plugin, this->pluginList ){
-
-    // run function
-        if( plugin->itemChanged( columnName, newColumnValue ) != true ){
-            return;
-        }
-
-    }
-
-    return;
 }
 
 

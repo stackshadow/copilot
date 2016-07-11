@@ -130,6 +130,12 @@ void doDBDebug::            print( QString programName, QString levelName, QStri
 
     }
 
+    fprintf( stdout, "[%s] ", (const char*)programName.toUtf8() );
+    fprintf( stdout, "[%s] ", (const char*)levelName.toUtf8() );
+    fprintf( stdout, "[%s] ", (const char*)functionName.toUtf8() );
+    fprintf( stdout, "[%s]\n", (const char*)message.toUtf8() );
+
+    fflush( stdout );
 }
 
 

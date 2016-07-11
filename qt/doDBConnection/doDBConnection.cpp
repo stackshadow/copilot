@@ -452,6 +452,75 @@ etID_STATE doDBConnection::         columnDisplayValueGet( const char *tableName
 }
 
 
+bool doDBConnection::               dbDataRead( const char *tableName ){
+// check if connected
+    if( this->isConnected() == false ){
+        return false;
+    }
+
+// vars
+    const char      *connectionID;
+    const char      *primaryColumn = NULL;
+    const char      *primaryColumnValue = NULL;
+    const char      *displayColumn = NULL;
+    const char      *displayColumnValue = NULL;
+
+
+
+// pick table
+    if( etDBObjectTablePick( this->dbObject, tableName ) != etID_YES ){
+        doDBDebug::ptr->print( __PRETTY_FUNCTION__ + QString(": table '%1' not found in dbObject").arg(tableName) );
+        return false;
+    }
+
+// clear the filter
+    etDBObjectFilterClear( this->dbObject );
+
+// get data ( query )
+    if( etDBDriverDataGet( this->dbDriver, this->dbObject ) == etID_YES ){
+        return true;
+    }
+
+    return false;
+}
+
+
+bool doDBConnection::               dbDataRead( const char *tableName, const char *tableItemID ){
+// check if connected
+    if( this->isConnected() == false ){
+        return false;
+    }
+
+// vars
+    const char      *connectionID;
+    const char      *primaryColumn = NULL;
+
+
+// pick table
+    if( etDBObjectTablePick( this->dbObject, tableName ) != etID_YES ){
+        doDBDebug::ptr->print( __PRETTY_FUNCTION__ + QString(": table '%1' not found in dbObject").arg(tableName) );
+        return false;
+    }
+
+// get primary column
+   if( etDBObjectTableColumnPrimaryGet( this->dbObject, primaryColumn ) != etID_YES ){
+        return false;
+    }
+
+// create filter
+    etDBObjectFilterClear( this->dbObject );
+    etDBObjectFilterAdd(  this->dbObject, 1, etDBFILTER_OP_AND, primaryColumn, etDBFILTER_TYPE_EQUAL, tableItemID );
+
+// get data ( query )
+    if( etDBDriverDataGet( this->dbDriver, this->dbObject ) == etID_YES ){
+        return true;
+    }
+
+
+    return false;
+}
+
+
 bool doDBConnection::               dbDataGet( const char *tableName, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) ){
 // check if connected
     if( this->isConnected() == false ){
@@ -516,51 +585,6 @@ bool doDBConnection::               dbDataGet( const char *tableName, void *user
 }
 
 
-bool doDBConnection::               dbDataGet( const char *table, const char *tableItemID ){
-// check if connected
-    if( this->isConnected() == false ){
-        return false;
-    }
-
-// vars
-    const char      *connID = NULL;
-    const char      *tableDisplayName = NULL;
-    const char      *primaryColumn = NULL;
-    const char      *primaryColumnValue = NULL;
-    const char      *columnNameActual = NULL;
-    const char      *columnValueActual = NULL;
-    const char      *srcColumn = NULL;
-    const char      *srcColumnValue = NULL;
-    const char      *relColumn = NULL;
-
-
-// pick table
-    if( etDBObjectTablePick( this->dbObject, table ) != etID_YES ){
-        return false;
-    }
-
-// get primary column
-   if( etDBObjectTableColumnPrimaryGet( this->dbObject, primaryColumn ) != etID_YES ){
-        return false;
-    }
-
-// create filter
-    etDBObjectFilterClear( this->dbObject );
-    etDBObjectFilterAdd(  this->dbObject, 1, etDBFILTER_OP_AND, primaryColumn, etDBFILTER_TYPE_EQUAL, tableItemID );
-
-// run query
-    etDBDriverDataGet( this->dbDriver, this->dbObject );
-
-// iterate through data
-    if( etDBDriverDataNext( this->dbDriver, this->dbObject ) == etID_YES ){
-        return true;
-    }
-
-
-    return false;
-}
-
-
 bool doDBConnection::               dbDataGet( const char *table, const char *tableItemID, void *userdata, void (*callback)( void *userdata, const char *columnName, const char *columnValue ) ){
 // check if connected
     if( this->isConnected() == false ){
@@ -621,6 +645,44 @@ bool doDBConnection::               dbDataGet( const char *table, const char *ta
 }
 
 
+bool doDBConnection::               dbDataNext(){
+
+// vars
+    const char*     columnName;
+    const char*     columnValue;
+
+
+
+// Load the next values from the db into the dbObject
+    if( etDBDriverDataNext( this->dbDriver, this->dbObject ) == etID_YES ){
+
+    // Reset iterator of etObject ( this effects NOT the driver! )
+        etDBObjectIterationReset(this->dbObject);
+
+        return true;
+    }
+
+
+    return false;
+}
+
+bool doDBConnection::               dbData( const char** p_columnName, const char** p_columnValue ){
+
+
+// save every value to the dbEntry
+    if( __etDBObjectTableColumnNext(this->dbObject,p_columnName) == etID_YES ){
+
+        if( __etDBObjectValueGet( this->dbObject, *p_columnName, p_columnValue ) != etID_YES ){
+            return true;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
 bool doDBConnection::               dbDataNew( const char *tableName ){
 
 // pick table
@@ -629,7 +691,9 @@ bool doDBConnection::               dbDataNew( const char *tableName ){
     }
 
 // table add
-    etDBDriverDataAdd( this->dbDriver, this->dbObject );
+    if( etDBDriverDataAdd( this->dbDriver, this->dbObject ) != etID_YES ){
+        return false;
+    }
 
     return true;
 }

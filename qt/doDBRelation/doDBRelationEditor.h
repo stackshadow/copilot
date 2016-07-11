@@ -44,6 +44,9 @@ public:
                                     doDBRelationEditor( QWidget *parent );
                                     ~doDBRelationEditor();
 
+    void                            connectionCBoxRefresh();
+
+
     void                            showRelation( etDBObject *dbObject, doDBRelation *dbRelation );
 
 private:

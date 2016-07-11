@@ -36,30 +36,39 @@
 class doDBPlugins
 {
 
-public:
-                            doDBPlugins();
-    virtual                 ~doDBPlugins();
+typedef struct messageListener_s {
+    doDBPlugin*                 target;
+    doDBPlugin::messageID       type;
+    bool                        onlyOnce;
+} messageListener;
 
-    void                    load();
+
+
+public:
+                                doDBPlugins();
+    virtual                     ~doDBPlugins();
+
+    void                        load();
 
 // append / remove
-    void                    append( doDBPlugin *dbPlugin );
+    void                        append( doDBPlugin *dbPlugin );
 
 // prepare stuff
-    void                    prepareLayout( QString name, QLayout* layout );
-    void                    eventPrepareTree( doDBtree *dbTree );
+    void                        prepareLayout( QString name, QLayout* layout );
+    void                        eventPrepareTree( doDBtree *dbTree );
 
-// all events
-    void                    handleAction( QString action, doDBEntry* entry );
-    void                    eventItemChanged( const char * columnName, const char * newColumnValue );
 
+// message
+    void                        registerListener( doDBPlugin *plugin, doDBPlugin::messageID type, bool fireOnce = false );
+    void                        sendBroadcast( doDBPlugin::messageID type, void *payload );
 
 public:
-    static doDBPlugins      *ptr;
+    static doDBPlugins          *ptr;
 
 private:
-    QList<doDBPlugin*>      pluginList;
-
+    int                         lastMessageID;
+    QList<doDBPlugin*>          pluginList;
+    QList<messageListener*>     messageList;
 
 
 };

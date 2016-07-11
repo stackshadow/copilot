@@ -359,18 +359,21 @@ void doDBtree::                         expand( QTreeWidgetItem * item ){
 // vars
     QString                     lockID = "doDBTree";
     doDBConnection              *connection;
-    doDBtree::treeItemType      itemType;
 
     this->selectedItem = item;
 
+// item infos
+    QString                     itemTable = doDBtree::itemTableName( item );
+    QString                     itemID = doDBtree::itemID( item );
+    doDBtree::treeItemType      itemType = doDBtree::itemType( item );
+    QString                     itemDisplayValue = doDBtree::itemDisplayValue( item );
 
 // save the entry to global
     doDBEntry *dbEntry = new doDBEntry();
     doDBEntry::connectionIDSet( &dbEntry, doDBtree::itemConnectionID( item ) );
-    doDBEntry::itemSet( &dbEntry, doDBtree::itemTableName( item ), doDBtree::itemID( item ), doDBtree::itemType( item ) );
+    doDBEntry::itemSet( &dbEntry, &itemTable, &itemID, (int*)&itemType, &itemDisplayValue );
     doDBEntry::treeWidgetItemSet( &dbEntry, item );
     doDBEntry::treeWidgetItemEnabledSet( &dbEntry, ! item->isDisabled() );
-    dbEntry->incRef();
 
 
     itemType = (doDBtree::treeItemType)doDBtree::itemType( item );
@@ -384,15 +387,31 @@ void doDBtree::                         expand( QTreeWidgetItem * item ){
             return;
         }
 
+        /*
+    // get the
+        const char *tablePrimaryColumn;
+
+
+    // read the data
+        connection->dbDataRead( doDBtree::itemTableName( item ).toUtf8() );
+
+        this->append(
+            this->selectedItem,
+            displayValue,
+            tableName,
+            connID,
+            primaryValue,
+            doDBtree::typeEntry );
+*/
         connection->dbDataGet( doDBtree::itemTableName( item ).toUtf8(), this, doDBtree::callbackEntryAdd );
 
 
     }
 
 // call the plugins
-    doDBPlugins::ptr->handleAction( "itemExpanded", dbEntry );
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemExpanded, dbEntry );
 
-    dbEntry->decRef();
+    doDBEntry::decRef( &dbEntry );
 }
 
 void doDBtree::                         collapsed( QTreeWidgetItem * item ){
@@ -401,19 +420,22 @@ void doDBtree::                         collapsed( QTreeWidgetItem * item ){
 // vars
     QString                     lockID = "doDBTree";
     doDBConnection              *connection;
-    doDBtree::treeItemType      itemType;
 
     this->selectedItem = item;
 
-
+// item infos
+    QString                     itemTable = doDBtree::itemTableName( item );
+    QString                     itemID = doDBtree::itemID( item );
+    doDBtree::treeItemType      itemType = doDBtree::itemType( item );
+    QString                     itemDisplayValue = doDBtree::itemDisplayValue( item );
 
 // save the entry to global
     doDBEntry *dbEntry = new doDBEntry();
     doDBEntry::connectionIDSet( &dbEntry, doDBtree::itemConnectionID( item ) );
-    doDBEntry::itemSet( &dbEntry, doDBtree::itemTableName( item ), doDBtree::itemID( item ), doDBtree::itemType( item ) );
+    doDBEntry::itemSet( &dbEntry, &itemTable, &itemID, (int*)&itemType, &itemDisplayValue );
     doDBEntry::treeWidgetItemSet( &dbEntry, item );
     doDBEntry::treeWidgetItemEnabledSet( &dbEntry, ! item->isDisabled() );
-    dbEntry->incRef();
+
 
     itemType = (doDBtree::treeItemType)doDBtree::itemType( item );
 
@@ -422,27 +444,33 @@ void doDBtree::                         collapsed( QTreeWidgetItem * item ){
     }
 
 // fire all plugins
-    doDBPlugins::ptr->handleAction( "itemCollapsed", dbEntry );
-    dbEntry->decRef();
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemCollapsed, dbEntry );
+    doDBEntry::decRef( &dbEntry );
 }
 
 void doDBtree::                         clicked( QTreeWidgetItem * item, int column ){
 
 
+// item infos
+    QString                     itemTable = doDBtree::itemTableName( item );
+    QString                     itemID = doDBtree::itemID( item );
+    doDBtree::treeItemType      itemType = doDBtree::itemType( item );
+    QString                     itemDisplayValue = doDBtree::itemDisplayValue( item );
 
-// save the entry to global
+// create new entry ( with counter 0 )
     doDBEntry *dbEntry = new doDBEntry();
-
+// save values ( this is only possible if the counte is 0 )
     doDBEntry::connectionIDSet( &dbEntry, doDBtree::itemConnectionID( item ) );
-    doDBEntry::itemSet( &dbEntry, doDBtree::itemTableName( item ), doDBtree::itemID( item ), doDBtree::itemType( item ) );
+    doDBEntry::itemSet( &dbEntry, &itemTable, &itemID, (int*)&itemType, &itemDisplayValue );
     doDBEntry::treeWidgetItemSet( &dbEntry, item );
     doDBEntry::treeWidgetItemEnabledSet( &dbEntry, ! item->isDisabled() );
-    dbEntry->incRef();
+// increment ( no more writes to this object )
+
 
 
 // before WE doing something with it, call all plugins
-    doDBPlugins::ptr->handleAction( "itemClicked", dbEntry );
-    dbEntry->decRef();
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemSelected, dbEntry );
+    doDBEntry::decRef( &dbEntry );
 
 /*
     this->entryEditor->setEnabled(true);

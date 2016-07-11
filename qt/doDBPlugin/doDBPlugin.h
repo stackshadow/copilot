@@ -21,9 +21,43 @@
 
 #include "qt/doDBTree/doDBTree.h"
 #include "doDBEntry/doDBEntry.h"
+#include "doDBConnection/doDBConnection.h"
 
 class doDBPlugin : public QObject {
     Q_OBJECT
+
+public:
+typedef enum messageID {
+    msgNothing = 0,
+
+    msgInitToolBar = 10,
+    msgInitCentralView,
+    msgInitStackedLeft,
+    msgInitStackedRight,
+
+    msgConnectionEditorShow = 50,
+    msgConnectionEditorHide,
+    msgConnectionCreated,
+    msgConnectionChanged,
+    msgConnectionDeleted,
+    msgConnectionSelected,
+    msgConnectionConnected,
+    msgConnectionDisconnected,
+
+    msgItemEditorShow = 70,
+    msgItemEditorHide,
+    msgItemCreated,
+    msgItemChanged,
+    msgItemDeleted,
+    msgItemSelected,
+    msgItemExpanded,
+    msgItemCollapsed,
+
+// special
+    msgInitTree = 90,
+
+    msgLast = 100
+} messageID;
 
     public:
         doDBPlugin();
@@ -32,24 +66,12 @@ class doDBPlugin : public QObject {
         virtual QString     valueGet( QString valueName ){ return ""; };
 
         virtual void        prepareLayout( QString name, QLayout* layout ){ return; };
-        virtual bool        handleAction( QString action, doDBEntry* entry ){ return true; };
 
-
-// prepare stuff
-        virtual void        prepareToolBar( QLayout *layout ){ return; }
-        virtual void        prepareTree( doDBtree *dbTree ){ return; }
-        virtual void        prepareItemView( QLayout *layout ){ return; }
-
-// events
-        virtual bool        dbTreeItemClicked( doDBEntry* entry ){ return true; }
-        virtual bool        dbTreeItemExpanded( doDBEntry* entry ){ return true; }
-        virtual bool        dbTreeItemCollapsed( doDBEntry* entry ){ return true; }
-
-        virtual bool        itemChanged( const char * columnName, const char * newColumnValue ){ return true; }
+// future stuff
+        virtual bool        recieveMessage( messageID type, void* payload ){ return true; }
 
 
 
-    protected:
     private:
         QString         pluginName;
         QString         pluginAuthor;

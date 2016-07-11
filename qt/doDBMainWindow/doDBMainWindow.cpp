@@ -53,21 +53,26 @@ doDBMainWindow::                doDBMainWindow( QWidget *parent ) : QWidget(pare
 
 
 // setup splitter
-    this->ui.layoutWidgetContainer->removeWidget( this->ui.widgetContainerLeft );
-    this->ui.layoutWidgetContainer->removeWidget( this->ui.widgetContainerRight );
+    this->ui.layoutCentral->removeWidget( this->ui.widgetContainerLeft );
+    this->ui.layoutCentral->removeWidget( this->ui.widgetContainerRight );
     QSplitter *splitter = new QSplitter();
     splitter->addWidget( this->ui.widgetContainerLeft );
     splitter->addWidget( this->ui.widgetContainerRight );
-    this->ui.layoutWidgetContainer->addWidget( splitter );
+    this->ui.layoutCentral->addWidget( splitter );
 
 
 
 // init plugins
 //    doDBPlugins::ptr->eventPrepareDashboard( this->ui.page->layout() );
-    doDBPlugins::ptr->eventPrepareTree( this->dataTree );
-    doDBPlugins::ptr->prepareLayout( "detailView", this->ui.itemView->layout() );
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgInitToolBar, this->ui.layoutMainToolBar );
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgInitCentralView, this->ui.layoutCentral );
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgInitStackedLeft, this->ui.widgetContainerLeft );
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgInitStackedRight, this->ui.widgetContainerRight );
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgInitTree, this->dataTree );
 
 
+// add spacer too toolbar
+    this->ui.layoutMainToolBar->addItem( new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum) );
 
 
 // toolbar
@@ -138,6 +143,11 @@ void doDBMainWindow::           connectionEditorHide(){
 // save
     doDBConnections::ptr->connectionsSave();
     doDBSettings::ptr->saveToFile();
+
+// deselect all items
+    doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgConnectionSelected, NULL );
+
+// update dbtree
     this->treeUpdate();
 }
 

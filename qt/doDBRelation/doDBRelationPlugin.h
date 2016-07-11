@@ -22,6 +22,7 @@
 #include <QString>
 #include <QPushButton>
 #include <QLayout>
+#include <QStackedWidget>
 
 #include "core/etIDState.h"
 #include "string/etString.h"
@@ -50,14 +51,11 @@ public:
 
 // overload
     QString                 valueGet( QString valueName );
-    void                    prepareLayout( QString name, QLayout* layout );
-    bool                    handleAction( QString action, doDBEntry* entry );
+    bool                    recieveMessage( messageID type, void* payload );
 
 
 
 // overload
-    void                    prepareTree( doDBtree *dbTree );
-
     bool                    itemExpanded( doDBEntry* entry );
     bool                    itemCollapsed( doDBEntry* entry );
     bool                    itemClicked( doDBEntry* entry );
@@ -89,9 +87,11 @@ private:
     QPushButton*            btnConnectRelationSave;
     QPushButton*            btnConnectRelationCancel;
     QLineEdit*              connectionTables;
+    QStackedWidget*         stackedWidget;
 
 // remember thinks
     doDBEntry*              itemSelected;
+    doDBConnection*         connectionSelected;
 
 // this is for normal mode
     QString                 parentTable;
@@ -99,6 +99,7 @@ private:
 
 
 // This is for connection-mode !
+    doDBEntry*              srcEntry;
     QString                 srcTable;
     QString                 srcItemID;
     QString                 srcColumn;

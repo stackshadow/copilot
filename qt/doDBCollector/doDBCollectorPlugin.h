@@ -35,8 +35,7 @@ public:
 
 // overload
     QString                 valueGet( QString valueName );
-    void                    prepareLayout( QString name, QLayout* layout );
-    bool                    handleAction( QString action, doDBEntry* entry );
+    bool                    recieveMessage( messageID type, void* payload );
 
 private:
     QPushButton*            btnItemRemember;

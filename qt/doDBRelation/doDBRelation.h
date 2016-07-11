@@ -58,6 +58,7 @@ public:
     bool                    dbRelationLoad( doDBConnection* connection );
     bool                    dbRelationSave( doDBConnection* connection );
     bool                    dbDataGet( const char *connectionID, const char *srcTable, const char *srcTableItemID, const char *relatedTable, void *userdata, void (*callback)( void *userdata, const char *tableName, const char *connID, const char *primaryValue, const char *displayValue) );
+    bool                    dbDataRead( const char *connectionID, const char *srcTable, const char *srcTableItemID, const char *relatedTable );
 
 private:
 

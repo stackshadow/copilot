@@ -30,7 +30,7 @@ doDBEntry::doDBEntry( QString originFunctionName ){
 //    this->ptr = this;
 
 // unlock
-    this->referenceCount = 0;
+    this->referenceCount = 1;
 
 // set default values
     this->connectionIdent = "";
@@ -51,6 +51,24 @@ doDBEntry::~doDBEntry(){
 
 }
 
+
+void doDBEntry::                    copy( doDBEntry* dbEntrySource ){
+
+    this->referenceCount = 1;
+
+// Connection stuff
+    this->connectionIdent = dbEntrySource->connectionIdent;
+    this->dbConnection = dbEntrySource->dbConnection;
+
+// the item itselfe
+    this->itemTableName = dbEntrySource->itemTableName;
+    this->itemID = dbEntrySource->itemID;
+    this->itemType = dbEntrySource->itemType;
+    this->itemDisplayName = dbEntrySource->itemDisplayName;
+
+    this->treeItem = dbEntrySource->treeItem;
+    this->treeItemEnabled = dbEntrySource->treeItemEnabled;
+}
 
 
 void doDBEntry::                    incRefAtom( QString originFunctionName ){
@@ -81,51 +99,11 @@ int doDBEntry::                     refCount(){
 }
 
 
-bool doDBEntry::                    isWriteable( doDBEntry *dbEntry ){
-    if( dbEntry->referenceCount == 0 ) return true;
-
-    doDBDebug::ptr->print( "doDB", "WARNING", __PRETTY_FUNCTION__, QString("Can not write to entry, its in use...") );
-    return false;
-}
-
-
-
-
-doDBEntry* doDBEntry::              requestWrite(){
-// nobody use this, so we can write to it
-    if( this->referenceCount == 0 ) return this;
-
-// somebody use this, create a new one
-    doDBEntry* newDBEntry = new doDBEntry( __PRETTY_FUNCTION__ );
-
-// copy the stuff
-    newDBEntry->referenceCount = 1;
-    newDBEntry->connectionIdent = this->connectionIdent;
-    newDBEntry->dbConnection = this->dbConnection;
-    newDBEntry->itemTableName = this->itemTableName;
-    newDBEntry->itemID = this->itemID;
-    newDBEntry->itemType = this->itemType;
-    newDBEntry->treeItem = this->treeItem;
-    newDBEntry->treeItemEnabled = this->treeItemEnabled;
-
-    doDBDebug::ptr->print( "doDB", "WARNING", __PRETTY_FUNCTION__, QString("%1: Entry was in use, create a copy. New one: %2").arg((long long int)this).arg((long long int)newDBEntry) );
-
-// because we return a new copy, we release the old one
-    doDBEntry* oldDBEntry = this;
-    doDBEntry::decRefAtom( __PRETTY_FUNCTION__, &oldDBEntry );
-
-    return newDBEntry;
-}
-
-
 
 
 bool doDBEntry::                    connectionIDSet( doDBEntry **p_dbEntry, QString connectionID ){
 
     doDBEntry* dbEntry = *p_dbEntry;
-
-// we would like to write to it
-    dbEntry = dbEntry->requestWrite();
 
     const char *forDebug = connectionID.toUtf8();
 
@@ -155,9 +133,6 @@ bool doDBEntry::                    itemSet( doDBEntry **p_dbEntry, QString *tab
 
     doDBEntry* dbEntry = *p_dbEntry;
 
-// we would like to write to it
-    dbEntry = dbEntry->requestWrite();
-
 // write
     if( tableName != NULL ){
         dbEntry->itemTableName = *tableName;
@@ -170,6 +145,29 @@ bool doDBEntry::                    itemSet( doDBEntry **p_dbEntry, QString *tab
     }
     if( displayName != NULL ){
         dbEntry->itemDisplayName = *displayName;
+    }
+
+
+// return
+    *p_dbEntry = dbEntry;
+    return true;
+}
+
+bool doDBEntry::                    itemSet( doDBEntry **p_dbEntry, const char* tableName, const char* itemID, int *type, const char* displayName ){
+    doDBEntry* dbEntry = *p_dbEntry;
+
+// write
+    if( tableName != NULL ){
+        dbEntry->itemTableName = tableName;
+    }
+    if( itemID != NULL ){
+        dbEntry->itemID = itemID;
+    }
+    if( type != NULL ){
+        dbEntry->itemType = *type;
+    }
+    if( displayName != NULL ){
+        dbEntry->itemDisplayName = displayName;
     }
 
 
@@ -200,12 +198,11 @@ void doDBEntry::                    item( QString* tableName, QString* itemID, i
 
 
 
+
+
 bool doDBEntry::                    treeWidgetItemSet( doDBEntry **p_dbEntry, QTreeWidgetItem* treeItem ){
 
     doDBEntry* dbEntry = *p_dbEntry;
-
-// we would like to write to it
-    dbEntry = dbEntry->requestWrite();
 
 // save
     dbEntry->treeItem = treeItem;
@@ -226,8 +223,6 @@ bool doDBEntry::                    treeWidgetItemEnabledSet( doDBEntry **p_dbEn
 
     doDBEntry* dbEntry = *p_dbEntry;
 
-// we would like to write to it
-    dbEntry = dbEntry->requestWrite();
 
 // save
     dbEntry->treeItemEnabled = enabled;
@@ -240,8 +235,6 @@ bool doDBEntry::                    treeWidgetItemEnabledSet( doDBEntry **p_dbEn
 bool doDBEntry::                    treeWidgetItemEnabled(){
     return this->treeItemEnabled;
 }
-
-
 
 
 

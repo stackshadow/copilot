@@ -462,21 +462,22 @@ bool doDBRelation::             dbDataGet( const char *connectionID, const char 
 
 
     // get all columns from selected row
-        if( connection->dbDataGet( srcTable, srcTableItemID )  != true ) break;
+        if( connection->dbDataRead( srcTable, srcTableItemID )  != true ) break;
 
 
     // okay, get the value of the source column
         etDBObjectValueGet( dbObject, srcColumn, srcColumnValue );
 
 
-    // create filter
-        etDBObjectFilterClear( dbObject );
-        etDBObjectFilterAdd(  dbObject, 1, etDBFILTER_OP_AND, relColumn, etDBFILTER_TYPE_EQUAL, srcColumnValue );
 
     // pick related table
         if( etDBObjectTablePick( dbObject, relatedTable ) != etID_YES ){
             return false;
         }
+
+    // create filter
+        etDBObjectFilterClear( dbObject );
+        etDBObjectFilterAdd(  dbObject, 1, etDBFILTER_OP_AND, relColumn, etDBFILTER_TYPE_EQUAL, srcColumnValue );
 
     // get the column which respresent the visible value the value from the related table
         etDBObjectTableColumnMainGet( dbObject, relDisplayColumn );
@@ -514,5 +515,73 @@ bool doDBRelation::             dbDataGet( const char *connectionID, const char 
 }
 
 
+bool doDBRelation::             dbDataRead( const char *connectionID, const char *srcTable, const char *srcTableItemID, const char *relatedTable ){
+
+// vars
+    doDBConnection  *connection = NULL;
+    etDBObject      *dbObject = NULL;
+    etDBDriver      *dbDriver = NULL;
+    QString         dbObjectLockID;
+    const char      *connID = NULL;
+    const char      *tableDisplayName = NULL;
+    const char      *relPrimaryColumn = NULL;
+    const char      *relPrimaryColumnValue = NULL;
+    const char      *relDisplayColumn = NULL;
+    const char      *relDisplayColumnValue = NULL;
+    const char      *srcColumn = NULL;
+    const char      *srcColumnValue = NULL;
+    const char      *relColumn = NULL;
+
+
+// get connection
+    connection = doDBConnections::ptr->connectionGet( connectionID );
+    if( connection == NULL ) return false;
+
+// get the object
+    dbObject = connection->dbObject;
+    if( dbObject == NULL ) return false;
+
+// get the driver
+    dbDriver = connection->dbDriver;
+    if( dbDriver == NULL ) return false;
+
+
+// get the related columns
+    this->relationGetReset();
+    while( this->relatedTableFindNext( srcTable, &srcColumn, relatedTable, &relColumn ) ){
+
+
+    // get all columns from selected row
+        if( connection->dbDataRead( srcTable, srcTableItemID )  != true ) break;
+
+
+    // okay, get the value of the source column
+        etDBObjectValueGet( dbObject, srcColumn, srcColumnValue );
+
+
+
+    // pick related table
+        if( etDBObjectTablePick( dbObject, relatedTable ) != etID_YES ){
+            return false;
+        }
+
+    // create filter
+        etDBObjectFilterClear( dbObject );
+        etDBObjectFilterAdd(  dbObject, 1, etDBFILTER_OP_AND, relColumn, etDBFILTER_TYPE_EQUAL, srcColumnValue );
+
+    // get the column which respresent the visible value the value from the related table
+        etDBObjectTableColumnMainGet( dbObject, relDisplayColumn );
+    // primary column of related table
+        etDBObjectTableColumnPrimaryGet( dbObject, relPrimaryColumn );
+
+    // run the query
+        if( etDBDriverDataGet( dbDriver, dbObject ) != etID_YES ) {
+            continue;
+        }
+
+    }
+
+    return true;
+}
 
 

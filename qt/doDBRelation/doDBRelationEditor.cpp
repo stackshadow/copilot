@@ -79,6 +79,17 @@ doDBRelationEditor::            ~doDBRelationEditor(){
 }
 
 
+
+
+void doDBRelationEditor::       connectionCBoxRefresh(){
+
+// clear combobox
+    this->ui.cBoxConnection->clear();
+
+}
+
+
+
 void doDBRelationEditor::       showRelation( etDBObject *dbObject, doDBRelation *dbRelation ){
 
 // save relation
@@ -304,7 +315,6 @@ void doDBRelationEditor::       relationRemove(){
 
 
 void doDBRelationEditor::       closeEditor(){
-    this->setVisible(false);
     emit closed();
 }
 
