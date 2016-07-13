@@ -204,6 +204,9 @@ void doDBEntryPlugin::          entryEditorItemSaveNew( etDBObject *dbObject, co
         doDBEntry::itemSet( &dbEntryNew, tableName, primaryKey, &type, NULL );
         doDBEntry::treeWidgetItemSet( &dbEntryNew, NULL );
 
+    // change the mode of the editor
+        this->dbEntryEditor->modeSet( doDBEntryEditor::modeView );
+
     // fire the broadcast
         doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemSelected, dbEntryNew );
 
@@ -219,7 +222,12 @@ void doDBEntryPlugin::          entryEditorItemChanged( etDBObject *dbObject, co
     if( connection == NULL ) return;
 
     if( connection->dbDataChange( tableName ) == true ){
+
+    // change the mode of the editor
+        this->dbEntryEditor->modeSet( doDBEntryEditor::modeView );
+
         doDBPlugins::ptr->sendBroadcast( doDBPlugin::msgItemChanged, this->selectedEntry );
+
     }
 
 }

@@ -463,6 +463,7 @@ bool doDBRelation::             dbDataGet( const char *connectionID, const char 
 
     // get all columns from selected row
         if( connection->dbDataRead( srcTable, srcTableItemID )  != true ) break;
+        if( connection->dbDataNext() != true ) break;
 
 
     // okay, get the value of the source column
@@ -553,7 +554,7 @@ bool doDBRelation::             dbDataRead( const char *connectionID, const char
 
     // get all columns from selected row
         if( connection->dbDataRead( srcTable, srcTableItemID )  != true ) break;
-
+        if( connection->dbDataNext() != true ) break;
 
     // okay, get the value of the source column
         etDBObjectValueGet( dbObject, srcColumn, srcColumnValue );

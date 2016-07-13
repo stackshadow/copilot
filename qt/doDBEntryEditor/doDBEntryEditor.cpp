@@ -396,6 +396,8 @@ void doDBEntryEditor::          btnEntrySaveClicked(){
         emit this->entryChanged( this->dbObject, this->tableName.toUtf8() );
     }
 
+
+
 }
 
 void doDBEntryEditor::          btnEntryDeleteReqClicked(){

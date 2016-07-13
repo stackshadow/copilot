@@ -564,6 +564,7 @@ void doDBRelationPlugin::           connectionSave(){
 
 // get related data
     if( ! connection->dbDataRead( itemTableName.toUtf8(), itemID.toUtf8() ) ) return;
+    if( connection->dbDataNext() != true ) return;
 
 // get relColumn-Value
     const char*     relColumnValueChar = NULL;
@@ -573,6 +574,7 @@ void doDBRelationPlugin::           connectionSave(){
 
 // get source data
     if( ! connection->dbDataRead( this->srcTable.toUtf8(), this->srcItemID.toUtf8() ) ) return;
+    if( connection->dbDataNext() != true ) return;
 
 // set the src-column with the related-colum
     etDBObjectValueSet( connection->dbObject, this->srcColumn.toUtf8(), relColumnValue.toUtf8() );
