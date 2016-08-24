@@ -1,6 +1,7 @@
 #!/bin/make
 
 MAKE=make --no-print-directory --silent -f
+MAKE=make --no-print-directory -f
 
 premake:
 	@find ./make/premake -type f -name "*.mk" -exec \

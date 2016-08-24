@@ -36,7 +36,7 @@ $(sourcePath)/%.moc.cpp: $(sourcePath)/%.h
 $(buildPath)/%.moc.o: $(sourcePath)/%.moc.cpp
 	@$(ECHO) "CC-QT    $@"
 	@$(MKDIR) $(shell dirname $@)
-	@$(CPP) $(CFLAGS) -fPIC -x c++ -c $< -o $@
+	$(CPP) $(CFLAGS) -fPIC -x c++ -c $< -o $@
 	@$(ECHO) ""
 
 uic: $(headersUiFull)
@@ -48,7 +48,7 @@ uic: $(headersUiFull)
 $(buildPath)/%.qt.o: $(sourcePath)/%.cpp
 	@$(ECHO) "CC-QT    $@"
 	@$(MKDIR) $(shell dirname $@)
-	@$(CPP) $(CFLAGS) -fPIC -x c++ -c $< -o $@
+	$(CPP) $(CFLAGS) -fPIC -x c++ -c $< -o $@
 	@$(ECHO) ""
 
 
