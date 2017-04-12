@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="copilotc-websocket" Version="10.0.0" InternalType="">
+  <VirtualDirectory Name="copilotc-web">
+    <VirtualDirectory Name="bootstrap-3.3.7-dist">
+      <VirtualDirectory Name="js">
+        <File Name="../copilotc-web/bootstrap-3.3.7-dist/js/jquery-3.1.1.min.js"/>
+        <File Name="../copilotc-web/bootstrap-3.3.7-dist/js/bootstrap.js"/>
+        <File Name="../copilotc-web/bootstrap-3.3.7-dist/js/bootstrap.min.js"/>
+        <File Name="../copilotc-web/bootstrap-3.3.7-dist/js/npm.js"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="bootstrap">
+      <VirtualDirectory Name="js">
+        <File Name="../copilotc-web/bootstrap/js/jquery-3.1.1.min.js"/>
+        <File Name="../copilotc-web/bootstrap/js/bootstrap.js"/>
+        <File Name="../copilotc-web/bootstrap/js/bootstrap.min.js"/>
+        <File Name="../copilotc-web/bootstrap/js/npm.js"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+    <VirtualDirectory Name="js">
+      <VirtualDirectory Name="services">
+        <File Name="../copilotc-web/js/services/doDBDTableListService.js"/>
+        <File Name="../copilotc-web/js/services/doDBDConnectionsService.js"/>
+        <File Name="../copilotc-web/js/services/ldapUsers.js"/>
+        <File Name="../copilotc-web/js/services/auth.js"/>
+        <File Name="../copilotc-web/js/services/ldapUsersService.js"/>
+        <File Name="../copilotc-web/js/services/nft.js"/>
+        <File Name="../copilotc-web/js/services/authService.js"/>
+        <File Name="../copilotc-web/js/services/nftService.js"/>
+      </VirtualDirectory>
+      <File Name="../copilotc-web/js/doDBTableListNav.js"/>
+      <File Name="../copilotc-web/js/login.js"/>
+      <File Name="../copilotc-web/js/connections.js"/>
+      <File Name="../copilotc-web/js/doDBTableList.js"/>
+      <File Name="../copilotc-web/js/doDBTableData.js"/>
+      <File Name="../copilotc-web/js/FileSaver.min.js"/>
+      <File Name="../copilotc-web/js/doDBDConnection.js"/>
+      <File Name="../copilotc-web/js/copilot.js"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="html">
+      <File Name="../copilotc-web/html/connectionConfig.html"/>
+      <File Name="../copilotc-web/html/nav.html"/>
+      <File Name="../copilotc-web/html/doDBTableList.html"/>
+      <File Name="../copilotc-web/html/doDBTableData_old.html"/>
+      <File Name="../copilotc-web/html/doDBTableData.html"/>
+      <File Name="../copilotc-web/html/sqliteDialog.html"/>
+      <File Name="../copilotc-web/html/connectionList.html"/>
+      <File Name="../copilotc-web/html/ldapUsers.html"/>
+      <File Name="../copilotc-web/html/authDialog.html"/>
+      <File Name="../copilotc-web/html/nft.html"/>
+    </VirtualDirectory>
+    <File Name="../copilotc-web/socketio.html"/>
+    <File Name="../copilotc-web/index.html"/>
+    <File Name="../copilotc-web/file.html"/>
+    <File Name="../copilotc-web/index_new.html"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Dynamic Library">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="GNU makefile onestep build"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make clean</CleanCommand>
+        <BuildCommand>make</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="GNU makefile onestep build"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make clean</CleanCommand>
+        <BuildCommand>make</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>

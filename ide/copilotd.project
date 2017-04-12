@@ -1,0 +1,2375 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="copilotd" Version="10.0.0" InternalType="Console">
+  <VirtualDirectory Name="copilotd">
+    <VirtualDirectory Name="src">
+      <VirtualDirectory Name="classes">
+        <File Name="../copilotd/src/classes/doDBDConnection.h"/>
+        <File Name="../copilotd/src/classes/doDBDTools.cpp"/>
+        <File Name="../copilotd/src/classes/doDBDTools.h"/>
+        <File Name="../copilotd/src/classes/doDBDConnection.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="plugins">
+        <File Name="../copilotd/src/plugins/doDBTable.h"/>
+        <File Name="../copilotd/src/plugins/doDBTable.cpp"/>
+        <File Name="../copilotd/src/plugins/doDBDConnections.h"/>
+        <File Name="../copilotd/src/plugins/doDBDConnections.cpp"/>
+        <File Name="../copilotd/src/plugins/ldapService.cpp"/>
+        <File Name="../copilotd/src/plugins/ldapService.h"/>
+        <File Name="../copilotd/src/plugins/coreService.h"/>
+        <File Name="../copilotd/src/plugins/nftService.h"/>
+        <File Name="../copilotd/src/plugins/coreService.cpp"/>
+        <File Name="../copilotd/src/plugins/nftService.cpp"/>
+        <File Name="../copilotd/src/plugins/websocket.cpp"/>
+        <File Name="../copilotd/src/plugins/websocket.h"/>
+        <File Name="../copilotd/src/plugins/websocketClient.cpp"/>
+        <File Name="../copilotd/src/plugins/websocketClient.h"/>
+      </VirtualDirectory>
+      <File Name="../copilotd/src/doDBDws.qt.h"/>
+      <File Name="../copilotd/src/doDBDws.cpp"/>
+      <File Name="../copilotd/src/evillib.c"/>
+      <File Name="../copilotd/src/doDBDwsClient.h"/>
+      <File Name="../copilotd/src/doDBDws.h"/>
+      <File Name="../copilotd/src/doDBDwsClient.cpp"/>
+      <File Name="../copilotd/src/coCore.cpp"/>
+      <File Name="../copilotd/src/coCore.h"/>
+      <File Name="../copilotd/src/coPlugin.cpp"/>
+      <File Name="../copilotd/src/coPlugin.h"/>
+      <File Name="../copilotd/src/coPluginElement.cpp"/>
+      <File Name="../copilotd/src/coPluginElement.h"/>
+      <File Name="../copilotd/src/main.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="make">
+      <VirtualDirectory Name="premake">
+        <File Name="../copilotd/make/premake/README"/>
+        <File Name="../copilotd/make/premake/evillib.mk"/>
+        <File Name="../copilotd/make/premake/uuid.mk"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="postmake">
+        <File Name="../copilotd/make/postmake/README"/>
+        <File Name="../copilotd/make/postmake/doDB.mk"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="generic">
+        <File Name="../copilotd/make/generic/objects.mk"/>
+        <File Name="../copilotd/make/generic/library.mk"/>
+        <File Name="../copilotd/make/generic/qt.mk"/>
+        <File Name="../copilotd/make/generic/bin.mk"/>
+      </VirtualDirectory>
+      <File Name="../copilotd/make/clibs.mk"/>
+      <File Name="../copilotd/make/progs.mk"/>
+      <File Name="../copilotd/make/Makefile"/>
+      <File Name="../copilotd/make/cflags.mk"/>
+      <File Name="../copilotd/make/sources.mk"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="libs">
+      <VirtualDirectory Name="util-linux-2.29.2">
+        <VirtualDirectory Name="tools">
+          <VirtualDirectory Name="smatch-data">
+            <File Name="../copilotd/libs/util-linux-2.29.2/tools/smatch-data/no_return_funcs"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/util-linux-2.29.2/tools/config-gen"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/tools/git-tp-sync"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/tools/git-version-gen"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/tools/ko-release-gen"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/tools/ko-release-push"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="tests">
+          <VirtualDirectory Name="ts">
+            <VirtualDirectory Name="sfdisk">
+              <VirtualDirectory Name="files">
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/sfdisk/files/dump-gaps"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/sfdisk/files/dump-old"/>
+              </VirtualDirectory>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/sfdisk/dos"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/sfdisk/gpt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/sfdisk/movedata"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/sfdisk/resize"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/sfdisk/script"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="libsmartcols">
+              <VirtualDirectory Name="files">
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-hidden"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-id"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-name"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-noextremes"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-number"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-parent"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-strict"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-string"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-tree"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-trunc"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-wrap"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/col-wrapnl"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/data-id"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/data-number"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/data-number-tiny"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/data-parent"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/data-string"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/data-string-extreme"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/data-string-long"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/files/data-string-nl"/>
+              </VirtualDirectory>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/fromfile"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libsmartcols/title"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="libmount">
+              <VirtualDirectory Name="files">
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/files/fstab"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/files/kernel_cmdline"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/files/mountinfo"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/files/mountinfo_mv"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/files/mountinfo_re"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/files/mountinfo_u"/>
+                <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/files/mtab"/>
+              </VirtualDirectory>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/context"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/context-py"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/context-utab"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/context-utab-py"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/debug"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/lock"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/loop-overlay"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/optstr"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/tabdiff"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/tabfiles"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/tabfiles-py"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/tabfiles-tags"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/tabfiles-tags-py"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/update"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/update-py"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libmount/utils"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="bitops">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/bitops/swapbytes"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="blkdiscard">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/blkdiscard/offsets"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="blkid">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/blkid/dm-err"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/blkid/low-probe"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/blkid/lowprobe-pt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/blkid/mbr-wholedisk"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/blkid/md-raid0-whole"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/blkid/md-raid1-part"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/blkid/md-raid1-whole"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="build-sys">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/build-sys/config"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="cal">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/1m"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/1mw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/3m"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/3mw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/bigyear"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/bigyearw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/color"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/colorw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/jan1753"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/sep1752"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/sep1752w"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/weekarg"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/weeknum"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/year"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cal/yearw"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="col">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/col/multibyte"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="colcrt">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/colcrt/crash1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/colcrt/crash2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/colcrt/functional"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/colcrt/hang1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/colcrt/nasty-input"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/colcrt/regressions"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/colcrt/underlines"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="colrm">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/colrm/rm2-2"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="column">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/column/fillrow"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/column/input"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/column/invalid-multibyte"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/column/multi-file"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/column/separator_table"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="cramfs">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cramfs/doubles"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cramfs/fsck-endianness"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cramfs/mkfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/cramfs/mkfs-endianness"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="dmesg">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/dmesg/colors"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/dmesg/console-levels"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/dmesg/decode"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/dmesg/delta"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/dmesg/facilities"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/dmesg/indentation"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/dmesg/input"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/dmesg/newlines"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="eject">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/eject/umount"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="fdisk">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/align-512-4K"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/align-512-4K-63"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/align-512-4K-md"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/align-512-512"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/align-512-512-topology"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/bsd"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/gpt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/id"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/mbr-dos-mode"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/mbr-nondos-mode"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/mbr-sort"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/oddinput"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fdisk/sunlabel"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="fsck">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/fsck/ismounted"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="getopt">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/getopt/basic"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/getopt/options"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="hexdump">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/hexdump/format-strings"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/hexdump/highlighting"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="hwclock">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/hwclock/systohc"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="ipcs">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/ipcs/headers"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/ipcs/limits"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/ipcs/limits2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/ipcs/mk-rm-msg"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/ipcs/mk-rm-sem"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/ipcs/mk-rm-shm"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="isosize">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/isosize/print-size"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="kill">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/kill/all_processes"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/kill/name_to_number"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/kill/options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/kill/print_pid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/kill/queue"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="libfdisk">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/libfdisk/gpt"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="logger">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/logger/errors"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/logger/formats"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/logger/journald"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/logger/options"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="login">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/login/islocal"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/login/logindefs"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="look">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/look/separator"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/look/words"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="losetup">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/losetup/losetup"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/losetup/losetup-blkdev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/losetup/losetup-loop"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="lscpu">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/lscpu/lscpu"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="md5">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/md5/data"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/md5/md5"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="minix">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/minix/broken-root"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/minix/fsck"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/minix/fsck-images"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/minix/mkfs"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="misc">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/fallocate"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/flock"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/ionice"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/line"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/mcookie"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/rev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/setarch"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/setsid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/strtosize"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/swaplabel"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/ul"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/misc/whereis"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="more">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/more/regexp"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/more/squeeze"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="mount">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fslists"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-broken"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-btrfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-devname2label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-devname2uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-label2devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-label2uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-loop"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-none"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-symlink"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-uuid2devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/fstab-uuid2label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/move"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/regfile"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/remount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/rlimit"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/shared-subtree"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/special"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/umount-alltargets"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/umount-recursive"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/mount/uuid"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="namei">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/namei/logic"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="partx">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/partx/partx"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="paths">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/paths/built-in"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="rename">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/rename/basic"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/rename/exit_codes"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/rename/subdir"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/rename/symlink"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="schedutils">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/schedutils/chrt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/schedutils/chrt-non-root"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/schedutils/cpuset"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="script">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/script/buffering-race"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/script/options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/script/race"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/script/replay"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="swapon">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/swapon/devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/swapon/fixpgsz"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/swapon/fixsig"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/swapon/label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/swapon/uuid"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="tailf">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/tailf/simple"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="utmp">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/last"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/last-ipv6"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/subsec"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/txt-a"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/txt-a-old"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/txt-b"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/txt-b-old"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/txt-ipv6"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/txt-ipv6-old"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/utmpdump-circle"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/utmpdump-subsecond"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/utmpdump-tobin"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/utmpdump-tobin-ipv6"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/utmpdump-totxt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/utmp/utmpdump-totxt-ipv6"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="uuid">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/uuid/uuid_parser"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/uuid/uuidd"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/uuid/uuidgen"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="wipefs">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/ts/wipefs/wipefs"/>
+            </VirtualDirectory>
+          </VirtualDirectory>
+          <VirtualDirectory Name="expected">
+            <VirtualDirectory Name="bitops">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/bitops/swapbytes"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="blkdiscard">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkdiscard/offsets"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="blkid">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/dm-err"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-adaptec-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-bcache-B"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-bcache-C"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-befs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-bfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-cramfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-ddf-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-drbdmanage-control-volume"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-exfat"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-ext2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-ext3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-f2fs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-fat"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-fat16_noheads"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-fat32_label_64MB"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-gfs2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-hfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-hfsplus"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-hpfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-hpt37x-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-hpt45x-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-iso"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-iso-joliet"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-iso-rr-joliet"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-isw-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-jbd"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-jfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-jmicron-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-lsi-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-lvm2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-mdraid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-minix-BE"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-minix-LE"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-netware"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-nilfs2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-ntfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-nvidia-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-ocfs2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-promise-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-reiser3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-reiser4"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-romfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-silicon-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-small-fat32"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-swap0"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-swap1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-tuxonice"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-ubifs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-udf"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-udf-hdd-mkudffs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-udf-hdd-mkudffs2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-udf-hdd-win7"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-ufs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-via-raid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-vmfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-vmfs_volume"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-xfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-xfs-log"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/low-probe-zfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/lowprobe-pt-bsd"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/lowprobe-pt-dos+bsd"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/lowprobe-pt-gpt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/lowprobe-pt-sgi"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/lowprobe-pt-sun"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/mbr-wholedisk-fake-vfat"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/md-raid0-whole"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/md-raid1-part"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/blkid/md-raid1-whole"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="build-sys">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-all"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-all-devel"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-all-non-nls"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-audit"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-chfnsh-libuser"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-chfnsh-no-password"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-chfnsh-pam"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-core"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-devel"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-devel-new-mount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-devel-non-docs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-disable-all"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-enable-schedutils"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-non-libblkid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-non-libmount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-non-libs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-non-libsmartcols"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-non-libuuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-non-nls"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-selinux"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-slang"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/build-sys/config-static"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="cal">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/1m"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/1mw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/3m"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/3mw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/bigyear"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/bigyearw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/color"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/colorw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/jan1753"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/sep1752"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/sep1752w"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/weekarg"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/weeknum"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/year"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cal/yearw"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="col">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/col/multibyte"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="colcrt">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/colcrt/functional-half-lines"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/colcrt/functional-no-options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/colcrt/functional-no-underlining"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/colcrt/functional-short-options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/colcrt/regressions-crash1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/colcrt/regressions-crash2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/colcrt/regressions-hang1"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="colrm">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/colrm/rm2-2"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="column">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/column/fillrow"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/column/invalid-multibyte"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/column/multi-file"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/column/separator_table"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="cramfs">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cramfs/doubles"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cramfs/fsck-endianness"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cramfs/mkfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/cramfs/mkfs-endianness"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="dmesg">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/dmesg/colors"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/dmesg/console-levels"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/dmesg/decode"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/dmesg/delta"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/dmesg/facilities"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/dmesg/indentation"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="eject">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/eject/umount-by-disk"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/eject/umount-by-disk-mounted"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/eject/umount-by-disk-mounted-partition"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/eject/umount-by-partition"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/eject/umount-by-partition-mounted"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="fdisk">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/align-512-4K"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/align-512-4K-63"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/align-512-4K-md"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/align-512-512"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/align-512-512-topology"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/gpt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/id"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/mbr-dos-mode"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/mbr-nondos-mode"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/mbr-sort"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/oddinput"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fdisk/sunlabel"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="fsck">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/fsck/ismounted"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="getopt">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/basic"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-alternative_option_clash"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-alternative_option_long"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-alternative_option_short"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-compatible"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-csh"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-invalid_getopt_option"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-invocation_model_one"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-invocation_model_three_as_one"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-invocation_model_two_as_one"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-invocation_without_parameters"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-long_option_ambiguous_1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-longopts"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-name_option_long"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-name_option_short"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-no-arguments"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-non-option"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-posix_correctly"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-quiet_option_long"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-quiet_option_short"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-quiet_output_option_long"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-quiet_output_option_short"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-same_long_short_options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-sh"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-test_for_enhanced_getopt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-unknown_options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-unquoted_option_bash"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-unquoted_option_tcsh"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-weird_quoting_bash"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/getopt/options-weird_quoting_tcsh"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="hexdump">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/format-strings-1b_char"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/format-strings-1b_octal"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/format-strings-2b_dec"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/format-strings-2b_hex"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/format-strings-2b_octal"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/format-strings-canon"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/format-strings-empty-format"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_char-1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_char-2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_char-3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-4"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-5"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-6"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-7"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-8"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-1b_octal-9"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-2b_dec-1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-2b_dec-2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-2b_dec-3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-2b_dec-4"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-2b_dec-5"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-2b_dec-6"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-2b_dec-7"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-2b_dec-8"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-4b_dec-1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-4b_dec-2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-4b_dec-3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-4b_dec-4"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-4b_dec-5"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-4b_dec-6"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-4b_dec-7"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-canon-1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/hexdump/highlighting-canon-2"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="ipcs">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/ipcs/headers"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/ipcs/limits"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/ipcs/limits2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/ipcs/mk-rm-msg"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/ipcs/mk-rm-sem"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/ipcs/mk-rm-shm"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="isosize">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/isosize/print-size-default_output"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/isosize/print-size-divisor_output"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/isosize/print-size-sector_output"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="kill">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/kill/all_processes"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/kill/name_to_number"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/kill/options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/kill/print_pid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/kill/queue"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="libfdisk">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libfdisk/gpt-all-defaults"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libfdisk/gpt-all-defaults-with-typo"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libfdisk/gpt-getattr"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libfdisk/gpt-setattr"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="libmount">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-mount-by-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-mount-by-label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-mount-by-uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-mount-flags"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-mount-loopdev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-py"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-py-mount-by-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-py-mount-by-label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-py-mount-by-uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-py-mount-flags"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-py-mount-loopdev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-py-umount-by-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-py-umount-by-mountpoint"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-umount-by-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-umount-by-mountpoint"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-mount-by-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-mount-uhelper"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-mount-uhelper-subvol"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-py"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-py-mount-by-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-py-mount-uhelper"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-py-mount-uhelper-subvol"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-py-umount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-py-umount-by-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-py-umount-subvol"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-umount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-umount-by-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/context-utab-umount-subvol"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/debug-set-from-code"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/debug-set-from-env-int"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/debug-set-from-env-str"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/lock"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/loop-overlay"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-append"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-append-empty-value"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-append-value"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-apply-linux"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-apply-user"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-deduplicate"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-deduplicate-empty"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-fix"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-flags"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-get"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-get-value"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-prepend"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-prepend-empty-value"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-prepend-value"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-remove"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-remove-empty-value"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-remove-quoted"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-remove-value"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-set-empty"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-set-large"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-set-new"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-set-new-empty"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-set-new-end"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-set-new-end-empty"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-set-remove"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-set-small"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/optstr-split"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabdiff-mount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabdiff-move"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabdiff-remount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabdiff-umount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-copy"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-find-pair"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-find-source"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-find-target"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-find-target2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-find-target3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-parse-fstab"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-parse-fstab-broken"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-parse-fstab-full"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-parse-mountinfo"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-parse-mtab"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-copy"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-find-pair"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-find-source"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-find-target"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-find-target2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-find-target3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-parse-fstab"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-parse-fstab-broken"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-parse-fstab-full"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-parse-mountinfo"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-py-parse-mtab"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-fstab-dev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-fstab-dev2label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-fstab-label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-fstab-label2dev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-fstab-label2uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-fstab-uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-py-fstab-dev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-py-fstab-dev2label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-py-fstab-label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-py-fstab-label2dev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-py-fstab-label2uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/tabfiles-tags-py-fstab-uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-fstab-add"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-fstab-replace"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-mtab-mount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-mtab-move"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-mtab-remount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-mtab-umount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-py-fstab-replace"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-utab-mount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-utab-move"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-utab-remount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/update-utab-umount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-ends-with"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-kernel-cmdline"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-match-fstype"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-match-fstype-neg"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-match-fstype-neg2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-match-options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-match-options-list"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-match-options-neg"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-match-options-neg-list"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-match-options-neg-list2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-mountpoint"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-mountpoint-root"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-mountpoint-subdir"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libmount/utils-starts-with"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="libsmartcols">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-column-separator"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-export"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-hidden"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-noextremes"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-raw"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-right"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-right-maxout"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-strictwidth"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-tree"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-tree-end"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-tree-json"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-tree-middle"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-trunc"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-wrap"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-wrap-tree"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-wrapnl"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/fromfile-wrapnl-tree"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/libsmartcols/title"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="logger">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-check_socket"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-id_with_space"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-invalid_prio"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-invalid_socket"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-kern_priority"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-kern_priority_numeric"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-multi-line"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-rfc5424_exceed_size"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-rfc5424_msgid_with_space"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-tag_with_space"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/errors-tcp"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/formats-check_socket"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/formats-octet_counting"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/formats-priorities"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/formats-rfc3164"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/formats-rfc5424_msgid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/formats-rfc5424_nohost"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/formats-rfc5424_notime"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/formats-rfc5424_simple"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/input_empty_line"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/input_prio_prefix"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/input_simple"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/journald"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-check_socket"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-input_file_empty_line"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-input_file_prio_prefix"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-input_file_simple"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-input_file_skip_empty"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-log_pid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-log_pid_define"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-log_pid_long"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-log_pid_no_arg"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/logger/options-simple"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="login">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/login/islocal"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/login/logindefs"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="look">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/look/separator"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="losetup">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-blkdev-offset"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-blkdev-section"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-blkdev-show"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-blkdev-sizelimit"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-file-offset"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-file-section"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-file-secton"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-file-show"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-file-sizelimit"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-find-conflict"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-find-conflict-no-sizelimit"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-find-conflict-readonly"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-find-no-re-use"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-find-ok-no-sizelimit"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-find-race-condition"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-find-re-use"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-plain-conflict"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-plain-re-use"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/losetup/losetup-loop-plain-readonly"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="lscpu">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-armv7"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-ppc-qemu"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-ppc64-POWER7"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-ppc64-POWER7-64cpu"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-s390-kvm"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-s390-lpar"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-s390-lpar-drawer"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-s390-zvm"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-sparc64"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-vbox-win"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-x86_64-64cpu"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/lscpu/lscpu-x86_64-dell_e4310"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="md5">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/md5/md5"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="minix">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-auto-fix"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-badblocks"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-broken-root"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-check-blocks"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-v1c14"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-v1c30"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-v2c14"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-v2c30"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/fsck-images-v3c60"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/mkfs-v1c14"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/mkfs-v1c30"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/mkfs-v2c14"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/mkfs-v2c30"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/mkfs-v2i65535"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/minix/mkfs-v3c60"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="misc">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/fallocate"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/flock"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/flock-exclusive"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/flock-no-fork"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/flock-non-block"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/flock-shared"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/flock-time-check"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/flock-timeout"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/ionice"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/line"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/mcookie"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/rev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/setarch-options"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/setarch-uname26"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/setarch-uname26-version"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/setsid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/strtosize"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/swaplabel"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/ul"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/misc/whereis"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="more">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/more/regexp"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/more/squeeze"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="mount">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fslists"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fslists-more-types"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fslists-more-types-fstab"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fslists-one-type"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fslists-type-pattern"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fslists-type-pattern-neg"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-broken"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-broken-mount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-broken-mount-all"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-btrfs-auto"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-btrfs-btrfs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-devname2label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-devname2uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-label2devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-label2uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-loop"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-none"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-symlink"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-uuid2devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/fstab-uuid2label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/move"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/regfile"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/remount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/rlimit"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/rlimit-mount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/rlimit-umount"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/shared-subtree"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/shared-subtree-bind-shared"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/shared-subtree-make-private"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/shared-subtree-make-shared"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/shared-subtree-make-unbindable"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/shared-subtree-mount-private"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/shared-subtree-mount-private-ro"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/special"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/umount-alltargets"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/umount-alltargets-all-targets-dev"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/umount-alltargets-all-targets-mnt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/umount-alltargets-all-targets-recursive"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/umount-recursive"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/mount/uuid"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="namei">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/namei/logic"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="partx">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-add-all"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-add-existing"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-addpart"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-bsd"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-change-by-range"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-delete-all"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-delete-non-existent"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-delete-one"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-delpart"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-detect-parts"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-dos+bsd"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-gpt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-sgi"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-sun"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/partx/partx-update-one"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="paths">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/paths/built-in"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="rename">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/rename/basic"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/rename/exit_codes"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/rename/subdir"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/rename/symlink"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="schedutils">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/chrt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/chrt-batch"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/chrt-deadline"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/chrt-fifo"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/chrt-idle"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/chrt-non-root-batch-vs-nice"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/chrt-other"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/chrt-rr"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/schedutils/cpuset"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="script">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/script/buffering-race"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/script/options-append"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/script/options-force"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/script/options-quiet"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/script/options-return"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/script/race"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/script/replay"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="sfdisk">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-activate"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-dump-gaps"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-dump-old"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-explicit-size"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-read-dump"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-read-dump-case"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-resize"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-simple-commas"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-simple-space"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-write-dump"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/dos-write-json"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-all-defaults"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-attrs"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-attrs-broken-guid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-attrs-broken-nosep"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-attrs-guid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-attrs-space"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-attrs-unsupported"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-attrs-with-typo"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-list-pmbr"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-read-dump"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-reorder"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-resize"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-type"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-uuid"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-write-dump"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/gpt-write-json"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/movedata-down"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/movedata-non-overlay"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/movedata-up"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-0-move-up-absolute"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-1-move-down-absolute"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-10-down-enlarge"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-11-absolute-move-resize"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-12-reduce-midle"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-13-max-last"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-2-move-up-relative"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-3-move-down-relative"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-4-enlarge-absolute"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-5-reduce-absolute"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-6-enlarge-relative"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-7-reduce-relative"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-8-enlarge-all"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-dos-9-up-preduce"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-0-move-up-absolute"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-1-move-down-absolute"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-10-down-enlarge"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-11-absolute-move-resize"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-12-reduce-midle"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-13-max-last"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-2-move-up-relative"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-3-move-down-relative"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-4-enlarge-absolute"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-5-reduce-absolute"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-6-enlarge-relative"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-7-reduce-relative"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-8-enlarge-all"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/resize-gpt-9-up-preduce"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/script-broken-1"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/script-broken-2"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/script-broken-3"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/script-broken-4"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/script-broken-5"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/script-quotes"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/script-separator"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/sfdisk/script-type-and-id"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="swapon">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/swapon/devname"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/swapon/fixpgsz"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/swapon/fixsig"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/swapon/label"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/swapon/uuid"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="tailf">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/tailf/simple"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="utmp">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/last-dns"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/last-ipv6-dns"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/last-ipv6-nodns"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/last-nodns"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/utmpdump-circle"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/utmpdump-subsecond"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/utmpdump-tobin"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/utmpdump-tobin-ipv6"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/utmpdump-totxt"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/utmp/utmpdump-totxt-ipv6"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="uuid">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/uuid/uuid_parser"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/uuid/uuidd"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/uuid/uuidgen"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="wipefs">
+              <File Name="../copilotd/libs/util-linux-2.29.2/tests/expected/wipefs/wipefs"/>
+            </VirtualDirectory>
+          </VirtualDirectory>
+          <VirtualDirectory Name="helpers">
+            <File Name="../copilotd/libs/util-linux-2.29.2/tests/helpers/test_byteswap.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/tests/helpers/test_md5.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/tests/helpers/test_pathnames.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/tests/helpers/test_sigreceive.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/tests/helpers/test_sysinfo.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/tests/helpers/test_tiocsti.c"/>
+          </VirtualDirectory>
+        </VirtualDirectory>
+        <VirtualDirectory Name="libuuid">
+          <VirtualDirectory Name="src">
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/clear.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/compare.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/copy.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/gen_uuid.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/isnull.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/pack.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/parse.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/test_uuid.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/unpack.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/unparse.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/uuid.h"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/uuidP.h"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/uuid_time.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/src/uuidd.h"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/util-linux-2.29.2/libuuid/COPYING"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="libsmartcols">
+          <VirtualDirectory Name="samples">
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/samples/continuous.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/samples/fromfile.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/samples/maxout.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/samples/title.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/samples/tree.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/samples/wrap.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="src">
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/cell.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/column.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/init.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/iter.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/line.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/smartcolsP.h"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/symbols.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/table.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/table_print.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/src/version.c"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/util-linux-2.29.2/libsmartcols/COPYING"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="libmount">
+          <VirtualDirectory Name="python">
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/python/context.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/python/fs.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/python/pylibmount.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/python/pylibmount.h"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/python/tab.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="src">
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/btrfs.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/cache.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/context.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/context_loopdev.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/context_mount.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/context_umount.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/fs.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/init.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/iter.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/lock.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/monitor.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/mountP.h"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/optmap.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/optstr.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/tab.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/tab_diff.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/tab_parse.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/tab_update.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/test.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/utils.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libmount/src/version.c"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/util-linux-2.29.2/libmount/COPYING"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="libfdisk">
+          <VirtualDirectory Name="src">
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/alignment.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/ask.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/bsd.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/context.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/dos.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/fdiskP.h"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/field.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/gpt.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/init.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/item.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/iter.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/label.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/partition.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/parttype.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/script.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/sgi.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/sun.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/table.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/test.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/utils.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/version.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/src/wipe.c"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/util-linux-2.29.2/libfdisk/COPYING"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="libblkid">
+          <VirtualDirectory Name="src">
+            <VirtualDirectory Name="partitions">
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/aix.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/aix.h"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/bsd.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/dos.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/gpt.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/mac.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/minix.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/partitions.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/partitions.h"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/sgi.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/solaris_x86.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/sun.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/ultrix.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/partitions/unixware.c"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="superblocks">
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/adaptec_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/bcache.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/befs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/bfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/btrfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/cramfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/ddf_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/drbd.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/drbdmanage.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/drbdproxy_datalog.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/exfat.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/ext.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/f2fs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/gfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/hfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/highpoint_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/hpfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/iso9660.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/iso9660.h"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/isw_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/jfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/jmicron_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/linux_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/lsi_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/luks.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/lvm.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/minix.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/netware.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/nilfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/ntfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/nvidia_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/ocfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/promise_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/refs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/reiserfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/romfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/silicon_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/squashfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/superblocks.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/superblocks.h"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/swap.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/sysv.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/ubifs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/udf.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/ufs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/vfat.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/via_raid.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/vmfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/vxfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/xfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/superblocks/zfs.c"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="topology">
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/topology/dm.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/topology/evms.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/topology/ioctl.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/topology/lvm.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/topology/md.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/topology/sysfs.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/topology/topology.c"/>
+              <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/topology/topology.h"/>
+            </VirtualDirectory>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/blkidP.h"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/cache.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/config.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/dev.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/devname.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/devno.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/encode.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/evaluate.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/getsize.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/init.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/llseek.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/probe.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/read.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/resolve.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/save.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/tag.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/verify.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/src/version.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="samples">
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/samples/mkfs.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/samples/partitions.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/samples/superblocks.c"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/samples/topology.c"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/util-linux-2.29.2/libblkid/COPYING"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="Documentation">
+          <VirtualDirectory Name="example.files">
+            <File Name="../copilotd/libs/util-linux-2.29.2/Documentation/example.files/filesystems"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/Documentation/example.files/fstab"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/Documentation/example.files/motd"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/Documentation/example.files/securetty"/>
+            <File Name="../copilotd/libs/util-linux-2.29.2/Documentation/example.files/shells"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/util-linux-2.29.2/Documentation/TODO"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/Documentation/boilerplate.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="bash-completion">
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/addpart"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/blkdiscard"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/blkid"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/blockdev"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/cal"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/cfdisk"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/chcpu"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/chfn"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/chrt"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/chsh"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/col"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/colcrt"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/colrm"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/column"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/ctrlaltdel"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/delpart"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/dmesg"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/eject"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/fallocate"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/fdformat"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/fdisk"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/findmnt"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/flock"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/fsck"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/fsfreeze"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/fstrim"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/getopt"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/hexdump"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/hwclock"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/ionice"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/ipcmk"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/ipcrm"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/ipcs"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/isosize"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/last"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/ldattach"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/logger"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/look"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/losetup"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/lsblk"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/lscpu"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/lsipc"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/lslocks"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/lslogins"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/lsns"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/mcookie"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/mesg"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/mkfs"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/mkswap"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/more"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/mount"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/mountpoint"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/namei"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/newgrp"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/nsenter"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/partx"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/pg"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/pivot_root"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/prlimit"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/raw"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/readprofile"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/rename"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/renice"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/resizepart"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/rev"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/rtcwake"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/script"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/scriptreplay"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/setarch"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/setpriv"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/setsid"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/setterm"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/sfdisk"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/su"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/swaplabel"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/swapoff"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/swapon"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/tailf"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/taskset"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/tunelp"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/ul"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/umount"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/unshare"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/utmpdump"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/uuidd"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/uuidgen"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/wall"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/wdctl"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/whereis"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/wipefs"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/write"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/bash-completion/zramctl"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="disk-utils">
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/addpart.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/blockdev.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/cfdisk.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/cramfs.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/cramfs_common.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/delpart.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fdformat.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fdisk-list.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fdisk-list.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fdisk-menu.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fdisk.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fdisk.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fsck.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fsck.cramfs.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/fsck.minix.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/isosize.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/minix_programs.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/mkfs.bfs.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/mkfs.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/mkfs.cramfs.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/mkfs.minix.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/mkswap.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/partx.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/partx.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/raw.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/resizepart.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/sfdisk.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/disk-utils/swaplabel.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="include">
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/all-io.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/bitops.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/blkdev.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/c.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/canonicalize.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/carefulputc.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/closestream.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/color-names.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/colors.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/cpuset.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/crc32.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/debug.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/env.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/exec_shell.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/exitcodes.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/fileutils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/idcache.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/ismounted.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/linux_version.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/list.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/loopdev.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/mangle.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/match.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/mbsalign.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/md5.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/minix.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/monotonic.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/namespace.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/nls.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/optutils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/pager.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/pamfail.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/path.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/pathnames.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/plymouth-ctrl.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/procutils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/pt-bsd.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/pt-mbr-partnames.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/pt-mbr.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/pt-sgi.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/pt-sun.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/randutils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/rpmatch.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/setproctitle.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/statfs_magic.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/strutils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/strv.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/swapheader.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/swapprober.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/sysfs.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/timer.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/timeutils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/ttyutils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/widechar.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/include/xalloc.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="lib">
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/blkdev.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/canonicalize.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/color-names.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/colors.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/cpuset.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/crc32.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/env.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/exec_shell.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/fileutils.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/idcache.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/ismounted.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/langinfo.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/linux_version.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/loopdev.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/mangle.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/match.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/mbsalign.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/md5.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/monotonic.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/pager.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/path.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/plymouth-ctrl.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/procutils.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/randutils.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/setproctitle.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/strutils.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/strv.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/swapprober.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/sysfs.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/timer.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/timeutils.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/lib/ttyutils.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="login-utils">
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/auth.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/auth.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/ch-common.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/ch-common.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/chfn.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/chsh.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/islocal.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/islocal.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/last.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/libuser.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/libuser.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/login.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/logindefs.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/logindefs.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/lslogins.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/newgrp.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/nologin.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/runuser.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/selinux_utils.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/selinux_utils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/setpwnam.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/setpwnam.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/su-common.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/su-common.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/su.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/sulogin-consoles.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/sulogin-consoles.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/sulogin.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/utmpdump.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/login-utils/vipw.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="misc-utils">
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/blkid.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/cal.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/findfs.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/findmnt-verify.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/findmnt.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/findmnt.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/getopt.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/kill.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/logger.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/look.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/lsblk.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/lslocks.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/mcookie.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/namei.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/rename.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/test_uuidd.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/uuidd.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/uuidgen.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/whereis.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/misc-utils/wipefs.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="po">
+          <File Name="../copilotd/libs/util-linux-2.29.2/po/Makevars"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/po/update-potfiles"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="schedutils">
+          <File Name="../copilotd/libs/util-linux-2.29.2/schedutils/chrt.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/schedutils/ionice.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/schedutils/taskset.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="sys-utils">
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/blkdiscard.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/chcpu.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/ctrlaltdel.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/dmesg.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/eject.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/fallocate.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/flock.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/fsfreeze.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/fstrim.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/hwclock-cmos.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/hwclock-rtc.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/hwclock.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/hwclock.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/ipcmk.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/ipcrm.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/ipcs.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/ipcutils.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/ipcutils.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/ldattach.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/losetup.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/lp.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/lscpu-dmi.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/lscpu.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/lscpu.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/lsipc.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/lsns.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/mount.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/mountpoint.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/nsenter.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/pivot_root.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/prlimit.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/readprofile.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/renice.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/rtcwake.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/setarch.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/setpriv.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/setsid.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/swapoff.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/swapon-common.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/swapon-common.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/swapon.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/switch_root.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/tunelp.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/umount.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/unshare.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/wdctl.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/sys-utils/zramctl.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="term-utils">
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/agetty.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/mesg.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/reset"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/script.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/scriptreplay.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/setterm.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/ttymsg.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/ttymsg.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/wall.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/term-utils/write.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="text-utils">
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/col.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/colcrt.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/colrm.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/column.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/hexdump-conv.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/hexdump-display.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/hexdump-parse.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/hexdump.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/hexdump.h"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/line.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/more.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/pg.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/rev.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/tailf.c"/>
+          <File Name="../copilotd/libs/util-linux-2.29.2/text-utils/ul.c"/>
+        </VirtualDirectory>
+        <File Name="../copilotd/libs/util-linux-2.29.2/AUTHORS"/>
+        <File Name="../copilotd/libs/util-linux-2.29.2/COPYING"/>
+        <File Name="../copilotd/libs/util-linux-2.29.2/ChangeLog"/>
+        <File Name="../copilotd/libs/util-linux-2.29.2/NEWS"/>
+        <File Name="../copilotd/libs/util-linux-2.29.2/README"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="uWebSockets-0.12.0">
+        <VirtualDirectory Name="CMakeFiles">
+          <VirtualDirectory Name="3.7.1">
+            <VirtualDirectory Name="CompilerIdC">
+              <File Name="../copilotd/libs/uWebSockets-0.12.0/CMakeFiles/3.7.1/CompilerIdC/CMakeCCompilerId.c"/>
+            </VirtualDirectory>
+            <VirtualDirectory Name="CompilerIdCXX">
+              <File Name="../copilotd/libs/uWebSockets-0.12.0/CMakeFiles/3.7.1/CompilerIdCXX/CMakeCXXCompilerId.cpp"/>
+            </VirtualDirectory>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/CMakeFiles/feature_tests.c"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/CMakeFiles/feature_tests.cxx"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/CMakeFiles/Makefile2"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="nodejs">
+          <VirtualDirectory Name="dist">
+            <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/dist/uws.js"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="tests">
+            <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/tests/autobahn.js"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/Makefile"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/addon.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/addon.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/client.js"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/echo.js"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/extension.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/paths.js"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/ssl.js"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/nodejs/test.js"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="autobahn">
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/autobahn/index.html"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="benchmarks">
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/Makefile"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/crow.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/lws.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/scalability.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/scalability_socketio.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/socketio.js"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/throughput.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/throughput_socketio.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/uWS.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/ws.js"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/benchmarks/wsPP.cpp"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="examples">
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/examples/echo.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/examples/multithreaded_echo.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/examples/Makefile"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/examples/echo"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/examples/multithreaded_echo"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="src">
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Extensions.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Extensions.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Group.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Group.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/HTTPSocket.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/HTTPSocket.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Hub.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Hub.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Networking.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Networking.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Node.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Node.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Socket.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/Socket.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/WebSocket.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/WebSocket.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/WebSocketImpl.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/WebSocketProtocol.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/uUV.cpp"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/uUV.h"/>
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/src/uWS.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="tests">
+          <File Name="../copilotd/libs/uWebSockets-0.12.0/tests/main.cpp"/>
+        </VirtualDirectory>
+        <File Name="../copilotd/libs/uWebSockets-0.12.0/LICENSE"/>
+        <File Name="../copilotd/libs/uWebSockets-0.12.0/Makefile"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="evillib">
+        <VirtualDirectory Name="extra">
+          <VirtualDirectory Name="specialheaders">
+            <File Name="../copilotd/libs/evillib/extra/specialheaders/evillib_end.c"/>
+            <File Name="../copilotd/libs/evillib/extra/specialheaders/evillib_end.h"/>
+            <File Name="../copilotd/libs/evillib/extra/specialheaders/evillib_start.h"/>
+            <File Name="../copilotd/libs/evillib/extra/specialheaders/evillib_start.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="db">
+            <File Name="../copilotd/libs/evillib/extra/db/etDBColumn.c"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBColumn.h"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBFilter.c"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBFilter.h"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBObject.c"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBObject.h"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBObjectValue.c"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBObjectValue.h"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBTable.c"/>
+            <File Name="../copilotd/libs/evillib/extra/db/etDBTable.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="dbdriver">
+            <File Name="../copilotd/libs/evillib/extra/dbdriver/etDBDriver.c"/>
+            <File Name="../copilotd/libs/evillib/extra/dbdriver/etDBDriver.h"/>
+            <File Name="../copilotd/libs/evillib/extra/dbdriver/etDBPSQL.c"/>
+            <File Name="../copilotd/libs/evillib/extra/dbdriver/etDBPSQL.h"/>
+            <File Name="../copilotd/libs/evillib/extra/dbdriver/etDBSQL.c"/>
+            <File Name="../copilotd/libs/evillib/extra/dbdriver/etDBSQL.h"/>
+            <File Name="../copilotd/libs/evillib/extra/dbdriver/etDBSQLite.c"/>
+            <File Name="../copilotd/libs/evillib/extra/dbdriver/etDBSQLite.h"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/evillib/extra/evillib-extra_depends.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="core">
+          <VirtualDirectory Name="specialheaders">
+            <File Name="../copilotd/libs/evillib/core/specialheaders/evillib_end.c"/>
+            <File Name="../copilotd/libs/evillib/core/specialheaders/evillib_start.h"/>
+            <File Name="../copilotd/libs/evillib/core/specialheaders/evillib_start.c"/>
+            <File Name="../copilotd/libs/evillib/core/specialheaders/copyright.h"/>
+            <File Name="../copilotd/libs/evillib/core/specialheaders/evillib_end.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="memory">
+            <File Name="../copilotd/libs/evillib/core/memory/etList.c"/>
+            <File Name="../copilotd/libs/evillib/core/memory/etList.h"/>
+            <File Name="../copilotd/libs/evillib/core/memory/etMemory.c"/>
+            <File Name="../copilotd/libs/evillib/core/memory/etMemory.h"/>
+            <File Name="../copilotd/libs/evillib/core/memory/etMemoryBlock.c"/>
+            <File Name="../copilotd/libs/evillib/core/memory/etMemoryBlock.h"/>
+            <File Name="../copilotd/libs/evillib/core/memory/etMemoryBlockList.c"/>
+            <File Name="../copilotd/libs/evillib/core/memory/etMemoryBlockList.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="system">
+            <File Name="../copilotd/libs/evillib/core/system/etFile.c"/>
+            <File Name="../copilotd/libs/evillib/core/system/etFile.h"/>
+            <File Name="../copilotd/libs/evillib/core/system/etThread.c"/>
+            <File Name="../copilotd/libs/evillib/core/system/etThread.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="string">
+            <File Name="../copilotd/libs/evillib/core/string/etStringWChar.c"/>
+            <File Name="../copilotd/libs/evillib/core/string/etString.c"/>
+            <File Name="../copilotd/libs/evillib/core/string/etString.h"/>
+            <File Name="../copilotd/libs/evillib/core/string/etStringChar.c"/>
+            <File Name="../copilotd/libs/evillib/core/string/etStringChar.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="core">
+            <File Name="../copilotd/libs/evillib/core/core/etIDState.c"/>
+            <File Name="../copilotd/libs/evillib/core/core/etObject.c"/>
+            <File Name="../copilotd/libs/evillib/core/core/etDebug.c"/>
+            <File Name="../copilotd/libs/evillib/core/core/etDebug.h"/>
+            <File Name="../copilotd/libs/evillib/core/core/etIDState.h"/>
+            <File Name="../copilotd/libs/evillib/core/core/etInit.c"/>
+            <File Name="../copilotd/libs/evillib/core/core/etInit.h"/>
+            <File Name="../copilotd/libs/evillib/core/core/etObject.h"/>
+            <File Name="../copilotd/libs/evillib/core/core/etVersion.c"/>
+            <File Name="../copilotd/libs/evillib/core/core/etVersion.h"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/evillib/core/evillib_defines.h"/>
+          <File Name="../copilotd/libs/evillib/core/evillib_depends.h"/>
+          <File Name="../copilotd/libs/evillib/core/evillib_version.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="develop">
+          <VirtualDirectory Name="develop">
+            <VirtualDirectory Name="GUI_XCB">
+              <VirtualDirectory Name="Types">
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etWidget.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etColour.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etPos.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etEvent.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etPos.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etColour.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etDrawSet.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etAction.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etAction.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etWidgetID.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etDrawSet.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etWidget.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Types/etEvent.h"/>
+              </VirtualDirectory>
+              <VirtualDirectory Name="Widgets">
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGPolyButton.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGTextInput.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGPoly.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGText.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGButton.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGButton.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGTextInput.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGRectangle.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGContainer.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGPolyButton.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGPoly.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGWindow.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGWindow.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGText.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGPanelBook.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etLayout.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGPanelBook.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGRectangle.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etGContainer.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Widgets/etLayout.h"/>
+              </VirtualDirectory>
+              <VirtualDirectory Name="Core">
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Core/etLoop.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Core/etGUI.h"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Core/etGUI.c"/>
+                <File Name="../copilotd/libs/evillib/develop/develop/GUI_XCB/Core/etLoop.h"/>
+              </VirtualDirectory>
+            </VirtualDirectory>
+            <File Name="../copilotd/libs/evillib/develop/develop/etDevSize.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etPlugin.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etCommand.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etDevAccessible.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etPTY.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etDevSize.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etThread.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etPty.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etXML.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etPlugin.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etDevUUID.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etXML.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etDevMount.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etChannel.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etCommand.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etPTY.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etChannel.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etFile.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etDevAccessible.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etPty.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etThread.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etFile.h"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etDevUUID.c"/>
+            <File Name="../copilotd/libs/evillib/develop/develop/etDevMount.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="debian">
+            <VirtualDirectory Name="source">
+              <VirtualDirectory Name="debian">
+                <VirtualDirectory Name="libevillib-core">
+                  <VirtualDirectory Name="DEBIAN">
+                    <File Name="../copilotd/libs/evillib/develop/debian/source/debian/libevillib-core/DEBIAN/control"/>
+                  </VirtualDirectory>
+                </VirtualDirectory>
+                <VirtualDirectory Name="libevillib">
+                  <VirtualDirectory Name="DEBIAN">
+                    <File Name="../copilotd/libs/evillib/develop/debian/source/debian/libevillib/DEBIAN/control"/>
+                  </VirtualDirectory>
+                </VirtualDirectory>
+                <VirtualDirectory Name="libevillib-core-dev">
+                  <VirtualDirectory Name="DEBIAN">
+                    <File Name="../copilotd/libs/evillib/develop/debian/source/debian/libevillib-core-dev/DEBIAN/control"/>
+                  </VirtualDirectory>
+                </VirtualDirectory>
+                <VirtualDirectory Name="source">
+                  <File Name="../copilotd/libs/evillib/develop/debian/source/debian/source/format"/>
+                </VirtualDirectory>
+                <File Name="../copilotd/libs/evillib/develop/debian/source/debian/control"/>
+                <File Name="../copilotd/libs/evillib/develop/debian/source/debian/docs"/>
+                <File Name="../copilotd/libs/evillib/develop/debian/source/debian/files"/>
+                <File Name="../copilotd/libs/evillib/develop/debian/source/debian/compat"/>
+                <File Name="../copilotd/libs/evillib/develop/debian/source/debian/rules"/>
+                <File Name="../copilotd/libs/evillib/develop/debian/source/debian/changelog"/>
+                <File Name="../copilotd/libs/evillib/develop/debian/source/debian/copyright"/>
+              </VirtualDirectory>
+            </VirtualDirectory>
+          </VirtualDirectory>
+          <VirtualDirectory Name="gui">
+            <VirtualDirectory Name="apicheck">
+              <File Name="../copilotd/libs/evillib/develop/gui/apicheck/etG.c"/>
+            </VirtualDirectory>
+            <File Name="../copilotd/libs/evillib/develop/gui/etGButton.c"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etGWidget.c"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/evillib-gui_start.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/evillib-gui.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etGFont.c"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etGButton.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/evillib-gui_end.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/opengl.c"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/evillib-gui_start.c"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etG.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/evillib-gui_defines.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/evillib-gui.c"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etGWindow.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etGWindow.c"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/evillib-gui_depends.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etGWidget.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etGFont.h"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/etG.c"/>
+            <File Name="../copilotd/libs/evillib/develop/gui/evillib-gui_end.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="db">
+            <File Name="../copilotd/libs/evillib/develop/db/evillib-db_end.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/evillib-db_defines.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBValue.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/evillib-db.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBQuery.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/evillib-db_start.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/evillib-db_start.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBSQLite.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBQuery.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/evillib-db_depends.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDB.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBValue.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBFilter.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBSQLite.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBFilter.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/evillib-db_end.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBRelations.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBTable.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBTable.c"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBRelations.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDB.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/evillib-db.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBColumn.h"/>
+            <File Name="../copilotd/libs/evillib/develop/db/etDBColumn.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="analyses">
+            <File Name="../copilotd/libs/evillib/develop/analyses/ReturnPointer.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="net">
+            <File Name="../copilotd/libs/evillib/develop/net/etComm.c"/>
+            <File Name="../copilotd/libs/evillib/develop/net/etComm.h"/>
+            <File Name="../copilotd/libs/evillib/develop/net/etCommTCP.c"/>
+            <File Name="../copilotd/libs/evillib/develop/net/etCommTCP.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="system">
+            <File Name="../copilotd/libs/evillib/develop/system/etProcessList.c"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etProcessList.h"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etUser.c"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etDateTime.h"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etFile.h"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etProcess.h"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etProcess.c"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etDateTime.c"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etFolder.h"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etUser.h"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etFile.c"/>
+            <File Name="../copilotd/libs/evillib/develop/system/etFolder.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="File">
+            <File Name="../copilotd/libs/evillib/develop/File/etFile.h"/>
+            <File Name="../copilotd/libs/evillib/develop/File/etSettingXML.h"/>
+            <File Name="../copilotd/libs/evillib/develop/File/etSettingXML.c"/>
+            <File Name="../copilotd/libs/evillib/develop/File/etFile.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="xcb_old">
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXMainLoop.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXColour.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etX.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXInit.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXgc.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXWindow.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXMainLoop.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXWidget.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXWidget.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXWindow.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXgc.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXInit.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb_old/etXColour.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="Other">
+            <File Name="../copilotd/libs/evillib/develop/Other/etLog.c"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etAttribute.c"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etLog.h"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etSetting.c"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etAttribute.h"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etActionlist.c"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etAction.h"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etSettings.h"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etActionlist.h"/>
+            <File Name="../copilotd/libs/evillib/develop/Other/etAction.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="tests">
+            <File Name="../copilotd/libs/evillib/develop/tests/etComm.c"/>
+            <File Name="../copilotd/libs/evillib/develop/tests/etJsonDB.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="apicheck">
+            <File Name="../copilotd/libs/evillib/develop/apicheck/evillib-test.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etThread.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etFolder.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etLog.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etSetting.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etStringChar.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etList.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etEvent.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/dBus.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etTable.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etBlkDevice.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etPlugin.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etDB.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etProcess.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etDateTime.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etChannel.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etString.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/etLock.c"/>
+            <File Name="../copilotd/libs/evillib/develop/apicheck/Makefile"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="benchmark">
+            <File Name="../copilotd/libs/evillib/develop/benchmark/etBenchmark.c"/>
+            <File Name="../copilotd/libs/evillib/develop/benchmark/etBenchmark.h"/>
+            <File Name="../copilotd/libs/evillib/develop/benchmark/etMemory.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="examples">
+            <File Name="../copilotd/libs/evillib/develop/examples/etThread.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etTerm.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etTable.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etXML.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etArray.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etList.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etLink.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etCommand.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etX.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etConfig.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etDBTable.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etPty.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etMultiArray.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etProcess.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/evillib.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etFile.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etDateTime.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etSharedMemory.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etDB.cpp"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etChannel.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etDevice.c"/>
+            <File Name="../copilotd/libs/evillib/develop/examples/etFile.c"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="etEvent">
+            <File Name="../copilotd/libs/evillib/develop/etEvent/etEventFunction.h"/>
+            <File Name="../copilotd/libs/evillib/develop/etEvent/etEventFunction.c"/>
+            <File Name="../copilotd/libs/evillib/develop/etEvent/etEventList.c"/>
+            <File Name="../copilotd/libs/evillib/develop/etEvent/etEvent.c"/>
+            <File Name="../copilotd/libs/evillib/develop/etEvent/etEvent.h"/>
+            <File Name="../copilotd/libs/evillib/develop/etEvent/etEventQueue.c"/>
+            <File Name="../copilotd/libs/evillib/develop/etEvent/etEventList.h"/>
+            <File Name="../copilotd/libs/evillib/develop/etEvent/etEventQueue.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="device">
+            <File Name="../copilotd/libs/evillib/develop/device/etBlkDevice_mount.h"/>
+            <File Name="../copilotd/libs/evillib/develop/device/etBlkDevice_mount.c"/>
+            <File Name="../copilotd/libs/evillib/develop/device/etBlkDevice_cryptsetup.h"/>
+            <File Name="../copilotd/libs/evillib/develop/device/etBlkDevice.c"/>
+            <File Name="../copilotd/libs/evillib/develop/device/etBlkDevice_loop.h"/>
+            <File Name="../copilotd/libs/evillib/develop/device/etBlkDevice_cryptsetup.c"/>
+            <File Name="../copilotd/libs/evillib/develop/device/etBlkDevice_loop.c"/>
+            <File Name="../copilotd/libs/evillib/develop/device/etBlkDevice.h"/>
+          </VirtualDirectory>
+          <VirtualDirectory Name="xcb">
+            <File Name="../copilotd/libs/evillib/develop/xcb/etX.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/evillib-xcb_start.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/etXWidget.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/evillib-xcb_start.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/evillib-xcb.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/etXDimension.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/etXDimension.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/etXWidget.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/evillib-xcb_depends.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/etXColour.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/evillib-xcb.h"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/etX.c"/>
+            <File Name="../copilotd/libs/evillib/develop/xcb/etXColour.h"/>
+          </VirtualDirectory>
+          <File Name="../copilotd/libs/evillib/develop/etPlugin.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etString_int.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etFIFO.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etNamedPipe.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etString_string.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etSharedMemory.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etChannel.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etID.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etList.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etString_wchar.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etLink.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etID.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etTree.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etSharedMemory.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etObject.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etString_string.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etTree.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etPTY.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etString_int.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etObject.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etPlugin.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etLock.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etString_wchar.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etFIFO.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etChannel.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etLock.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etPTY.c"/>
+          <File Name="../copilotd/libs/evillib/develop/etList.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etNamedPipe.h"/>
+          <File Name="../copilotd/libs/evillib/develop/etLink.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="app">
+          <File Name="../copilotd/libs/evillib/app/etApicheck.h"/>
+          <File Name="../copilotd/libs/evillib/app/etApicheck.c"/>
+          <File Name="../copilotd/libs/evillib/app/evillib.c"/>
+          <File Name="../copilotd/libs/evillib/app/evillib.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="make">
+          <File Name="../copilotd/libs/evillib/make/Makefile"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="debian">
+          <File Name="../copilotd/libs/evillib/debian/control"/>
+          <File Name="../copilotd/libs/evillib/debian/compat"/>
+          <File Name="../copilotd/libs/evillib/debian/changelog"/>
+          <File Name="../copilotd/libs/evillib/debian/conffiles"/>
+          <File Name="../copilotd/libs/evillib/debian/rules"/>
+          <File Name="../copilotd/libs/evillib/debian/copyright"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="documentation">
+          <File Name="../copilotd/libs/evillib/documentation/LibraryStandard.c"/>
+          <File Name="../copilotd/libs/evillib/documentation/doxyfile"/>
+          <File Name="../copilotd/libs/evillib/documentation/MainPage.c"/>
+          <File Name="../copilotd/libs/evillib/documentation/Makefile"/>
+          <File Name="../copilotd/libs/evillib/documentation/Versioning.c"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="templates">
+          <File Name="../copilotd/libs/evillib/templates/copyright.h"/>
+        </VirtualDirectory>
+        <VirtualDirectory Name="tests">
+          <File Name="../copilotd/libs/evillib/tests/etThread.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etString.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etSingleCompile.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etDBObject.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etDBSQL.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etFile.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etList.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etMemory.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etMemoryBlock.c"/>
+          <File Name="../copilotd/libs/evillib/tests/etStringChar.c"/>
+        </VirtualDirectory>
+        <File Name="../copilotd/libs/evillib/LICENSE"/>
+        <File Name="../copilotd/libs/evillib/configure"/>
+      </VirtualDirectory>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
+  </Plugins>
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Executable">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g;-O0;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="/tmp/dodbd-ws/build/app" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/usr/src/projekte/copilot" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="GNU makefile onestep build"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make -f make/Makefile clean</CleanCommand>
+        <BuildCommand>make -f make/Makefile binary-qt-dbg</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>../dodbd-ws</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths>/usr/include
+/usr/include/qt</SearchPaths>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g;-O0;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="/tmp/dodbd-ws/build/app" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/usr/src/projekte/dodb" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="GNU makefile onestep build"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make -f make/Makefile clean</CleanCommand>
+        <BuildCommand>make -f make/Makefile binary-qt</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>../dodbd-ws</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths>/usr/include
+/usr/include/qt</SearchPaths>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>
