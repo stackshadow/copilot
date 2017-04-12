@@ -61,7 +61,7 @@ private:
     bool            nextAviable();
 
 // some helper stuff
-    static bool     setTopic( coPluginElement* pluginElement, const char* alternHostName, json_t* jsonAnswerObject );
+    static bool     setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject );
 
 public:
     void            broadcast( coPlugin *source, const char* msgHostName, const char* msgGroup, const char* msgCommand, json_t* jsonData );

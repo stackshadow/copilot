@@ -131,9 +131,11 @@ void coCore::               listPlugins( json_t* pluginNameArray ){
 
 
 
+
 void coCore::               iterate(){
     etListIterate( this->start, this->iterator );
 }
+
 
 bool coCore::               next( coPluginElement** pluginElement ){
     coPluginElement*    listELement = NULL;
@@ -145,6 +147,7 @@ bool coCore::               next( coPluginElement** pluginElement ){
     *pluginElement = NULL;
     return false;
 }
+
 
 bool coCore::               next( coPlugin **plugin ){
 
@@ -160,6 +163,7 @@ bool coCore::               next( coPlugin **plugin ){
     return false;
 }
 
+
 bool coCore::               nextAviable(){
     if( etListIterateNextAviable(this->iterator) == etID_YES ) return true;
     return false;
@@ -167,9 +171,10 @@ bool coCore::               nextAviable(){
 
 
 
-bool coCore::               setTopic( coPluginElement* pluginElement, const char* alternHostName, json_t* jsonAnswerObject ){
+
+
+bool coCore::               setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject ){
 // check
-    if( alternHostName == NULL ) return false;
     if( pluginElement == NULL ) return false;
     if( jsonAnswerObject == NULL ) return false;
 
@@ -191,7 +196,7 @@ bool coCore::               setTopic( coPluginElement* pluginElement, const char
     if( strlen(hostNameChar) > 0 ){
         fullTopic += hostNameChar;
     } else {
-        fullTopic += alternHostName;
+        fullTopic += coCore::ptr->hostInfo.nodename;
     }
 
 // group
@@ -223,14 +228,9 @@ void coCore::               broadcast( coPlugin *source,
 
 // iterate
     coPluginElement*        pluginElement = NULL;
-    void*                   pluginIterator = NULL;
-    void*                   pluginIteratorData = NULL;
-    const char*             pluginTopic = NULL;
     int                     pluginHostNameLen = 0;
     const char*             pluginHostName = NULL;
     const char*             pluginGroup = NULL;
-    const char*             pluginCommand = NULL;
-    const char*             pluginName = NULL;
     int                     cmpResult = -1;
 
     json_t*                 jsonAnswerArray = json_array();
@@ -246,30 +246,6 @@ void coCore::               broadcast( coPlugin *source,
 
     // we dont send it to source
         if( pluginElement->plugin == source ) continue;
-
-
-// common commands
-    
-    // discover
-        if( strncmp(msgGroup,"co",2) == 0 ){
-            if( strncmp(msgCommand,"discover",8) == 0 ){
-                coPluginElement* tmpPluginElement = NULL;
-
-                etListIterate( this->start, pluginIterator );
-                while( etListIterateNext( pluginIterator, tmpPluginElement ) == etID_YES  ){
-
-                    jsonAnswerObject = json_object();
-                    json_object_set_new( jsonAnswerObject, "topic", json_string("service") );
-                    coCore::setTopic( pluginElement, msgHostName, jsonAnswerObject );
-                    json_object_set_new( jsonAnswerObject, "payload", json_string("") );
-                    
-                    json_array_append_new( jsonAnswerArray, jsonAnswerObject );
-
-                    goto reply;
-                }
-
-            }
-        }
 
 
 
@@ -291,6 +267,9 @@ void coCore::               broadcast( coPlugin *source,
 
 
 
+
+
+
 sendToAll:
     // iterate
         if( pluginElement->plugin != NULL ){
@@ -301,11 +280,17 @@ sendToAll:
             jsonAnswerObject = json_object();
             if( pluginElement->plugin->onMessage( msgHostName, msgGroup, msgCommand, jsonData, jsonAnswerObject ) == false ){
                 json_decref( jsonAnswerObject );
-                continue;
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' requests break", pluginElement->plugin->name() );
+                etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+                break;
             }
             
         // manipulate the topic
-            coCore::setTopic( pluginElement, msgHostName, jsonAnswerObject );
+            if( coCore::setTopic( pluginElement, jsonAnswerObject ) == false ){
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' dont provide a topic", pluginElement->plugin->name() );
+                etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+                continue;
+            }
 
 
             json_array_append_new( jsonAnswerArray, jsonAnswerObject );
@@ -315,9 +300,10 @@ sendToAll:
     }
 
 reply:
-
-// answer back
-    source->broadcastReply( jsonAnswerArray );
+    if( json_array_size(jsonAnswerArray) > 0 ){
+    // answer back
+        source->broadcastReply( jsonAnswerArray );
+    }
 
 // cleanup
     json_decref( jsonAnswerArray );

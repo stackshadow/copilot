@@ -49,7 +49,6 @@ bool coreService::              onMessage(  const char*     msgHostName,
 
 
 
-
     if( strncmp( (char*)msgCommand, "login", 5 ) == 0 ){
 
         json_object_set_new( jsonAnswerObject, "topic", json_string("loginok") );
@@ -58,6 +57,20 @@ bool coreService::              onMessage(  const char*     msgHostName,
         return true;
     }
 
+// ping
+    if( strncmp( (char*)msgHostName, "all", 3 ) == 0 ){
+        if( strncmp(msgCommand,"ping",4) == 0 ){
+            
+            std::string tempString = "nodes/";
+            tempString += coCore::ptr->hostInfo.nodename;
+            tempString += "/co/pong";
+
+            json_object_set_new( jsonAnswerObject, "topic", json_string("pong") );
+            json_object_set_new( jsonAnswerObject, "payload", json_string("") );
+            
+            return true;
+        }
+    }
 
     if( strncmp( (char*)msgCommand, "plistget", 8 ) == 0 ){
 
@@ -73,7 +86,7 @@ bool coreService::              onMessage(  const char*     msgHostName,
     }
 
 
-
+    return true;
 }
 
 
