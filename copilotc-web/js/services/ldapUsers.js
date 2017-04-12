@@ -1,6 +1,6 @@
 
 
-newService = wsServices["ldapusers"];
+newService = copilot.services["ldapusers"];
 newService.onConnect = ldapOnConnect;
 newService.onDisconnect = ldapOnDisconnect;
 newService.onMessage = ldapOnMessage;

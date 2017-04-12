@@ -18,7 +18,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
 var copilot = {};
+copilot.ws = null;
 copilot.hostnames = {};
+copilot.services = [];
 
 /**
 @brief Load java-script file and init
@@ -203,7 +205,7 @@ function            settingAppend( htmlElement ){
 
 var wsConnected = false;
 var wsTopicBase = "nodes/develop-arch/";
-var wsServices = [];
+
 
 function            wsServiceRegister( service ){
     messageLog( "wsService", "try to register '" + service.displayName + "'" );
@@ -216,7 +218,7 @@ function            wsServiceRegister( service ){
 
     messageLog( "wsService", "service '" + service.displayName + "' registered" );
 
-    wsServices[service.id] = service;
+    copilot.services[service.id] = service;
 }
 
 function            wsConnect(){
@@ -278,8 +280,8 @@ function            wsOnOpen(){
     messageInfo( "Verbunden", 4 );
 
 // call onConnect on every service
-    for( serviceName in wsServices ){
-        service = wsServices[serviceName];
+    for( serviceName in copilot.services ){
+        service = copilot.services[serviceName];
         if( service.onConnect !== null && service.onConnect !== undefined ){
             service.onConnect();
         }
@@ -295,8 +297,8 @@ function            wsOnClose(){
     messageAlert( "Getrennt" );
     wsConnected = false;
 
-    for( serviceName in wsServices ){
-        service = wsServices[serviceName];
+    for( serviceName in copilot.services ){
+        service = copilot.services[serviceName];
         if( service.onDisconnect !== null ){
             service.onDisconnect();
         }
@@ -341,10 +343,10 @@ function            wsOnMessage( evt ){
     }
 
 // iterate
-    for( serviceName in wsServices ){
+    for( serviceName in copilot.services ){
 
     // get the service
-        service = wsServices[serviceName];
+        service = copilot.services[serviceName];
 
     // only call plugin if it listen on this group
         if( service.listenGroup === undefined ){

@@ -84,10 +84,10 @@ function authDialogLoginOk(){
     htmlConnState.onclick = function(){ authDialogLogout(); }
 
 // iterate
-    for( serviceName in wsServices ){
+    for( serviceName in copilot.services ){
 
     // get the service
-        service = wsServices[serviceName];
+        service = copilot.services[serviceName];
 
         if( service.onAuth !== null ){
             service.onAuth( service );

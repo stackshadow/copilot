@@ -52,7 +52,7 @@ function nftOnAuth(){
 
 
 function nftOnMessage( topicHostName, topicGroup, topicCommand, payload ){
-    var service = wsServices["nft"];
+    var service = copilot.services["nft"];
 
 // messages
     if( topicCommand == "error" ){
@@ -76,7 +76,7 @@ function nftOnMessage( topicHostName, topicGroup, topicCommand, payload ){
 var nftHostObjectActive = null;
 
 function nftHostsGet(){
-    var service = wsServices["nft"];
+    var service = copilot.services["nft"];
 
 // load
     htmlLoadFile( "output", "html/nft.html", function(){
@@ -104,7 +104,7 @@ function nftHostsGet(){
 
 
 function nftHostClicked( button, hostName ){
-    var nftService = wsServices["nft"];
+    var nftService = copilot.services["nft"];
 
 // save the hostname
     nftService.selectedHostName = hostName;
@@ -138,7 +138,7 @@ var nftRuleObjectActive = null;
 var nftRules = null;
 
 function nftRequestChains( hostName ){
-    var service = wsServices["nft"];
+    var service = copilot.services["nft"];
 
 // remove the rules
     nftRules = null;
@@ -150,7 +150,7 @@ function nftRequestChains( hostName ){
 
 
 function nftTableAppendRules( jsonRules ){
-    var service = wsServices["nft"];
+    var service = copilot.services["nft"];
     nftRules = jsonRules;
 
     for( chainName in jsonRules ){
@@ -537,7 +537,7 @@ function nftRuleMoveUp( chainName, ruleIndex ){
 // common actions
 
 function nftRulesSave(){
-    var service = wsServices["nft"];
+    var service = copilot.services["nft"];
     if( service.selectedHostName === null ) {
         return;
     }
@@ -548,7 +548,7 @@ function nftRulesSave(){
 
 
 function nftRulesApply(){
-    var service = wsServices["nft"];
+    var service = copilot.services["nft"];
     if( service.selectedHostName === null ) {
         return;
     }
