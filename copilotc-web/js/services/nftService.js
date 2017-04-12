@@ -61,10 +61,6 @@ function nftOnMessage( topicHostName, topicGroup, topicCommand, payload ){
     }
 
 
-    if( topicCommand == "hosts" ){
-        nftHostsAppend( payload );
-        return;
-    }
     if( topicCommand == "chains" ){
         nftTableAppendRules( payload );
         return;
@@ -85,34 +81,26 @@ function nftHostsGet(){
 // load
     htmlLoadFile( "output", "html/nft.html", function(){
         jsLoadFile( "js/services/nft.js" );
+        
+        for( hostName in copilot.hostnames ){
+            displayName = hostName;
 
-    // we want to get the rules
-        var jsonObject = {};
-        wsMessageSend( null, service.listenGroup, "hostsList", JSON.stringify(jsonObject) );
+        // a new row
+            var newRow = document.createElement('li');
+            newRow.id = "nftHost_" + hostName;
+            newRow.innerHTML = "<a href='#' onclick=\"nftHostClicked( this.parentElement, '"+hostName+"' )\">"+displayName+"</a>";
+            //newRow.onclick = "nftHostClicked( this, "+hostName+" )";
+
+        // get host-header
+            var nftHostTabBar = document.getElementById( "nftHostTabBar" );
+            nftHostTabBar.appendChild( newRow );
+        }
 
     });
 
 }
 
 
-function nftHostsAppend( payload ){
-
-//
-    for( hostName in payload ){
-        var displayName = payload[hostName];
-
-    // a new row
-        var newRow = document.createElement('li');
-        newRow.id = "nftHost_" + hostName;
-        newRow.innerHTML = "<a href='#' onclick=\"nftHostClicked( this.parentElement, '"+hostName+"' )\">"+displayName+"</a>";
-        //newRow.onclick = "nftHostClicked( this, "+hostName+" )";
-
-    // get host-header
-        var nftHostTabBar = document.getElementById( "nftHostTabBar" );
-        nftHostTabBar.appendChild( newRow );
-    }
-
-}
 
 
 function nftHostClicked( button, hostName ){
@@ -435,6 +423,7 @@ function nftDialogCustomSave( chainName, ruleIndex ){
 }
 
 
+// Actions inside the table
 
 function nftRuleDelete( chainName, ruleIndex ){
 
@@ -544,6 +533,8 @@ function nftRuleMoveUp( chainName, ruleIndex ){
     nftTableAppendRules( nftRules );
 }
 
+
+// common actions
 
 function nftRulesSave(){
     var service = wsServices["nft"];

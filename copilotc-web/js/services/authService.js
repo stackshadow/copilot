@@ -98,11 +98,7 @@ function authDialogLoginOk(){
 }
 
 function authDialogLogout(){
-
-    ws.close();
-    ws = null;
-    wsConnected = false;
-
+    wsDisconnect();
 }
 
 

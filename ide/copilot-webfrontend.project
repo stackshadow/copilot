@@ -29,7 +29,6 @@
         <File Name="../copilotc-web/js/services/nftService.js"/>
       </VirtualDirectory>
       <File Name="../copilotc-web/js/doDBTableListNav.js"/>
-      <File Name="../copilotc-web/js/login.js"/>
       <File Name="../copilotc-web/js/connections.js"/>
       <File Name="../copilotc-web/js/doDBTableList.js"/>
       <File Name="../copilotc-web/js/doDBTableData.js"/>

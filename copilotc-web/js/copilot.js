@@ -17,6 +17,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+var copilot = {};
+copilot.hostnames = {};
+
 /**
 @brief Load java-script file and init
 */
@@ -197,7 +200,7 @@ function            settingAppend( htmlElement ){
     settingsDropDown.appendChild( htmlNavElement );
 }
 
-var ws;
+
 var wsConnected = false;
 var wsTopicBase = "nodes/develop-arch/";
 var wsServices = [];
@@ -225,11 +228,11 @@ function            wsConnect(){
 
     // Let us open a web socket
         wsConnected = false;
-        ws = new WebSocket("ws://[::]:3000");
-        console.log( ws );
-        ws.onopen = wsOnOpen
-        ws.onmessage = wsOnMessage
-        ws.onclose = wsOnClose
+        copilot.ws = new WebSocket("ws://[::]:3000");
+        console.log( copilot.ws );
+        copilot.ws.onopen = wsOnOpen
+        copilot.ws.onmessage = wsOnMessage
+        copilot.ws.onclose = wsOnClose
     } else {
     // The browser doesn't support WebSocket
         messageAlert("WebSocket NOT supported by your Browser!");
@@ -260,7 +263,13 @@ function            wsMessageSend( topicHostName, topicGroup, topicCommand, payl
     commandString = JSON.stringify(jsonCMD);
     messageLog( "websocket send", commandString );
 
-    ws.send( commandString );
+    copilot.ws.send( commandString );
+}
+function            wsDisconnect(){
+    
+    copilot.ws.close();
+    copilot.ws = null;
+    wsConnected = false;
 }
 
 function            wsOnOpen(){
@@ -276,6 +285,8 @@ function            wsOnOpen(){
         }
     }
 
+// send ping to connected services ( to get a list of connected hosts )
+    wsMessageSend( "all", "co", "ping", JSON.stringify({}) );
 
 }
 function            wsOnClose(){
@@ -324,6 +335,9 @@ function            wsOnMessage( evt ){
         var message = jsonObject.payload.message;
         if( message === undefined ) return;
         messageAlert( message );
+    }
+    if( topicGroup == "co" && topicCommand == "pong" ){
+        copilot.hostnames[topicHostName] = "";
     }
 
 // iterate
