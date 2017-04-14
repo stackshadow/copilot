@@ -228,9 +228,10 @@ void coCore::               broadcast( coPlugin *source,
 
 // iterate
     coPluginElement*        pluginElement = NULL;
-    int                     pluginHostNameLen = 0;
     const char*             pluginHostName = NULL;
+    int                     pluginHostNameLen = 0;
     const char*             pluginGroup = NULL;
+    int                     pluginGroupLen = 0;
     int                     cmpResult = -1;
 
     json_t*                 jsonAnswerArray = json_array();
@@ -253,8 +254,9 @@ void coCore::               broadcast( coPlugin *source,
         etStringCharGet( pluginElement->listenGroup, pluginGroup );
         if( pluginGroup == NULL ) continue;
     // check
+        pluginGroupLen = strlen( pluginGroup );
         cmpResult = strncmp( pluginGroup, msgGroup, strlen(msgGroup) );
-        if( cmpResult != 0 ) continue;
+        if( cmpResult != 0 && pluginGroupLen > 0 ) continue;
 
 
     // hostname

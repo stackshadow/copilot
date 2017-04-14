@@ -33,6 +33,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "plugins/coreService.h"
 #include "plugins/nftService.h"
 #include "plugins/ldapService.h"
+#include "plugins/mqttService.h"
 
 #include <QtCore/QCoreApplication>
 
@@ -48,6 +49,7 @@ int main( int argc, char *argv[] ){
     coreService*    newCoreService = new coreService();
 
 /** @todo Here are memory leaks ! */
+    mqttService*    mqqtPlugin = new mqttService( "192.168.200.201" );
     websocket*      wsPlugin = new websocket( 3000 );
     nftService*     newNftService = new nftService();
   

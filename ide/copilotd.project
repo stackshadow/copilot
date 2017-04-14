@@ -28,6 +28,8 @@
         <File Name="../copilotd/src/plugins/websocket.h"/>
         <File Name="../copilotd/src/plugins/websocketClient.cpp"/>
         <File Name="../copilotd/src/plugins/websocketClient.h"/>
+        <File Name="../copilotd/src/plugins/mqttService.h"/>
+        <File Name="../copilotd/src/plugins/mqttService.cpp"/>
       </VirtualDirectory>
       <File Name="../copilotd/src/doDBDws.qt.h"/>
       <File Name="../copilotd/src/doDBDws.cpp"/>

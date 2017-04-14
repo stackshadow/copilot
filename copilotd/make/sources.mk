@@ -77,6 +77,7 @@ sources     += src/plugins/coreService.cpp
 sources     += src/plugins/nftService.cpp
 sourcesQT   += src/plugins/websocket.cpp
 sourcesQT   += src/plugins/websocketClient.cpp
+sources     += src/plugins/mqttService.cpp
 #sources     += src/plugins/ldapService.cpp
 #sources     += src/classes/doDBDTools.cpp
 #sources     += src/wsPlugins/doDBDPluginList.cpp
@@ -111,5 +112,10 @@ CLIBS       += -Wl,-rpath /usr/lib64
 CLIBS		+= -lQt5Core
 CLIBS		+= -lQt5Network
 CLIBS		+= -lQt5WebSockets
+CLIBS		+= -lQt5WebSockets
+CLIBS		+= -lmosquitto
 
-
+default: binary-qt
+install:
+	cp $(buildPath)/app /usr/bin/copilotd
+	cp $(sourcePath)/copilotd.service /lib/systemd/system/copilotd.service

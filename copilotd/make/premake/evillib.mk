@@ -50,12 +50,18 @@ sources     += src/evillib.c
 
 
 
+include make/generic/bin.mk
+
+
 .DEFAULT: evillib
 .PHONY: evillib
 
 
-include make/generic/bin.mk
+$(sourcePath)/libs/evillib/README.md:
+#	git clone --branch $(gitVersion) --depth 1 \
+#	git://git.kernel.org/pub/scm/utils/util-linux/util-linux.git \
+#	$(sourcePath)/libs/util-linux$(utilVersion)
 
 premake: evillib
-evillib: binObjects
+evillib: $(sourcePath)/libs/evillib/README.md binObjects
 clean: binClean
