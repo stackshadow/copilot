@@ -28,29 +28,82 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "coPlugin.h"
 
-#include "plugins/websocketClient.h"
-#include <QtWebSockets/QtWebSockets>
-#include <QtCore/QList>
+#include "libwebsockets.h"
 
 
-class websocket : public QObject {
-Q_OBJECT
+
+
+class websocket : public coPlugin {
+
 
 private:
-    //m_pWebSocketServer = new QWebSocketServer(
-    QWebSocketServer*           wsServer;
-    QList<websocketClient*>     clients;
+
+    struct clientSessionData {
+        struct lws*         wsi;
+        bool                authenthicated;
+    };
+
+    struct lws_protocols protocols[3] = {
+    /* first protocol must always be HTTP handler */
+    {
+        "http-only",                                /* name */
+        websocket::wsCallbackHttp,                  /* callback */
+        sizeof( struct clientSessionData ),         /* per_session_data_size */
+        0,                                          /* max frame size / rx buffer */
+    },
+    {
+        "copilot",
+        websocket::wsCallbackCopilot,
+        sizeof( struct clientSessionData),
+        128,
+    },/*
+    {
+        "lws-mirror-protocol",
+        callback_lws_mirror,
+        sizeof(struct per_session_data__lws_mirror),
+        128,
+    },*/
+    { NULL, NULL, 0, 0 } /* terminator */
+    };
+
+    struct lws_context*         wsContext;
+    pthread_t                   thread;
+
+              
+    struct clientSessionData*   actualClientSession = NULL;
+    etString*                   actualClientReply = NULL;
 
 public:
                                 websocket( int wsPort );
                                 ~websocket();
+    static websocket*           ptr;
+                                
+public:
+    static void*                wsThread( void* data );
+    static int                  wsCallbackHttp( struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len );
+    static int                  wsCallbackCopilot( struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len );
+    void                        wsOnMessage( const char* message, int messageLen );
+    void                        wsReply( const char* message );
 
+// auth
+    
+    bool                        isAuth();
+    void                        setAuth( bool authenticated );
+
+// handlers
+    bool                        onMessage(  const char*     msgHostName, 
+                                            const char*     msgGroup, 
+                                            const char*     msgCommand, 
+                                            const char*     msgPayload, 
+                                            json_t*         jsonAnswerObject );
+    bool                        onBroadcastReply( json_t* jsonAnswerArray );
+
+/*
 public slots:
     void                        onNewConnection();
-
+*/
 
 };
 
 #endif // websocket_H
-
 
