@@ -17,52 +17,40 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#ifndef websocketClient_H
-#define websocketClient_H
+#ifndef qwebsocket_H
+#define qwebsocket_H
 
-
-#include "evillib_depends.h"
-#include "memory/etList.h"
 #include "string/etString.h"
 #include "string/etStringChar.h"
 
+#include "evillib-extra_depends.h"
+#include "db/etDBObject.h"
 
 #include "coPlugin.h"
-#include <QtWebSockets/QtWebSockets>
 
-class websocketClient : public QObject, public coPlugin {
+#include "plugins/qwebsocketClient.h"
+#include <QtWebSockets/QtWebSockets>
+#include <QtCore/QList>
+
+
+class qwebsocket : public QObject {
 Q_OBJECT
 
 private:
-    QWebSocket*     remoteSocket;
-    quint16         remotePort;
-
-// authentication
-    bool            authenticated;
-    etString*       username;
+    //m_pWebSocketServer = new QWebSocketServer(
+    QWebSocketServer*           wsServer;
+    QList<websocketClient*>     clients;
 
 public:
-                    websocketClient( QWebSocket* remoteSocket );
-                    ~websocketClient();
-    bool            broadcastReply( json_t* jsonAnswerArray );
+                                qwebsocket( int wsPort );
+                                ~qwebsocket();
 
 public slots:
-    void            onTextMessage( QString message );
-    void            onDisconnected();
-
-
-private:
-    void            doAuth( const char* username, const char* password );
-
+    void                        onNewConnection();
 
 
 };
 
-
-
-
-#endif
-
-
+#endif // websocket_H
 
 

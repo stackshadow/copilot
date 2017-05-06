@@ -17,11 +17,15 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+#ifdef DISABLE_WEBSOCKET
+#define websocketClient_C 1
+#endif
+
 #ifndef websocketClient_C
 #define websocketClient_C
 
 #include "coCore.h"
-#include "plugins/websocketClient.h"
+#include "plugins/qwebsocketClient.h"
 #include "jansson.h"
 
 
@@ -56,7 +60,8 @@ websocketClient::           websocketClient( QWebSocket* remoteSocket )  : QObje
 }
 
 websocketClient::           ~websocketClient(){
-    this->remoteSocket->close();
+    coCore::ptr->removePlugin( this );
+    
     etStringFree( this->username );
 }
 
@@ -85,14 +90,85 @@ void websocketClient::      onTextMessage( QString message ){
     char*               group;
     char*               cmd;
 
+
+// websocket only message
+    if( strncmp((char*)topic, "nodes/localhost/co/gethostname", 30) == 0 ){
+
+        json_t* jsonAnswerObject = json_object();
+        json_object_set_new( jsonAnswerObject, "topic", json_string("nodes/localhost/co/hostname") );
+        json_object_set_new( jsonAnswerObject, "payload", json_string(coCore::ptr->hostInfo.nodename) );
+
+    // reply
+        char*   jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+        this->remoteSocket->sendTextMessage( jsonDump );
+        this->remoteSocket->flush();
+        free( jsonDump );
+        json_decref(jsonAnswerObject);
+        return;
+    }
+
+
 // we grab the hostname out of the topic
     hostName = strtok( (char*)topic, "/" );
     hostName = strtok( NULL, "/" );
     group = strtok( NULL, "/" );
     cmd = strtok( NULL, "/" );
 
+
+// websocket must do auth
+    if( strncmp( (char*)cmd, "login", 5 ) == 0 ){
+        
+        json_t* jsonCredentials = json_loads( json_string_value(jsonPayload), JSON_PRESERVE_ORDER, &jsonError );
+        if( jsonCredentials == NULL ) return;
+
+        const char* userName = json_string_value( json_object_get( jsonCredentials, "user" ) );
+        const char* userPass = json_string_value( json_object_get( jsonCredentials, "password" ) );
+
+    // check password
+        if( coCore::ptr->passwordCheck(userName,userPass) == false ){
+            this->authenticated = false;
+            json_decref(jsonCredentials);
+            this->remoteSocket->close();
+            
+            return;
+        }
+        this->authenticated = true;
+
+    // create answer topic
+        json_t* jsonAnswerObject = json_object();
+        std::string fullTopic = "nodes/";
+        fullTopic += hostName;
+        fullTopic += "/";
+        fullTopic += group;
+        fullTopic += "/loginok";
+        json_object_set_new( jsonAnswerObject, "topic", json_string(fullTopic.c_str()) );
+        json_object_set_new( jsonAnswerObject, "payload", json_string("") );
+
+    // reply
+        char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+        this->remoteSocket->sendTextMessage( jsonDump );
+        this->remoteSocket->flush();
+        
+
+
+    // clean
+        free( jsonDump );
+        json_decref(jsonAnswerObject);
+        json_decref(jsonCredentials);
+    }
+    
+// authenticated ?
+    if( this->authenticated == false ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%i] %s", this->remotePort, "not authenticated, close connection" );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        this->remoteSocket->close();
+        return;
+    }
+
+
+
 // broadcast
-    coCore::ptr->broadcast( this, hostName, group, cmd, jsonPayload );
+    coCore::ptr->broadcast( this, hostName, group, cmd, json_string_value(jsonPayload) );
 
 }
 
@@ -111,12 +187,11 @@ void websocketClient::      onDisconnected(){
         .arg( this->remoteSocket->peerName() );
 
 // remove the plugin
-    coCore::ptr->removePlugin( this );
     delete this;
 }
 
 
-bool websocketClient::      broadcastReply( json_t* jsonAnswerArray ){
+bool websocketClient::      onBroadcastReply( json_t* jsonAnswerArray ){
 
     char *dump = json_dumps( jsonAnswerArray, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
     if( dump == NULL ){
@@ -139,6 +214,7 @@ bool websocketClient::      broadcastReply( json_t* jsonAnswerArray ){
         
         
         this->remoteSocket->sendTextMessage( jsonDump );
+        this->remoteSocket->flush();
         free( jsonDump );
 
     }
@@ -149,7 +225,41 @@ bool websocketClient::      broadcastReply( json_t* jsonAnswerArray ){
 }
 
 
+bool websocketClient::      onMessage(  const char*     msgHostName, 
+                                        const char*     msgGroup, 
+                                        const char*     msgCommand, 
+                                        const char*     msgPayload, 
+                                        json_t*         jsonAnswerObject ){
 
+// vars
+    json_t*             jsonObject = json_object();
+    const char*         jsonObjectChar = NULL;
+    std::string         fullTopic = "nodes/";
+    int                 msgPayloadLen;
+    
+// build full topic
+    fullTopic += msgHostName;
+    fullTopic += "/";
+    fullTopic += msgGroup;
+    fullTopic += "/";
+    fullTopic += msgCommand;
+
+// setup jsonObject
+    json_object_set_new( jsonObject, "topic", json_string(fullTopic.c_str()) );
+    json_object_set_new( jsonObject, "payload", json_string(msgPayload) );
+    jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+// send it out
+    this->remoteSocket->sendTextMessage( jsonObjectChar );
+    this->remoteSocket->flush();
+
+// cleanup
+    free( (void*)jsonObjectChar );
+    json_decref( jsonObject );
+
+
+    return true;
+}
 
 
 
