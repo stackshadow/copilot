@@ -24,7 +24,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coCore.h"
 
 mqttService* mqttService::ptr = NULL;
-mqttService::               mqttService( char* host, int port ) : coPlugin( "mqttService" ){
+mqttService::               mqttService() : coPlugin( "mqttService" ){
 
 // save
     mqttService::ptr = this;
@@ -34,14 +34,17 @@ mqttService::               mqttService( char* host, int port ) : coPlugin( "mqt
 
 // save host / port
     memchr( this->hostName, 0, sizeof(this->hostName) );
-    strncpy( this->hostName, host, sizeof(this->hostName) );
-    this->hostPort = port;
 
 // clean
     memchr( this->lastPubTopic, 0, sizeof(this->lastPubTopic) );
     
+// load config
+    this->configLoad();
 
-    int keepalive = 60;
+// clean pthread
+    memset( &this->retryThread, 0, sizeof(this->retryThread) );
+
+    
     bool clean_session = true;
 
 
@@ -58,21 +61,173 @@ mqttService::               mqttService( char* host, int port ) : coPlugin( "mqt
     mosquitto_disconnect_callback_set( this->mosq, mqttService::cb_onDisConnect );
     mosquitto_message_callback_set( this->mosq, mqttService::cb_onMessage );
 
-    if( mosquitto_connect( this->mosq, this->hostName, this->hostPort, keepalive ) ){
-        fprintf(stderr, "Unable to connect.\n");
-        return;
-    }
-
-    mosquitto_loop_start( this->mosq );
-    
-    int subscribeID = 0;
-    mosquitto_subscribe( this->mosq, &subscribeID, "#", 0 );
+// we connect to mqtt
+    //this->connect();
+    pthread_create( &this->retryThread, NULL, mqttService::connectThread, this );
+    pthread_detach( this->retryThread );
 
 //    mosquitto_destroy( mqtt->mosq );
 //    mosquitto_lib_cleanup();
 
 
 }
+
+
+
+bool mqttService::          configLoad(){
+    
+// vars
+    bool            saveIt = false;
+    json_error_t    jsonError;
+    json_t*         jsonValue;
+    const char*     hostName;
+    int             hostNameLen = 0;
+
+// load from file
+    this->jsonConfigRoot = json_load_file( "/etc/copilot/mqtt.json", JSON_PRESERVE_ORDER, &jsonError );
+    if( jsonError.position == 0 || jsonError.line >= 0 ){
+        this->jsonConfigRoot = json_object();
+        
+        saveIt = true;
+    }
+
+// load from the existing json
+
+// hostName
+    jsonValue = json_object_get( this->jsonConfigRoot, "host" );
+    if( jsonValue == NULL ){
+        jsonValue = json_string("localhost");
+        json_object_set_new( this->jsonConfigRoot, "host", jsonValue );
+        saveIt = true;
+    }
+    hostName = json_string_value( jsonValue );
+    hostNameLen = strlen( hostName );
+    memchr( this->lastPubTopic, 0, sizeof(this->lastPubTopic) );
+    strncpy( this->hostName, hostName, hostNameLen );
+
+// port
+    jsonValue = json_object_get( this->jsonConfigRoot, "port" );
+    if( jsonValue == NULL ){
+        jsonValue = json_integer( 1883 );
+        json_object_set_new( this->jsonConfigRoot, "port", jsonValue );
+        saveIt = true;
+    }
+    this->hostPort = json_integer_value( jsonValue );
+
+
+// retryCount
+    this->retryCount = 0;
+
+
+// retryCountMax
+    jsonValue = json_object_get( this->jsonConfigRoot, "retryCountMax" );
+    if( jsonValue == NULL ){
+        jsonValue = json_integer( 3 );
+        json_object_set_new( this->jsonConfigRoot, "retryCountMax", jsonValue );
+        saveIt = true;
+    }
+    this->retryCountMax = json_integer_value( jsonValue );
+
+// retryDelay
+    jsonValue = json_object_get( this->jsonConfigRoot, "retryDelay" );
+    if( jsonValue == NULL ){
+        jsonValue = json_integer( 10 );
+        json_object_set_new( this->jsonConfigRoot, "retryDelay", jsonValue );
+        saveIt = true;
+    }
+    this->retryDelay = json_integer_value( jsonValue );
+
+// retryPause
+    jsonValue = json_object_get( this->jsonConfigRoot, "retryPause" );
+    if( jsonValue == NULL ){
+        jsonValue = json_integer( 60 );
+        json_object_set_new( this->jsonConfigRoot, "retryPause", jsonValue );
+        saveIt = true;
+    }
+    this->retryPause = json_integer_value( jsonValue );
+
+
+// save it if needed
+    if( saveIt == true ){
+        this->configSave();
+    }
+
+    return true;
+}
+
+
+bool mqttService::          configSave(){
+    int returnCode = json_dump_file( this->jsonConfigRoot, 
+        "/etc/copilot/mqtt.json", 
+        JSON_PRESERVE_ORDER | JSON_INDENT(4) 
+    );
+    
+    if( returnCode != 0 ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not save config to /etc/copilot/mqtt.json" );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return false;
+    }
+
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Saved config to /etc/copilot/mqtt.json" );
+    etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
+    return true;
+}
+
+
+bool mqttService::          connect(){
+
+    int keepalive = 60;
+
+    if( mosquitto_connect( this->mosq, this->hostName, this->hostPort, keepalive ) ){
+
+        this->connected = false;
+        
+    // debug message
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Unable to connect" );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+        return false;
+    }
+
+    this->connected = true;
+    mosquitto_loop_start( this->mosq );
+
+    int subscribeID = 0;
+    mosquitto_subscribe( this->mosq, &subscribeID, "#", 0 );
+    mosquitto_subscribe( this->mosq, &subscribeID, "$SYS/broker/clients/connected", 0 );
+    //mosquitto_subscribe( this->mosq, &subscribeID, "$SYS/broker/load/messages/received/1min", 0 );
+    
+    return true;
+}
+
+
+void* mqttService::         connectThread( void* instance ){
+    
+    mqttService*    mqttInstance = (mqttService*)instance;
+
+    while( mqttInstance->connected == false ){
+        for( mqttInstance->retryCount = 0; mqttInstance->retryCount < mqttInstance->retryCountMax; mqttInstance->retryCount++ ){
+            
+            if( mqttInstance->connect() == true ){
+                goto connectOk;
+            }
+            
+            sleep( mqttInstance->retryDelay );
+        }
+
+        sleep( mqttInstance->retryPause );
+    }
+
+connectOk:
+    return NULL;
+}
+
+
+bool mqttService::          disconnect(){
+    this->connected = false;
+    return true;
+}
+
 
 
 
@@ -88,38 +243,65 @@ void mqttService::          cb_onDisConnect( struct mosquitto* mosq, void* userd
 
 void mqttService::          cb_onMessage( struct mosquitto *mosq, void *obj, const struct mosquitto_message *message){
     
+// debug
     if(message->payloadlen){
-         printf("%s %s\n", message->topic, message->payload );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s %s", message->topic, message->payload );
+        etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
+
     }else{
-         printf("%s (null)\n", message->topic);
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s (null)", message->topic );
+        etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
     }
     fflush(stdout);
 
-// dont respond on our message
+// dont respond on what we send out
     int lastPubTopicLen = strlen( mqttService::ptr->lastPubTopic );
     if( lastPubTopicLen > 0 ){
         if( strncmp( mqttService::ptr->lastPubTopic, message->topic, lastPubTopicLen  ) == 0 ){
+            memset( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
             memchr( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
             return;
         }
-        memchr( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
     }
 
-// we grab the hostname out of the topic
-    const char* hostName = strtok( (char*)message->topic, "/" );
-    hostName = strtok( NULL, "/" );
+// we grab the hostname from the topic
+    int     topicTempLen = strlen(message->topic);
+    char    topicTemp[topicTempLen + 1];
+    memset( topicTemp, 0, topicTempLen + 1 );
+    strncpy( topicTemp, message->topic, topicTempLen );
+    
+    const char* firstElement = strtok( topicTemp, "/" );
+    const char* hostName = strtok( NULL, "/" );
     const char* group = strtok( NULL, "/" );
     const char* cmd = strtok( NULL, "/" );
-    json_t* jsonPayload = json_string( (char*)message->payload );
 
-    coCore::ptr->broadcast( mqttService::ptr, hostName, group, cmd, jsonPayload );
+// if we recieve system-messages
+    if( strncmp(firstElement,"$SYS", 4) == 0 ){
+        hostName = coCore::ptr->hostInfo.nodename;
+        group = "mqtt";
+        cmd = message->topic;
+    }
 
-    json_decref( jsonPayload );
+// from here we MUST have a host and a topic
+    if( hostName == NULL ) return;
+    if( group == NULL ) return;
+    if( cmd == NULL ) return;
+    
+// we only allow message to all or to our host
+    char* myHostName = coCore::ptr->hostInfo.nodename;
+    if( strncmp(hostName,"all",3) != 0 && strncmp(hostName,myHostName,strlen(myHostName)) != 0 ){
+        return;
+    }
+
+
+// send to all plugins
+    coCore::ptr->broadcast( mqttService::ptr, hostName, group, cmd, (const char*)message->payload );
+
 
 }
 
 
-bool mqttService::          broadcastReply( json_t* jsonAnswerArray ){
+bool mqttService::          onBroadcastReply( json_t* jsonAnswerArray ){
     
     char *dump = json_dumps( jsonAnswerArray, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
     if( dump == NULL ){
@@ -149,7 +331,7 @@ bool mqttService::          broadcastReply( json_t* jsonAnswerArray ){
         if( jsonTopic == NULL ) continue;
         if( jsonPayload == NULL ) continue;
         
-        const char* jsonPayloadChar = json_dumps( jsonPayload, JSON_PRESERVE_ORDER | JSON_COMPACT );
+        const char* jsonPayloadChar = json_string_value(jsonPayload);
         int jsonPayloadCharLen = 0;
         if( jsonPayloadChar != NULL ){
             jsonPayloadCharLen = strlen( jsonPayloadChar );
@@ -167,10 +349,10 @@ bool mqttService::          broadcastReply( json_t* jsonAnswerArray ){
             false );
             
     // save last publicated message
-        memchr( this->lastPubTopic, 0, sizeof(this->lastPubTopic) );
+        memset( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
+        memchr( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
         strncpy( this->lastPubTopic, json_string_value(jsonTopic), json_string_length(jsonTopic) );
 
-        free( (char*)jsonPayloadChar );
 
     }
 
@@ -179,16 +361,27 @@ bool mqttService::          broadcastReply( json_t* jsonAnswerArray ){
 
 
 bool mqttService::          onMessage(  const char*     msgHostName, 
-                                const char*     msgGroup, 
-                                const char*     msgCommand, 
-                                json_t*         jsonData, 
-                                json_t*         jsonAnswerObject ){
+                                        const char*     msgGroup, 
+                                        const char*     msgCommand, 
+                                        const char*     msgPayload, 
+                                        json_t*         jsonAnswerObject ){
 
 // vars
     std::string         fullTopic = "nodes/";
-    const char*         jsonDataChar;
-    int                 jsonDataCharLen;
+    int                 msgPayloadLen;
     
+// we dont send to localhost
+    if( strncmp(msgHostName,"localhost",9) == 0 ){
+        return true;
+    }
+
+// we dont send messages which are deticated to our own
+/*
+    if( strncmp(msgHostName,coCore::ptr->hostInfo.nodename,strlen(coCore::ptr->hostInfo.nodename)) == 0 ){
+        return true;
+    }
+*/
+
 // build full topic
     fullTopic += msgHostName;
     fullTopic += "/";
@@ -196,27 +389,30 @@ bool mqttService::          onMessage(  const char*     msgHostName,
     fullTopic += "/";
     fullTopic += msgCommand;
 
-// we only accept message which send to all nodes
-    if( strncmp( msgHostName, "all", 3 ) != 0 ){
-        return true;
+// infos about mqtt
+    if( strncmp( msgGroup,"mqtt", 8 ) == 0 ){
+        if( strncmp( msgCommand,"getinfos", 8 ) == 0 ){
+            //mosquitto_lib_version()
+            if( this->connected == true ) json_object_set_new( jsonAnswerObject, "connected", json_integer(1) );
+            else json_object_set_new( jsonAnswerObject, "connected", json_integer(0) );
+
+            return true;
+        }
     }
 
+
+
 // dump jsonData
-    jsonDataChar = json_dumps( jsonData, JSON_PRESERVE_ORDER | JSON_COMPACT );
-    jsonDataCharLen = 0;
-    if( jsonDataChar != NULL ){
-        jsonDataCharLen = strlen( jsonDataChar );
-    }
-    
-    
+    msgPayloadLen = strlen( msgPayload );
+
 // publish
     int messageID;
     mosquitto_publish( 
         this->mosq, 
         &messageID, 
         fullTopic.c_str(), 
-        jsonDataCharLen,
-        jsonDataChar,
+        msgPayloadLen,
+        msgPayload,
         0,
         false );
     
@@ -224,7 +420,6 @@ bool mqttService::          onMessage(  const char*     msgHostName,
     memchr( this->lastPubTopic, 0, sizeof(this->lastPubTopic) );
     strncpy( this->lastPubTopic, fullTopic.c_str(), fullTopic.length() );
 
-    free( (void*)jsonDataChar );
 
     return true;
 }
