@@ -70,8 +70,8 @@ sources     += src/coPlugin.cpp
 
 # plugins
 sources     += src/plugins/coreService.cpp
-sources     += src/plugins/nftService.cpp
-sources     += src/plugins/ldapService.cpp
+
+
 
 
 # additional sources which compiles to an shared object
@@ -90,13 +90,12 @@ CFLAGSREL   += -fstack-protector
 CFLAGSREL   += -Wformat -Wformat-security
 CFLAGSREL   += -O2
 
-
+CLIBS       += -ljansson
+CLIBS       += -lpthread
 CLIBS       += -lz
 CLIBS       += -luuid
 #CLIBS       += -luWS
-CLIBS       += -Wl,-rpath /usr/lib64
-CLIBS		+= -lQt5Core
-CLIBS		+= -lldap
+#CLIBS       += -Wl,-rpath /usr/lib64
 CLIBS		+= $(shell pkg-config --libs libsodium)
 
 
@@ -122,10 +121,15 @@ endif
 
 ifdef DISABLE_NFT
 CFLAGS      += -DDISABLE_NFT
+else
+sources     += src/plugins/nftService.cpp
 endif
 
 ifdef DISABLE_LDAP
 CFLAGS      += -DDISABLE_LDAP
+else
+sources     += src/plugins/ldapService.cpp
+CLIBS		+= -lldap
 endif
 
 ifdef _DEBUG

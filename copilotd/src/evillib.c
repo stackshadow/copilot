@@ -44,6 +44,7 @@
 
 #include "system/etFile.c"
 
+/*
 // db stuff
 #include "db/etDBTable.c"
 #include "db/etDBColumn.c"
@@ -53,7 +54,7 @@
 #include "dbdriver/etDBDriver.c"
 #include "dbdriver/etDBSQL.c"
 #include "dbdriver/etDBSQLite.c"
-
+*/
 
 /*
 #include "db/etDBObject.c"

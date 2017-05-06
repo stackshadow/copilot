@@ -58,9 +58,9 @@ include make/generic/bin.mk
 
 
 $(sourcePath)/libs/evillib/README.md:
-#	git clone --branch $(gitVersion) --depth 1 \
-#	git://git.kernel.org/pub/scm/utils/util-linux/util-linux.git \
-#	$(sourcePath)/libs/util-linux$(utilVersion)
+	git clone --depth 1 \
+	https://github.com/stackshadow/evillib.git \
+	$(sourcePath)/libs/evillib
 
 premake: evillib
 evillib: $(sourcePath)/libs/evillib/README.md binObjects

@@ -3,18 +3,6 @@
 # this will be done internally
 
 CLIBS       += -lstdc++
-CLIBS       += -ljansson
-CLIBS       += -lpthread
-#CLIBS       += $(shell pkg-config Qt5Gui Qt5Widgets --libs)
-
-#CLIBS       += -L$(targetPath)/lib
-#CLIBS       += -Wl,-rpath $(targetPath)/lib
-#CLIBS       += -levillib
-#CLIBS       += -levillib-extra
-
-
-CLIBS       += -lsqlite3
-CLIBS       += -lpq
 
 # libs for debugging-support
 ifneq ($(DEBUG),)
@@ -32,6 +20,4 @@ CLIBS       += -Wl,-s -Wl,-subsystem,windows
 CLIBS       += -mthreads
 CLIBS       += -lglu32 -lopengl32 -lgdi32 -luser32 -lmingw32 -lshell32
 CLIBS       += /usr/win32/qt/lib/libqtmain.a /usr/win32/qt/lib/libQt5Widgets.a /usr/win32/qt/lib/libQt5Gui.a /usr/win32/qt/lib/libQt5Core.a
-
-
 endif
