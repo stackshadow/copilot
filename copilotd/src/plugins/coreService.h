@@ -45,7 +45,7 @@ public:
     bool                        onMessage(  const char*     msgHostName, 
                                             const char*     msgGroup, 
                                             const char*     msgCommand, 
-                                            json_t*         jsonData, 
+                                            const char*     msgPayload, 
                                             json_t*         jsonAnswerObject );
 
 

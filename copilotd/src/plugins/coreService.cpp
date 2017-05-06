@@ -22,6 +22,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "coCore.h"
 #include "plugins/coreService.h"
+#include "version.h"
 
 #include <string>
 
@@ -31,7 +32,6 @@ coreService::                   coreService() : coPlugin( "core" ) {
 
 // register this plugin
     coCore::ptr->registerPlugin( this, "", "co" );
-
 
 }
 
@@ -44,21 +44,16 @@ coreService::                   ~coreService(){
 bool coreService::              onMessage(  const char*     msgHostName, 
                                             const char*     msgGroup, 
                                             const char*     msgCommand, 
-                                            json_t*         jsonData, 
+                                            const char*     msgPayload, 
                                             json_t*         jsonAnswerObject ){
 
 
 
-    if( strncmp( (char*)msgCommand, "login", 5 ) == 0 ){
 
-        json_object_set_new( jsonAnswerObject, "topic", json_string("loginok") );
-        json_object_set_new( jsonAnswerObject, "payload", json_string("") );
-
-        return true;
-    }
-
-// ping
+// to all hosts
     if( strncmp( (char*)msgHostName, "all", 3 ) == 0 ){
+        
+    // ping
         if( strncmp(msgCommand,"ping",4) == 0 ){
             
             std::string tempString = "nodes/";
@@ -72,13 +67,29 @@ bool coreService::              onMessage(  const char*     msgHostName,
         }
     }
 
-    if( strncmp( (char*)msgCommand, "plistget", 8 ) == 0 ){
+// to "localhost" or to the nodename-host
+    if( strncmp("localhost",msgHostName,9) != 0 &&
+    strncmp(coCore::ptr->hostInfo.nodename,msgHostName,coCore::ptr->hostNodeNameLen) != 0 ){
+        return true;
+    }
+
+
+    if( strncmp( (char*)msgCommand, "getVersion", 10 ) == 0 ){
+        
+        json_object_set_new( jsonAnswerObject, "topic", json_string("version") );
+        json_object_set_new( jsonAnswerObject, "payload", json_string( copilotVersion ) );
+        
+        return true;
+    }
+
+
+    if( strncmp( (char*)msgCommand, "getServices", 11 ) == 0 ){
 
         json_t* jsonArray = json_array();
         coCore::ptr->listPlugins( jsonArray );
 
 
-        json_object_set_new( jsonAnswerObject, "topic", json_string("plist") );
+        json_object_set_new( jsonAnswerObject, "topic", json_string("services") );
         json_object_set_new( jsonAnswerObject, "payload", jsonArray );
 
 

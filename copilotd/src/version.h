@@ -1,0 +1,1 @@
+const char* copilotVersion = "0.1";
