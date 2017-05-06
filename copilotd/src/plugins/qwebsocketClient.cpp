@@ -225,11 +225,11 @@ bool websocketClient::      onBroadcastReply( json_t* jsonAnswerArray ){
 }
 
 
-bool websocketClient::      onMessage(  const char*     msgHostName, 
-                                        const char*     msgGroup, 
-                                        const char*     msgCommand, 
-                                        const char*     msgPayload, 
-                                        json_t*         jsonAnswerObject ){
+bool websocketClient::      onBroadcastMessage(     const char*     msgHostName, 
+                                                    const char*     msgGroup, 
+                                                    const char*     msgCommand, 
+                                                    const char*     msgPayload, 
+                                                    json_t*         jsonAnswerObject ){
 
 // vars
     json_t*             jsonObject = json_object();

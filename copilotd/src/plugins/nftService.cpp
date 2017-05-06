@@ -447,11 +447,11 @@ bool nftService::               applyRules( const char* hostName, json_t* jsonAn
 
 
 
-bool nftService::               onMessage(  const char*     msgHostName, 
-                                            const char*     msgGroup, 
-                                            const char*     msgCommand, 
-                                            const char*     msgPayload, 
-                                            json_t*         jsonAnswerObject ){
+bool nftService::               onBroadcastMessage(     const char*     msgHostName, 
+                                                        const char*     msgGroup, 
+                                                        const char*     msgCommand, 
+                                                        const char*     msgPayload, 
+                                                        json_t*         jsonAnswerObject ){
 
     std::string     answerTopic;
 

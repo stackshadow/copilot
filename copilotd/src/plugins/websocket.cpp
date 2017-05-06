@@ -267,11 +267,11 @@ void websocket::            setAuth( bool authenticated ){
 
 
 
-bool websocket::            onMessage(  const char*     msgHostName, 
-                                        const char*     msgGroup, 
-                                        const char*     msgCommand, 
-                                        const char*     msgPayload, 
-                                        json_t*         jsonAnswerObject ){
+bool websocket::            onBroadcastMessage(     const char*     msgHostName, 
+                                                    const char*     msgGroup, 
+                                                    const char*     msgCommand, 
+                                                    const char*     msgPayload, 
+                                                    json_t*         jsonAnswerObject ){
 // vars
     json_t*             jsonObject = json_object();
     const char*         jsonObjectChar = NULL;

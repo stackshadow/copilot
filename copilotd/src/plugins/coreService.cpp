@@ -41,11 +41,11 @@ coreService::                   ~coreService(){
 }
 
 
-bool coreService::              onMessage(  const char*     msgHostName, 
-                                            const char*     msgGroup, 
-                                            const char*     msgCommand, 
-                                            const char*     msgPayload, 
-                                            json_t*         jsonAnswerObject ){
+bool coreService::              onBroadcastMessage(     const char*     msgHostName, 
+                                                        const char*     msgGroup, 
+                                                        const char*     msgCommand, 
+                                                        const char*     msgPayload, 
+                                                        json_t*         jsonAnswerObject ){
 
 
 

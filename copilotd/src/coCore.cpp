@@ -435,7 +435,7 @@ sendToAll:
             etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
 
             jsonAnswerObject = json_object();
-            if( pluginElement->plugin->onMessage( msgHostName, msgGroup, msgCommand, msgPayload, jsonAnswerObject ) == false ){
+            if( pluginElement->plugin->onBroadcastMessage( msgHostName, msgGroup, msgCommand, msgPayload, jsonAnswerObject ) == false ){
                 json_decref( jsonAnswerObject );
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' requests break", pluginElement->plugin->name() );
                 etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );

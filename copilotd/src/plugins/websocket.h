@@ -91,11 +91,11 @@ public:
     void                        setAuth( bool authenticated );
 
 // handlers
-    bool                        onMessage(  const char*     msgHostName, 
-                                            const char*     msgGroup, 
-                                            const char*     msgCommand, 
-                                            const char*     msgPayload, 
-                                            json_t*         jsonAnswerObject );
+    bool                        onBroadcastMessage(     const char*     msgHostName, 
+                                                        const char*     msgGroup, 
+                                                        const char*     msgCommand, 
+                                                        const char*     msgPayload, 
+                                                        json_t*         jsonAnswerObject );
     bool                        onBroadcastReply( json_t* jsonAnswerArray );
 
 /*

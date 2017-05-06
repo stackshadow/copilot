@@ -76,11 +76,11 @@ public:
 // callbacks
 public:
     bool            onBroadcastReply( json_t* jsonAnswerArray );
-    bool            onMessage(  const char*     msgHostName, 
-                                const char*     msgGroup, 
-                                const char*     msgCommand, 
-                                const char*     msgPayload, 
-                                json_t*         jsonAnswerObject );
+    bool            onBroadcastMessage(     const char*     msgHostName, 
+                                            const char*     msgGroup, 
+                                            const char*     msgCommand, 
+                                            const char*     msgPayload, 
+                                            json_t*         jsonAnswerObject );
 
 };
 

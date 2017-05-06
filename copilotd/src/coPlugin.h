@@ -44,7 +44,7 @@ public:
     bool                info( const char *shortInfo );
     const char*         info();
 
-    virtual bool        onMessage(  const char*     msgHostName, 
+    virtual bool        onBroadcastMessage(  const char*     msgHostName, 
                                     const char*     msgGroup, 
                                     const char*     msgCommand, 
                                     const char*     msgPayload, 

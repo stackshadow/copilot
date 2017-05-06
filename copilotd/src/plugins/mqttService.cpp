@@ -360,11 +360,11 @@ bool mqttService::          onBroadcastReply( json_t* jsonAnswerArray ){
 }
 
 
-bool mqttService::          onMessage(  const char*     msgHostName, 
-                                        const char*     msgGroup, 
-                                        const char*     msgCommand, 
-                                        const char*     msgPayload, 
-                                        json_t*         jsonAnswerObject ){
+bool mqttService::          onBroadcastMessage(     const char*     msgHostName, 
+                                                    const char*     msgGroup, 
+                                                    const char*     msgCommand, 
+                                                    const char*     msgPayload, 
+                                                    json_t*         jsonAnswerObject ){
 
 // vars
     std::string         fullTopic = "nodes/";
