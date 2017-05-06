@@ -36,11 +36,16 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 class coCore {
 
 public:
-    struct utsname  hostInfo;
-    int             hostNodeNameLen;
+    struct utsname      hostInfo;
+    int                 hostNodeNameLen;
 
 private:
-    json_t*         jsonAnswerArray;
+    coPlugin*           authPlugin;             /**< The plugin which authenticate the user-login */
+    json_t*             jsonAnswerArray;
+    bool                locked;
+    etList*             pluginList;
+    etList*             pluginListEnd;
+    void*               iterator;
 
 public:
                     coCore();
@@ -53,25 +58,42 @@ public:
     bool            registerPlugin( coPlugin* plugin, const char *hostName, const char *group );
     bool            removePlugin( coPlugin* plugin );
     void            listPlugins( json_t* pluginNameArray );
+    
+
+// helper functions
+    static bool     jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson );
+    static bool     jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson );
+
+// login / auth / permissions
+    static bool     passwordCheck( const char* user, const char* pass );
+    static bool     passwordChange( const char* user, const char* oldpw, const char* newpw );
+
+// the main loop
+    void            mainLoop();
 
 private:
-    void            iterate();
-    bool            next( coPluginElement** pluginElement );
-    bool            next( coPlugin** plugin );
+    bool            pluginsIterate();
+    bool            pluginNext( coPluginElement** pluginElement );
+    bool            pluginNext( coPlugin** plugin );
+    bool            pluginElementGet( coPlugin* plugin, coPluginElement** pluginElement );
     bool            nextAviable();
 
 // some helper stuff
     static bool     setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject );
 
+
 public:
-    void            broadcast( coPlugin *source, const char* msgHostName, const char* msgGroup, const char* msgCommand, json_t* jsonData );
+    void            broadcast( 
+                        coPlugin*       source, 
+                        const char*     msgHostName, 
+                        const char*     msgGroup, 
+                        const char*     msgCommand, 
+                        const char*     msgPayload 
+                    );
 
 
-private:
-    bool            locked;
-    etList*         start;
-    etList*         end;
-    void*           iterator;
+
+
 
 
 };

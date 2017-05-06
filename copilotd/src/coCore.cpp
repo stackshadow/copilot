@@ -23,7 +23,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "coCore.h"
-
+#include <sodium.h>
 
 
 
@@ -31,13 +31,18 @@ coCore* coCore::ptr = NULL;
 coCore::                    coCore(){
 
 // plugin-list
-    etListAlloc( this->start );
-    this->end = this->start;
+    etListAlloc( this->pluginList );
+    this->pluginListEnd = this->pluginList;
     this->iterator = NULL;
 
 // get the hostinfo
     uname( &this->hostInfo );
     this->hostNodeNameLen = strlen( this->hostInfo.nodename );
+
+// init libsodium
+    if (sodium_init() == -1) {
+        //return 1;
+    }
 
 // save the instance
     this->ptr = this;
@@ -48,36 +53,37 @@ coCore::                    ~coCore(){
 
     coPluginElement*    pluginElement = NULL;
     
-    this->iterate();
-    while( this->next(&pluginElement) == true ){
+    this->pluginsIterate();
+    while( this->pluginNext(&pluginElement) == true ){
         delete pluginElement->plugin;
         delete pluginElement;
     }
 
-    etListFree( this->start );
+    etListFree( this->pluginList );
 }
 
 
 
 bool coCore::               registerPlugin( coPlugin* plugin, const char *hostName, const char *group ){
 // check
-    if( this->end == NULL ) return false;
+    if( this->pluginListEnd == NULL ) return false;
 
 // vars
     const char*         pluginName = plugin->name();
-    coPluginElement*    listELement = new coPluginElement();
+    coPluginElement*    listELement = NULL;
 
-// save
+// create element
+    listELement = new coPluginElement();
     etStringCharSet( listELement->listenHostName, hostName, -1 );
     etStringCharSet( listELement->listenGroup, group, -1 );
     listELement->plugin = plugin;
-
+    
 // debug
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "Register Plugin: %s", pluginName );
     etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
 
 // add it to the list
-    etListAppend( this->end, (void*)listELement );
+    etListAppend( this->pluginListEnd, (void*)listELement );
 
 }
 
@@ -88,8 +94,8 @@ bool coCore::               removePlugin( coPlugin* plugin ){
     coPluginElement*        pluginElement = NULL;
 
 // iterate through the list
-    this->iterate();
-    while( this->next(&pluginElement) == true ){
+    this->pluginsIterate();
+    while( this->pluginNext(&pluginElement) == true ){
 
         if( pluginElement->plugin == plugin ){
 
@@ -97,7 +103,7 @@ bool coCore::               removePlugin( coPlugin* plugin ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove Plugin: %s", pluginElement->plugin->name() );
             etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
 
-            etListDataRemove( this->start, pluginElement, etID_TRUE );
+            etListDataRemove( this->pluginList, pluginElement, etID_TRUE );
             return true;
         }
 
@@ -114,8 +120,8 @@ void coCore::               listPlugins( json_t* pluginNameArray ){
     coPluginElement*        pluginElement = NULL;
 
 // iterate through the list
-    this->iterate();
-    while( this->next(&pluginElement) == true ){
+    this->pluginsIterate();
+    while( this->pluginNext(&pluginElement) == true ){
 
         const char* pluginName = pluginElement->plugin->name();
 
@@ -132,12 +138,14 @@ void coCore::               listPlugins( json_t* pluginNameArray ){
 
 
 
-void coCore::               iterate(){
-    etListIterate( this->start, this->iterator );
+
+bool coCore::               pluginsIterate(){
+    etListIterate( this->pluginList, this->iterator );
+    return true;
 }
 
 
-bool coCore::               next( coPluginElement** pluginElement ){
+bool coCore::               pluginNext( coPluginElement** pluginElement ){
     coPluginElement*    listELement = NULL;
     if( etListIterateNext( this->iterator, listELement ) == etID_YES ){
         *pluginElement = listELement;
@@ -149,7 +157,7 @@ bool coCore::               next( coPluginElement** pluginElement ){
 }
 
 
-bool coCore::               next( coPlugin **plugin ){
+bool coCore::               pluginNext( coPlugin **plugin ){
 
     coPluginElement*    listELement = NULL;
     
@@ -160,6 +168,26 @@ bool coCore::               next( coPlugin **plugin ){
 
 
     *plugin = NULL;
+    return false;
+}
+
+
+bool coCore::               pluginElementGet( coPlugin* plugin, coPluginElement** pluginElement ){
+    
+// vars
+    void*               tempIterator;
+    coPluginElement*    listELement = NULL;
+    
+    etListIterate( this->pluginList, tempIterator );
+    while( etListIterateNext( tempIterator, listELement ) == etID_YES ){
+
+        if( listELement->plugin == plugin ){
+            *pluginElement = listELement;
+            return true;
+        }
+
+    }
+    
     return false;
 }
 
@@ -215,18 +243,144 @@ bool coCore::               setTopic( coPluginElement* pluginElement, json_t* js
 }
 
 
+bool coCore::               jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson ){
+
+// vars
+    json_t*     jsonValue = NULL;
+
+// from value to json
+    if( toJson == true ){
+        json_object_set_new( jsonObject, key, json_string(value) );
+    } 
+
+// from json to value
+    else {
+
+    // clean
+        memset( value, 0, valueMax );
+
+    // set
+        jsonValue = json_object_get( jsonObject, key );
+        if( jsonValue != NULL ) {
+            strncat( value, json_string_value(jsonValue), valueMax );
+        } else {
+            strncat( value, defaultValue, valueMax );
+            json_object_set_new( jsonObject, key, json_string(defaultValue) );
+        }
+
+    }
+
+    return true;
+}
+
+
+bool coCore::               jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson ){
+    
+// vars
+    json_t*     jsonValue = NULL;
+
+// from value to json
+    if( toJson == true ){
+        json_object_set_new( jsonObject, key, json_string(value->c_str()) );
+    } 
+
+// from json to value
+    else {
+
+    // clean
+        value->clear();
+        
+
+    // set
+        jsonValue = json_object_get( jsonObject, key );
+        if( jsonValue != NULL ) {
+            value->assign( json_string_value(jsonValue) );
+        } else {
+            value->assign( defaultValue );
+            json_object_set_new( jsonObject, key, json_string(defaultValue) );
+        }
+
+    }
+
+    return true;
+}
+
+
+bool coCore::               passwordCheck( const char* user, const char* pass ){
+
+// vars
+    json_t*         jsonAuthObject = NULL;
+    json_t*         jsonUserObject = NULL;
+    json_error_t    jsonError;
+    const char*     jsonPassword = NULL;
+    int             jsonPasswordLen = 0;
+
+// open the file
+    jsonAuthObject = json_load_file( "/etc/copilot/auth.json", JSON_PRESERVE_ORDER, &jsonError );
+    if( jsonAuthObject == NULL ){
+        jsonAuthObject = json_object();
+        json_object_set_new( jsonAuthObject, "type", json_string("plain") );
+        json_dump_file( jsonAuthObject, "/etc/copilot/auth.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+    }
+
+// try to get the user
+    jsonUserObject = json_object_get( jsonAuthObject, user );
+    if( jsonUserObject == NULL ) return false;
+
+// try to get the password of the user
+    jsonPasswordLen = 0;
+    json_t* jsonPasswordObject = json_object_get( jsonUserObject, "salsa208sha256" );
+    if( jsonPasswordObject != NULL ) {
+        jsonPassword = json_string_value( jsonPasswordObject );
+        jsonPasswordLen = strlen( jsonPassword );
+    }
+    
+// no password provided yet, set it
+    if( jsonPasswordLen == 0 ){
+        
+    // create the hashed password
+        char hashed_password[crypto_pwhash_scryptsalsa208sha256_STRBYTES];
+        if( crypto_pwhash_scryptsalsa208sha256_str( hashed_password, pass, strlen(pass),
+                crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE,
+                crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE) == 0) {
+            json_object_set_new( jsonUserObject, "salsa208sha256", json_string(hashed_password) );
+        }
+        
+    // save the auth-file
+        json_dump_file( jsonAuthObject, "/etc/copilot/auth.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        
+    // recalc password-stuff
+        jsonPassword = hashed_password;
+        jsonPasswordLen = strlen( jsonPassword );
+    }
+
+
+// verify password
+    if( crypto_pwhash_scryptsalsa208sha256_str_verify(jsonPassword, pass, strlen(pass)) == 0) {
+        return true;
+    }
+
+
+    return false;
+}
+
+
+bool coCore::               passwordChange( const char* user, const char* oldpw, const char* newpw ){
+    
+}
+
 
 void coCore::               broadcast( coPlugin *source,
                                         const char* msgHostName,
                                         const char* msgGroup,
                                         const char* msgCommand,
-                                        json_t* jsonData ){
+                                        const char* msgPayload ){
 // from here the plugins start
-    if( this->start == NULL ) return;
+    if( this->pluginList == NULL ) return;
     if( msgGroup == NULL ) return;
     if( msgCommand == NULL ) return;
 
-// iterate
+// vars
     coPluginElement*        pluginElement = NULL;
     const char*             pluginHostName = NULL;
     int                     pluginHostNameLen = 0;
@@ -234,20 +388,25 @@ void coCore::               broadcast( coPlugin *source,
     int                     pluginGroupLen = 0;
     int                     cmpResult = -1;
 
+    json_error_t            jsonError;
     json_t*                 jsonAnswerArray = json_array();
     json_t*                 jsonAnswerObject = NULL;
 
+
+// get the source plugin element
+    if( pluginElementGet(source,&pluginElement) == false ){
+        return;
+    }
 
 
 
 
 // iterate through the list
-    this->iterate();
-    while( this->next(&pluginElement) == true ){
+    this->pluginsIterate();
+    while( this->pluginNext(&pluginElement) == true ){
 
-    // we dont send it to source
+    // we dont ask the source
         if( pluginElement->plugin == source ) continue;
-
 
 
     // pluginGroup
@@ -268,10 +427,6 @@ void coCore::               broadcast( coPlugin *source,
         if( cmpResult != 0 && pluginHostNameLen > 0 ) continue;
 
 
-
-
-
-
 sendToAll:
     // iterate
         if( pluginElement->plugin != NULL ){
@@ -280,7 +435,7 @@ sendToAll:
             etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
 
             jsonAnswerObject = json_object();
-            if( pluginElement->plugin->onMessage( msgHostName, msgGroup, msgCommand, jsonData, jsonAnswerObject ) == false ){
+            if( pluginElement->plugin->onMessage( msgHostName, msgGroup, msgCommand, msgPayload, jsonAnswerObject ) == false ){
                 json_decref( jsonAnswerObject );
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' requests break", pluginElement->plugin->name() );
                 etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
@@ -290,7 +445,7 @@ sendToAll:
         // manipulate the topic
             if( coCore::setTopic( pluginElement, jsonAnswerObject ) == false ){
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' dont provide a topic", pluginElement->plugin->name() );
-                etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+                etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
                 continue;
             }
 
@@ -304,7 +459,7 @@ sendToAll:
 reply:
     if( json_array_size(jsonAnswerArray) > 0 ){
     // answer back
-        source->broadcastReply( jsonAnswerArray );
+        source->onBroadcastReply( jsonAnswerArray );
     }
 
 // cleanup
@@ -313,7 +468,11 @@ reply:
 }
 
 
-
+void coCore::               mainLoop(){
+    while(1){
+        sleep(5);
+    }
+}
 
 
 
