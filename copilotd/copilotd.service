@@ -1,0 +1,13 @@
+[Unit]
+Description=copilot-daemon
+#Documentation=man:bluetoothd(8)
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/copilotd
+
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

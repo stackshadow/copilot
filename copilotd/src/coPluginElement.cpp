@@ -28,6 +28,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 coPluginElement::       coPluginElement(){
     etStringAllocLen( this->listenHostName, 64 );
     etStringAllocLen( this->listenGroup, 64 );
+
+
     this->plugin = NULL;
 }
 

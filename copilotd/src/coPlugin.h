@@ -44,18 +44,15 @@ public:
     bool                info( const char *shortInfo );
     const char*         info();
 
-    virtual bool        onConnect(){ return true; }
-    virtual bool        onDisconnect(){ return true; }
-    virtual bool        onLastClientDisconnect(){ return true; }
     virtual bool        onMessage(  const char*     msgHostName, 
                                     const char*     msgGroup, 
                                     const char*     msgCommand, 
-                                    json_t*         jsonData, 
+                                    const char*     msgPayload, 
                                     json_t*         jsonAnswerObject ){
                                         return true;
                                     }
 
-    virtual bool        broadcastReply( json_t* jsonAnswerArray ){ return true; }
+    virtual bool        onBroadcastReply( json_t* jsonAnswerArray ){ return true; }
 
 
 

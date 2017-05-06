@@ -24,12 +24,14 @@
         <File Name="../copilotd/src/plugins/nftService.h"/>
         <File Name="../copilotd/src/plugins/coreService.cpp"/>
         <File Name="../copilotd/src/plugins/nftService.cpp"/>
-        <File Name="../copilotd/src/plugins/websocket.cpp"/>
-        <File Name="../copilotd/src/plugins/websocket.h"/>
-        <File Name="../copilotd/src/plugins/websocketClient.cpp"/>
-        <File Name="../copilotd/src/plugins/websocketClient.h"/>
         <File Name="../copilotd/src/plugins/mqttService.h"/>
         <File Name="../copilotd/src/plugins/mqttService.cpp"/>
+        <File Name="../copilotd/src/plugins/qwebsocketClient.cpp"/>
+        <File Name="../copilotd/src/plugins/qwebsocketClient.h"/>
+        <File Name="../copilotd/src/plugins/qwebsocket.h"/>
+        <File Name="../copilotd/src/plugins/qwebsocket.cpp"/>
+        <File Name="../copilotd/src/plugins/websocket.cpp"/>
+        <File Name="../copilotd/src/plugins/websocket.h"/>
       </VirtualDirectory>
       <File Name="../copilotd/src/doDBDws.qt.h"/>
       <File Name="../copilotd/src/doDBDws.cpp"/>
@@ -44,6 +46,7 @@
       <File Name="../copilotd/src/coPluginElement.cpp"/>
       <File Name="../copilotd/src/coPluginElement.h"/>
       <File Name="../copilotd/src/main.cpp"/>
+      <File Name="../copilotd/src/version.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="make">
       <VirtualDirectory Name="premake">
@@ -2280,6 +2283,10 @@
         <File Name="../copilotd/libs/evillib/configure"/>
       </VirtualDirectory>
     </VirtualDirectory>
+    <File Name="../copilotd/privat.sqlite"/>
+    <File Name="../copilotd/doDBDConnections.json"/>
+    <File Name="../copilotd/test.sqlite"/>
+    <File Name="../copilotd/copilotd.service"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>
@@ -2293,6 +2300,46 @@
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
+    <Configuration Name="Client" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g;-O0;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="/tmp/dodbd-ws/build/app" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/usr/src/projekte/copilot" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="GNU makefile onestep build"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make -f make/Makefile clean</CleanCommand>
+        <BuildCommand>make -f make/Makefile client</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>../copilotd</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths>/usr/include
+/usr/include/qt</SearchPaths>
+      </Completion>
+    </Configuration>
     <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g;-O0;-Wall" C_Options="-g;-O0;-Wall" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
@@ -2314,7 +2361,10 @@
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
         <CleanCommand>make -f make/Makefile clean</CleanCommand>
-        <BuildCommand>make -f make/Makefile binary-qt-dbg</BuildCommand>
+        <BuildCommand>export DISABLE_MQTT=1 \
+export DISABLE_LDAP=1 \
+export _DEBUG=1 \
+make -f make/Makefile binary-qt-dbg</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>

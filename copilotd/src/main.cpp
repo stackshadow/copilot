@@ -29,18 +29,20 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coCore.h"
 
 // plugins
+//#include "plugins/qwebsocket.h"
 #include "plugins/websocket.h"
 #include "plugins/coreService.h"
 #include "plugins/nftService.h"
 #include "plugins/ldapService.h"
 #include "plugins/mqttService.h"
+#include "plugins/ldapService.h"
 
-#include <QtCore/QCoreApplication>
+//#include <QtCore/QCoreApplication>
 
 int main( int argc, char *argv[] ){
 
     etInit(argc,(const char**)argv);
-    QCoreApplication a(argc, argv);
+//    QCoreApplication a(argc, argv);
 
 // create the core which contains all services
     coCore*         newcoCore = new coCore();
@@ -49,11 +51,25 @@ int main( int argc, char *argv[] ){
     coreService*    newCoreService = new coreService();
 
 /** @todo Here are memory leaks ! */
-    mqttService*    mqqtPlugin = new mqttService( "192.168.200.201" );
+#ifndef DISABLE_MQTT
+    mqttService*    mqqtPlugin = new mqttService();
+#endif
+    
+#ifndef DISABLE_WEBSOCKET
     websocket*      wsPlugin = new websocket( 3000 );
+#endif
+
+#ifndef DISABLE_NFT
     nftService*     newNftService = new nftService();
-  
-    return a.exec();
+#endif
+
+#ifndef DISABLE_LDAP
+    ldapService*    newLdapService = new ldapService();
+#endif
+
+
+    //return a.exec();
+    newcoCore->mainLoop();
 
 // cleanup
     delete newcoCore;

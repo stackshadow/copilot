@@ -68,25 +68,11 @@ sources     += src/coPluginElement.cpp
 sources     += src/coPlugin.cpp
 
 
-# the websockets
-#sourcesQT   += src/doDBDws.cpp
-#sourcesQT   += src/doDBDwsClient.cpp
-
 # plugins
 sources     += src/plugins/coreService.cpp
 sources     += src/plugins/nftService.cpp
-sourcesQT   += src/plugins/websocket.cpp
-sourcesQT   += src/plugins/websocketClient.cpp
-sources     += src/plugins/mqttService.cpp
-#sources     += src/plugins/ldapService.cpp
-#sources     += src/classes/doDBDTools.cpp
-#sources     += src/wsPlugins/doDBDPluginList.cpp
-#sources     += src/classes/doDBDConnection.cpp
-#sources     += src/wsPlugins/doDBDConnections.cpp
+sources     += src/plugins/ldapService.cpp
 
-
-#sources     += src/wsPlugins/doDBDConnections.cpp
-#sources     += src/wsPlugins/doDBTable.cpp
 
 # additional sources which compiles to an shared object
 sourcesLib  +=
@@ -110,12 +96,49 @@ CLIBS       += -luuid
 #CLIBS       += -luWS
 CLIBS       += -Wl,-rpath /usr/lib64
 CLIBS		+= -lQt5Core
-CLIBS		+= -lQt5Network
-CLIBS		+= -lQt5WebSockets
-CLIBS		+= -lQt5WebSockets
+CLIBS		+= -lldap
+CLIBS		+= $(shell pkg-config --libs libsodium)
+
+
+
+# websocket
+ifdef DISABLE_WEBSOCKET
+CFLAGS      += -DDISABLE_WEBSOCKET
+else
+sources     += src/plugins/websocket.cpp
+#sourcesQT   += src/plugins/websocketClient.cpp
+#CLIBS		+= -lQt5Network
+#CLIBS		+= -lQt5WebSockets
+CLIBS		+= -lwebsockets
+endif
+
+# mqtt
+ifdef DISABLE_MQTT
+CFLAGS      += -DDISABLE_MQTT
+else
+sources     += src/plugins/mqttService.cpp
 CLIBS		+= -lmosquitto
+endif
+
+ifdef DISABLE_NFT
+CFLAGS      += -DDISABLE_NFT
+endif
+
+ifdef DISABLE_LDAP
+CFLAGS      += -DDISABLE_LDAP
+endif
+
+ifdef _DEBUG
+CFLAGS      += -D_DEBUG
+endif
+
 
 default: binary-qt
+
+client:
+	make -f make/Makefile DISABLE_WEBSOCKET=1 binary-qt
+
+
 install:
 	cp $(buildPath)/app /usr/bin/copilotd
 	cp $(sourcePath)/copilotd.service /lib/systemd/system/copilotd.service
