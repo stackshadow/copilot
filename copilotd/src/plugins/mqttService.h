@@ -42,6 +42,7 @@ private:
     struct mosquitto*   mosq = NULL;
     bool                connected = false;
     char                lastPubTopic[128];
+	int					connectedClients;
 
 public:
     int                 retryCount;

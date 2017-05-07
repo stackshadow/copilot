@@ -37,6 +37,9 @@ mqttService::               mqttService() : coPlugin( "mqttService" ){
 
 // clean
     memchr( this->lastPubTopic, 0, sizeof(this->lastPubTopic) );
+	
+// connected clients
+	this->connectedClients = 0;
     
 // load config
     this->configLoad();
@@ -276,10 +279,9 @@ void mqttService::          cb_onMessage( struct mosquitto *mosq, void *obj, con
     const char* cmd = strtok( NULL, "/" );
 
 // if we recieve system-messages
-    if( strncmp(firstElement,"$SYS", 4) == 0 ){
-        hostName = coCore::ptr->hostInfo.nodename;
-        group = "mqtt";
-        cmd = message->topic;
+    if( strncmp(message->topic,"$SYS/broker/clients/connected", 29) == 0 ){
+        mqttService::ptr->connectedClients = atoi((char*)message->payload);
+		cmd = "clientCount";
     }
 
 // from here we MUST have a host and a topic
@@ -288,11 +290,12 @@ void mqttService::          cb_onMessage( struct mosquitto *mosq, void *obj, con
     if( cmd == NULL ) return;
     
 // we only allow message to all or to our host
+/*
     char* myHostName = coCore::ptr->hostInfo.nodename;
     if( strncmp(hostName,"all",3) != 0 && strncmp(hostName,myHostName,strlen(myHostName)) != 0 ){
         return;
     }
-
+*/
 
 // send to all plugins
     coCore::ptr->broadcast( mqttService::ptr, hostName, group, cmd, (const char*)message->payload );
@@ -370,10 +373,6 @@ bool mqttService::          onBroadcastMessage(     const char*     msgHostName,
     std::string         fullTopic = "nodes/";
     int                 msgPayloadLen;
     
-// we dont send to localhost
-    if( strncmp(msgHostName,"localhost",9) == 0 ){
-        return true;
-    }
 
 // we dont send messages which are deticated to our own
 /*
@@ -392,15 +391,32 @@ bool mqttService::          onBroadcastMessage(     const char*     msgHostName,
 // infos about mqtt
     if( strncmp( msgGroup,"mqtt", 8 ) == 0 ){
         if( strncmp( msgCommand,"getinfos", 8 ) == 0 ){
+
+			json_t* jsonMQTTInfos = json_object();
+
+		// connected ?
+			if( this->connected == true ) json_object_set_new( jsonMQTTInfos, "connected", json_integer(1) );
+            else json_object_set_new( jsonMQTTInfos, "connected", json_integer(0) );
+
+		// connected clients
+			json_object_set_new( jsonMQTTInfos, "clients", json_integer(this->connectedClients) );
+
+
+			json_object_set_new( jsonAnswerObject, "topic", json_string("infos") );
+			json_object_set_new( jsonAnswerObject, "payload", jsonMQTTInfos );
+
             //mosquitto_lib_version()
-            if( this->connected == true ) json_object_set_new( jsonAnswerObject, "connected", json_integer(1) );
-            else json_object_set_new( jsonAnswerObject, "connected", json_integer(0) );
+
 
             return true;
         }
     }
 
 
+// dont send messages to localhost over mqtt
+    if( strncmp(msgHostName,"localhost",9) == 0 ){
+        return true;
+    }
 
 // dump jsonData
     msgPayloadLen = strlen( msgPayload );
