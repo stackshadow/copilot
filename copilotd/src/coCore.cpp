@@ -64,6 +64,13 @@ coCore::                    ~coCore(){
 
 
 
+void coCore::               setHostName( const char *hostname ){
+    memset( this->hostInfo.nodename, 0, _UTSNAME_NODENAME_LENGTH );
+    strncat( this->hostInfo.nodename, hostname, _UTSNAME_NODENAME_LENGTH );
+}
+
+
+
 bool coCore::               registerPlugin( coPlugin* plugin, const char *hostName, const char *group ){
 // check
     if( this->pluginListEnd == NULL ) return false;
@@ -201,7 +208,7 @@ bool coCore::               nextAviable(){
 
 
 
-bool coCore::               setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject ){
+bool coCore::               setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject, const char* msgGroup  ){
 // check
     if( pluginElement == NULL ) return false;
     if( jsonAnswerObject == NULL ) return false;
@@ -228,9 +235,11 @@ bool coCore::               setTopic( coPluginElement* pluginElement, json_t* js
     }
 
 // group
-    etStringCharGet( pluginElement->listenGroup, hostGroupChar );
-    fullTopic += "/";
-    fullTopic += hostGroupChar;
+    //etStringCharGet( pluginElement->listenGroup, hostGroupChar );
+    //fullTopic += "/";
+    //fullTopic += hostGroupChar;
+	fullTopic += "/";
+	fullTopic += msgGroup;
 
 // topic
     fullTopic += "/";
@@ -443,7 +452,7 @@ sendToAll:
             }
             
         // manipulate the topic
-            if( coCore::setTopic( pluginElement, jsonAnswerObject ) == false ){
+            if( coCore::setTopic( pluginElement, jsonAnswerObject, msgGroup ) == false ){
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' dont provide a topic", pluginElement->plugin->name() );
                 etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
                 continue;

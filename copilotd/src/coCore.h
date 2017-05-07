@@ -54,6 +54,9 @@ public:
 
 public:
 
+// set / get
+    void            setHostName( const char *hostname );
+
 // functions to work with the list
     bool            registerPlugin( coPlugin* plugin, const char *hostName, const char *group );
     bool            removePlugin( coPlugin* plugin );
@@ -79,7 +82,7 @@ private:
     bool            nextAviable();
 
 // some helper stuff
-    static bool     setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject );
+    static bool     setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject, const char* msgGroup );
 
 
 public:
