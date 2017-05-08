@@ -203,8 +203,8 @@ bool mqttService::          connect(){
 
 #ifdef MQTT_ONLY_LOCAL
     mosquitto_subscribe( this->mosq, &subscribeID, "nodes/all/#", 0 );
-	string topic = "nodes/";
-	topic += coCore::ptr->hostInfo->nodename;
+	std::string topic = "nodes/";
+	topic += coCore::ptr->hostInfo.nodename;
 	topic += "/#";
 	mosquitto_subscribe( this->mosq, &subscribeID, topic.c_str(), 0 );
 #else
