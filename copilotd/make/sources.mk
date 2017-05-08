@@ -115,6 +115,9 @@ endif
 ifdef DISABLE_MQTT
 CFLAGS      += -DDISABLE_MQTT
 else
+ifdef MQTT_ONLY_LOCAL
+CFLAGS      += -DMQTT_ONLY_LOCAL
+endif
 sources     += src/plugins/mqttService.cpp
 CLIBS		+= -lmosquitto
 endif
@@ -140,7 +143,7 @@ endif
 default: binary-qt
 
 client:
-	make -f make/Makefile DISABLE_WEBSOCKET=1 binary-qt
+	make -f make/Makefile DISABLE_WEBSOCKET=1 MQTT_ONLY_LOCAL=1 binary-qt
 
 
 install:
