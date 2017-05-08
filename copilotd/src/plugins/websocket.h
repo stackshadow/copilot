@@ -55,7 +55,7 @@ private:
         "copilot",
         websocket::wsCallbackCopilot,
         sizeof( struct clientSessionData),
-        128,
+        4096,
     },/*
     {
         "lws-mirror-protocol",
