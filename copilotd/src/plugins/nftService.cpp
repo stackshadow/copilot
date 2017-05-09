@@ -71,7 +71,7 @@ void nftService::               load(){
     // there is an error, we create an empty element
         this->jsonRootObject = json_object();
     }
-    
+
 // validate file
 
 // the host-object
@@ -89,7 +89,7 @@ void nftService::               load(){
     if( this->jsonChainsObject == NULL ){
         this->jsonChainsObject = json_object();
         json_object_set_new( this->jsonHostObject, "chains", this->jsonChainsObject );
-        
+
     // add default chains
         json_object_set_new( this->jsonChainsObject, "prerouting", json_array() );
         json_object_set_new( this->jsonChainsObject, "input", json_array() );
@@ -97,19 +97,19 @@ void nftService::               load(){
         json_object_set_new( this->jsonChainsObject, "forward", json_array() );
         json_object_set_new( this->jsonChainsObject, "postrouting", json_array() );
     }
-    
+
 
 }
 
 
 bool nftService::               save(){
-    int state = json_dump_file( this->jsonRootObject, 
+    int state = json_dump_file( this->jsonRootObject,
                     nftRuleFile, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-                    
+
     if( state == 0 ){
         return true;
     }
-    
+
     return false;
 }
 
@@ -141,7 +141,7 @@ bool nftService::               nextHost( const char** host ){
 
 // remember the host object
     this->jsonHostObject = json_object_iter_value( this->jsonHostsIterator );
-    
+
 // reset the rest
     this->jsonChainsObject = NULL;
     this->jsonChainsIterator = NULL;
@@ -204,7 +204,7 @@ bool nftService::               nextChain( const char** chainName ){
 
 
 bool nftService::               nextRule( const char **type ){
-    
+
 // end of the list
     if( this->jsonRulesArrayIndex >= this->jsonRulesArrayLen ){
         this->jsonRulesArrayLen = json_array_size( this->jsonRulesArray );
@@ -215,7 +215,7 @@ bool nftService::               nextRule( const char **type ){
 // get the rule
     this->jsonRuleObject = json_array_get( this->jsonRulesArray, this->jsonRulesArrayIndex );
     if( this->jsonRuleObject == NULL ) return false;
-    
+
 // get the type
     json_t*     jsonRuleType = json_object_get( this->jsonRuleObject, "rule" );
     if( jsonRuleType == NULL ) return false;
@@ -225,7 +225,7 @@ bool nftService::               nextRule( const char **type ){
 
 // iterate
     this->jsonRulesArrayIndex++;
-    
+
     return true;
 }
 
@@ -233,13 +233,13 @@ bool nftService::               nextRule( const char **type ){
 
 
 bool nftService::               selectHost( const char* hostName ){
-    
+
     if( this->jsonHostsObject == NULL ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "No hosts in json-file" );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
         return false;
     }
-    
+
     this->jsonHostObject = json_object_get( this->jsonHostsObject, hostName );
     if( this->jsonHostObject == NULL ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Host '%s' not found in json-file.", hostName );
@@ -262,7 +262,7 @@ bool nftService::               selectHost( const char* hostName ){
 bool nftService::               selectChain( const char* chainName ){
 // precheck
     if( this->jsonHostObject == NULL ) return false;
-    
+
 // get the "chains"-object
     if( this->jsonChainsObject == NULL ){
         this->jsonChainsObject = json_object_get( this->jsonHostObject, "chains" );
@@ -292,7 +292,7 @@ bool nftService::               createRuleCommand( std::string* nftCommand, cons
     // vars
     json_t*         jsonString = NULL;
     const char*     jsonStringChar = NULL;
-    
+
 // rule active ?
     jsonString = json_object_get( jsonRule, "active" );
     if( jsonString == NULL ) return false;
@@ -300,10 +300,10 @@ bool nftService::               createRuleCommand( std::string* nftCommand, cons
     if( strncmp(jsonStringChar,"1",1) != 0 ){
         return false;
     }
-    
+
 // create
     *nftCommand = "sudo nft add rule ";
-    
+
 // add family
     jsonString = json_object_get( jsonRule, "family" );
     if( jsonString == NULL ) return false;
@@ -313,9 +313,9 @@ bool nftService::               createRuleCommand( std::string* nftCommand, cons
     } else {
         *nftCommand += "ip6 ";
     }
-    
+
     *nftCommand += "default ";
-    
+
 // add chain
     *nftCommand += chainName;
     *nftCommand += " ";
@@ -324,9 +324,9 @@ bool nftService::               createRuleCommand( std::string* nftCommand, cons
     jsonString = json_object_get( jsonRule, "rule" );
     if( jsonString == NULL ) return false;
     jsonStringChar = json_string_value( jsonString );
-    
+
     *nftCommand += jsonStringChar;
-    
+
     return true;
 }
 
@@ -339,9 +339,9 @@ bool nftService::               applyChain( const char* chainName, const char* c
 
 
     if( this->selectChain(chainName) == true ){
-        
+
     // add ip ( v4 ) chain
-        command  = "nft add chain ip default ";
+        command  = "sudo nft add chain ip default ";
         command += chainName;
         command += " { type ";
         command += chainType;
@@ -357,7 +357,7 @@ bool nftService::               applyChain( const char* chainName, const char* c
         }
 
     // add ip ( v6 ) chain
-        command  = "nft add chain ip6 default ";
+        command  = "sudo nft add chain ip6 default ";
         command += chainName;
         command += " { type ";
         command += chainType;
@@ -385,13 +385,13 @@ bool nftService::               applyChain( const char* chainName, const char* c
             }
         }
     }
-    
+
     return true;
 }
 
 
 bool nftService::               applyRules( const char* hostName, json_t* jsonAnswerObject ){
-    
+
 // vars
     int             returnValue = -1;
     std::string     command;
@@ -404,7 +404,7 @@ bool nftService::               applyRules( const char* hostName, json_t* jsonAn
 // save the original rules
     //sudo nft list ruleset > /tmp/fw.rules
     //sudo nft -f /tmp/fw.rules
-    
+
 
 //
     returnValue = system( "sudo nft flush ruleset" );
@@ -414,7 +414,7 @@ bool nftService::               applyRules( const char* hostName, json_t* jsonAn
         json_object_set_new( jsonAnswerObject, "payload", json_string("Could not flush rules") );
         return false;
     }
-    
+
 // create tables
     returnValue = system( "sudo nft add table ip default" );
     fprintf( stdout, "nft: sudo nft add table ip default\n" );
@@ -437,8 +437,8 @@ bool nftService::               applyRules( const char* hostName, json_t* jsonAn
     if( this->applyChain( "forward",        "filter",   jsonAnswerObject ) == false ) return false;
     if( this->applyChain( "output",         "filter",   jsonAnswerObject ) == false ) return false;
     if( this->applyChain( "postrouting",    "nat",      jsonAnswerObject ) == false ) return false;
-    
-    
+
+
     json_object_set_new( jsonAnswerObject, "topic", json_string("msgInfo") );
     json_object_set_new( jsonAnswerObject, "payload", json_string("Rules active.") );
     return true;
@@ -447,10 +447,10 @@ bool nftService::               applyRules( const char* hostName, json_t* jsonAn
 
 
 
-bool nftService::               onBroadcastMessage(     const char*     msgHostName, 
-                                                        const char*     msgGroup, 
-                                                        const char*     msgCommand, 
-                                                        const char*     msgPayload, 
+bool nftService::               onBroadcastMessage(     const char*     msgHostName,
+                                                        const char*     msgGroup,
+                                                        const char*     msgCommand,
+                                                        const char*     msgPayload,
                                                         json_t*         jsonAnswerObject ){
 
     std::string     answerTopic;
@@ -501,7 +501,7 @@ bool nftService::               onBroadcastMessage(     const char*     msgHostN
 
         json_object_set_new( jsonAnswerObject, "topic", json_string("chains") );
         json_object_set_new( jsonAnswerObject, "payload", json_string(jsonString) );
-        
+
         free( (void*)jsonString );
         return true;
     }
@@ -516,17 +516,17 @@ bool nftService::               onBroadcastMessage(     const char*     msgHostN
     // get the host
         if( this->selectHost(msgHostName) == false ) return false;
 
-        
+
     // because jsonPayload is a string, we need to reparse it
         if( msgPayload == NULL ) return false;
         msgPayloadLen = strlen(msgPayload);
         jsonChains = json_loads( msgPayload, msgPayloadLen, &jsonError );
         if( jsonError.column >= 0 ) return false;
-        
-        
+
+
     // overwrite with new chains
         json_object_set_new( this->jsonHostObject, "chains", jsonChains );
-        
+
     // save it to the file
         this->save();
 
