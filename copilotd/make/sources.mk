@@ -103,6 +103,7 @@ CLIBS		+= $(shell pkg-config --libs libsodium)
 # websocket
 ifdef DISABLE_WEBSOCKET
 CFLAGS      += -DDISABLE_WEBSOCKET
+CFLAGS      += -Dwebsocket_H
 else
 sources     += src/plugins/websocket.cpp
 #sourcesQT   += src/plugins/websocketClient.cpp
@@ -130,6 +131,7 @@ endif
 
 ifdef DISABLE_LDAP
 CFLAGS      += -DDISABLE_LDAP
+CFLAGS      += -DldapService_H
 else
 sources     += src/plugins/ldapService.cpp
 CLIBS		+= -lldap
@@ -149,3 +151,7 @@ client:
 install:
 	cp $(buildPath)/app /usr/bin/copilotd
 	cp $(sourcePath)/copilotd.service /lib/systemd/system/copilotd.service
+	useradd -U -m -s /usr/bin/nologin copilot
+	mkdir -p /etc/copilot
+	chown -R copilot:copilot /etc/copilot
+	cp $(sourcePath)/sudoers /etc/sudoers.d/copilot

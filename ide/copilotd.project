@@ -2,7 +2,7 @@
 <CodeLite_Project Name="copilotd" Version="10.0.0" InternalType="Console">
   <Plugins>
     <Plugin Name="qmake">
-      <![CDATA[00010001N0005Debug000000000000]]>
+      <![CDATA[00020001N0006Client0000000000000001N0005Debug000000000000]]>
     </Plugin>
   </Plugins>
   <VirtualDirectory Name="copilotd">
@@ -1814,7 +1814,6 @@
           </VirtualDirectory>
           <VirtualDirectory Name="core">
             <File Name="../copilotd/libs/evillib/core/core/etIDState.c"/>
-            <File Name="../copilotd/libs/evillib/core/core/etObject.c"/>
             <File Name="../copilotd/libs/evillib/core/core/etDebug.c"/>
             <File Name="../copilotd/libs/evillib/core/core/etDebug.h"/>
             <File Name="../copilotd/libs/evillib/core/core/etIDState.h"/>
@@ -2204,6 +2203,8 @@
     <File Name="../copilotd/doDBDConnections.json"/>
     <File Name="../copilotd/test.sqlite"/>
     <File Name="../copilotd/copilotd.service"/>
+    <File Name="../copilotd/README.md"/>
+    <File Name="../copilotd/sudoers"/>
   </VirtualDirectory>
   <Description/>
   <Dependencies/>
@@ -2263,7 +2264,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="/tmp/dodbd-ws/build/app" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/usr/src/projekte/copilot" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="/tmp/dodbd-ws/build/app" CommandArguments="--debug" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="/usr/src/projekte/copilot" PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="GNU makefile onestep build"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -2278,8 +2279,7 @@
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
         <CleanCommand>make -f make/Makefile clean</CleanCommand>
-        <BuildCommand>export DISABLE_MQTT=1 \
-export DISABLE_LDAP=1 \
+        <BuildCommand>export DISABLE_LDAP=1 \
 export _DEBUG=1 \
 make -f make/Makefile binary-qt-dbg</BuildCommand>
         <PreprocessFileCommand/>

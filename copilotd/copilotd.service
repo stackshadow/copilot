@@ -3,6 +3,8 @@ Description=copilot-daemon
 #Documentation=man:bluetoothd(8)
 
 [Service]
+User=copilot
+Group=copilot
 Type=simple
 ExecStart=/usr/bin/copilotd
 
