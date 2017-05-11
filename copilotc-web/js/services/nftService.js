@@ -62,7 +62,11 @@ function nftOnMessage( topicHostName, topicGroup, topicCommand, payload ){
 
 
     if( topicCommand == "chains" ){
-        nftTableAppendRules( payload );
+    // we need to parse the string to json
+        var jsonPayload = JSON.parse(payload);
+        if( jsonPayload === null || jsonPayload === undefined ) return;
+        
+        nftTableAppendRules( jsonPayload );
         return;
     }
     if( topicCommand == "saveok" ){

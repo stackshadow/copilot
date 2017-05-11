@@ -22,7 +22,7 @@ var coreService = {};
 coreService.id = "auth";
 coreService.displayName = "Login-Service";
 coreService.listenGroup = "co";
-coreService.onAuth = null;
+coreService.onAuth = authOnAuth;
 coreService.onConnect = authOnConnect;
 coreService.onDisconnect = authOnDisconnect;
 coreService.onMessage = authOnMessage;
@@ -40,6 +40,8 @@ htmlLoadFile( "output", "html/authDialog.html" );
 
 function authOnConnect(){
 
+
+
 }
 function authOnDisconnect(){
 
@@ -50,7 +52,20 @@ function authOnMessage( topicHostName, topicGroup, topicCommand, payload ){
     if( topicCommand == "loginok" ) authDialogLoginOk();
 
 }
+function authOnAuth( service ){
 
+// hide the dialog
+    $("#loginDialog").modal('hide');
+    
+// change the Login-Button to Logout
+    var htmlBtnConnect =  document.getElementById( "btnAuthConnect" );
+    htmlConnState.innerHTML = "<span class=\"glyphicon glyphicon-log-out\"></span> Logout";
+    htmlConnState.onclick = function(){ authDialogLogout(); }
+
+// send ping to connected services ( to get a list of connected hosts )
+    copilotPing();
+
+}
 
 
 function authDialogShow(){
@@ -75,13 +90,7 @@ function authDialogLogin(){
 
 function authDialogLoginOk(){
 
-// hide the dialog
-    $("#loginDialog").modal('hide');
 
-// change the Login-Button to Logout
-    var htmlBtnConnect =  document.getElementById( "btnAuthConnect" );
-    htmlConnState.innerHTML = "<span class=\"glyphicon glyphicon-log-out\"></span> Logout";
-    htmlConnState.onclick = function(){ authDialogLogout(); }
 
 // iterate
     for( serviceName in copilot.services ){
@@ -94,6 +103,7 @@ function authDialogLoginOk(){
         }
 
     }
+
 
 }
 

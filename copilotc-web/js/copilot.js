@@ -19,8 +19,10 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 var copilot = {};
 copilot.ws = null;
+copilot.wsConnected = false;
 copilot.hostnames = {};
 copilot.services = [];
+
 
 /**
 @brief Load java-script file and init
@@ -168,7 +170,7 @@ function            connStateCreate(){
 
 // core settings
     htmlNavElement = document.createElement( "div" );
-    htmlNavElement.innerHTML = "MQTT-Settings";
+    htmlNavElement.innerHTML = "<a href='#' onclick=\"copilotPing()\">Ping</a>";
     
     settingAppend( htmlNavElement );
 
@@ -203,7 +205,6 @@ function            settingAppend( htmlElement ){
 }
 
 
-var wsConnected = false;
 var wsTopicBase = "nodes/develop-arch/";
 
 
@@ -223,14 +224,18 @@ function            wsServiceRegister( service ){
 
 function            wsConnect(){
 
+// already connected ?
+    if( copilot.wsConnected == true ) return;
+    
     if ("WebSocket" in window){
 
     // notificate the user
         messageInfo( "Verbinde...");
 
     // Let us open a web socket
-        wsConnected = false;
-        copilot.ws = new WebSocket("ws://[::]:3000");
+        copilot.wsConnected = false;
+        //copilot.ws = new WebSocket("ws://[::]:3000", "copilot" );
+        copilot.ws = new WebSocket("ws://127.0.0.1:3000", "copilot" );
         console.log( copilot.ws );
         copilot.ws.onopen = wsOnOpen
         copilot.ws.onmessage = wsOnMessage
@@ -241,19 +246,24 @@ function            wsConnect(){
     }
 
 }
+function            wsDisconnect(){
+    
+    copilot.ws.close();
+    copilot.ws = null;
+    copilot.wsConnected = false;
+}
 function            wsMessageSend( topicHostName, topicGroup, topicCommand, payload ){
 
 // connected ?
-    if( wsConnected == false ){
+    if( copilot.wsConnected == false ){
         messageLog( "websocket send", "Could not send, not connected" );
         return;
     }
 
 //
     if( topicHostName === null || topicHostName === undefined ){
-        topicHostName = location.hostname;
-        topicHostName = Request.UserHostName;
-        topicHostName = "develop-arch";
+        topicHostName = copilot.myhostname
+        //topicHostName = "develop-arch";
     }
 
 // command
@@ -267,15 +277,10 @@ function            wsMessageSend( topicHostName, topicGroup, topicCommand, payl
 
     copilot.ws.send( commandString );
 }
-function            wsDisconnect(){
-    
-    copilot.ws.close();
-    copilot.ws = null;
-    wsConnected = false;
-}
+
 
 function            wsOnOpen(){
-    wsConnected = true;
+    copilot.wsConnected = true;
     connStateConnected();
     messageInfo( "Verbunden", 4 );
 
@@ -287,15 +292,15 @@ function            wsOnOpen(){
         }
     }
 
-// send ping to connected services ( to get a list of connected hosts )
-    wsMessageSend( "all", "co", "ping", JSON.stringify({}) );
+// we request the hostname ( the only function wich works without login )
+    copilotGetHostName();
 
 }
 function            wsOnClose(){
 // websocket is closed.
     connStateDisConnected();
     messageAlert( "Getrennt" );
-    wsConnected = false;
+    copilot.wsConnected = false;
 
     for( serviceName in copilot.services ){
         service = copilot.services[serviceName];
@@ -329,20 +334,27 @@ function            wsOnMessage( evt ){
 
 // core commands
     if( jsonObject.topic.endsWith( "msgInfo" ) == true ){
-        var message = jsonObject.payload.message;
+        var message = jsonObject.payload;
         if( message === undefined ) return;
-        messageInfo( message );
+        messageInfo( message, 10 );
     }
     if( jsonObject.topic.endsWith( "msgError" ) == true ){
-        var message = jsonObject.payload.message;
+        var message = jsonObject.payload;
         if( message === undefined ) return;
         messageAlert( message );
     }
+
+    if( topicGroup == "co" && topicCommand == "hostname" ){
+        copilot.myhostname = topicHostName;
+    }
+
     if( topicGroup == "co" && topicCommand == "pong" ){
         copilot.hostnames[topicHostName] = "";
     }
 
-// iterate
+
+
+// send message to all services
     for( serviceName in copilot.services ){
 
     // get the service
@@ -350,15 +362,16 @@ function            wsOnMessage( evt ){
 
     // only call plugin if it listen on this group
         if( service.listenGroup === undefined ){
-            messageLog( "core", service.displayName + " don't have a listenGroup, do nothing" );
             continue;
         }
-        if( topicGroup != service.listenGroup ){
+        if( topicGroup != service.listenGroup && service.listenGroup != "" ){
             continue;
         }
-        
+
     // call the function
-        service.onMessage( topicHostName, topicGroup, topicCommand, jsonObject.payload );
+		if( service.onMessage !== null && service.onMessage !== undefined ){
+			service.onMessage( topicHostName, topicGroup, topicCommand, jsonObject.payload );
+		}
 
 
     }
@@ -366,6 +379,16 @@ function            wsOnMessage( evt ){
 
 
 };
+
+
+function            copilotGetHostName(){
+    wsMessageSend( "localhost", "co", "gethostname", JSON.stringify({}) );
+}
+function            copilotPing(){
+    wsMessageSend( "all", "co", "ping", JSON.stringify({}) );
+}
+
+
 
 /*
 <div class="alert alert-info" id="message">
@@ -383,6 +406,7 @@ function            wsOnMessage( evt ){
 messageCreate();
 connStateCreate();
 
-// connect to websocket
+// we connect to the websocket
 wsConnect();
+
 

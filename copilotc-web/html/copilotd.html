@@ -1,0 +1,33 @@
+
+<div id="copilotd" class="container col-md-12">
+
+    <h2>Hosts
+		<div class='btn-group'>
+			<button type='button' class='btn btn-primary' onclick="copilotdPing()">Ping</button>
+		</div>
+	</h2>
+
+
+    <table id="nftChainTable" class="table table-striped" >
+
+        <thead>
+            <tr>
+                <th>Hostname</th>
+                <th>Copilot-Version</th>
+                <th>Aktion</th>
+            </tr>
+        </thead>
+
+        <tbody id="copilotd_hosts_values"></tbody>
+
+    </table>
+
+	<h2>MQTT</h2>
+	<h3>
+		<button type="button" class="btn btn-primary">MQTT-Clients <span id="mqttClientCount" class="badge">0</span></button>
+		<span id="mqttClientState" class="label label-default">unknown state</span>
+	</h3>
+
+
+</div>
+
