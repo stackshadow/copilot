@@ -55,7 +55,7 @@ int main( int argc, char *argv[] ){
 
 // create the core which contains all services
     coCore*         newcoCore = new coCore();
-    
+
 // parse options
     int optionSelected = 0;
     while( optionSelected >= 0 ) {
@@ -66,7 +66,7 @@ int main( int argc, char *argv[] ){
         switch ( optionSelected ) {
             case '?':
                 exit(1);
-                
+
             case 'd':
                 etDebugLevelSet( etID_LEVEL_ALL );
                 break;
@@ -74,6 +74,7 @@ int main( int argc, char *argv[] ){
             case 'h':
                 fprintf( stdout, "Usage: %s\n", argv[0] );
                 fprintf( stdout, "--help: Show this help\n" );
+				fprintf( stdout, "--debug: Enable debug messages\n" );
                 fprintf( stdout, "--hostname <hostname>: Set the hostname ( not detect it automatically )\n" );
                 exit(1);
 
@@ -96,7 +97,7 @@ int main( int argc, char *argv[] ){
 #ifndef DISABLE_MQTT
     mqttService*    mqqtPlugin = new mqttService();
 #endif
-    
+
 #ifndef DISABLE_WEBSOCKET
     websocket*      wsPlugin = new websocket( 3000 );
 #endif

@@ -50,25 +50,25 @@ ldapService::                   ldapService() : coPlugin( "ldap" ) {
 
     tempString = this->userdn.substr(3);
     this->orgaAdd( tempString.c_str() );
-    
 
-    tempString = this->groupdn.substr(3); 
+
+    tempString = this->groupdn.substr(3);
     this->orgaAdd( tempString.c_str() );
 
-    
+
     this->userAdd( "testuser" );
 }
 
 
 ldapService::                   ~ldapService(){
-    
+
 }
 
 
 bool ldapService::              configLoad(){
 
     json_error_t jsonError;
-    this->jsonObjectConfig = json_load_file( "/etc/copilot/ldap.json", JSON_PRESERVE_ORDER, &jsonError );
+    this->jsonObjectConfig = json_load_file( configFile("ldap.json"), JSON_PRESERVE_ORDER, &jsonError );
     if( jsonError.position == 0 || jsonError.line >= 0 ){
         this->jsonObjectConfig = json_object();
     }
@@ -80,7 +80,7 @@ bool ldapService::              configLoad(){
 
 
 bool ldapService::              configToJson( json_t* jsonObject ){
-    
+
     coCore::jsonValue( jsonObject, "uri", &this->uri, "ldap://localhost/", true );
 
     coCore::jsonValue( jsonObject, "logindn", &this->logindn, "cn=Manager,dc=evilbrain,dc=de", true );
@@ -122,11 +122,11 @@ bool ldapService::              connect(){
     if( returnCode != LDAP_SUCCESS ){
         return false;
     }
-    
+
 // set protocoll version
-    
+
     returnCode = ldap_set_option( this->ldapConnection, LDAP_OPT_PROTOCOL_VERSION, (void*)&ldapVersion );
-    
+
     returnCode = ldap_set_option( this->ldapConnection, LDAP_OPT_NETWORK_TIMEOUT, (void*)&ldapTimeout );
 
 
@@ -159,9 +159,9 @@ bool ldapService::              connect(){
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "Connected" );
     etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
 
-  
-    
-    
+
+
+
 }
 
 
@@ -190,9 +190,9 @@ ldap_search_ext_s LDAP_P((
 	int				sizelimit,
 	LDAPMessage		**res ));
 */
-    returnCode = ldap_search_ext_s( 
-        this->ldapConnection, 
-        dn, 
+    returnCode = ldap_search_ext_s(
+        this->ldapConnection,
+        dn,
         LDAP_SCOPE_BASE,
         NULL,
         NULL,
@@ -209,7 +209,7 @@ ldap_search_ext_s LDAP_P((
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
         return false;
     }
-        
+
 // check if something was returned
     actualMessage = ldap_first_entry( this->ldapConnection, returnMessage );
     while( actualMessage != NULL ){
@@ -224,12 +224,12 @@ ldap_search_ext_s LDAP_P((
 bool ldapService::              iterate( const char* searchBase ){
 // not connected
     if( this->connected == false ) return false;
-    
+
 
 // search
-    ldap_search_ext_s( 
-        this->ldapConnection, 
-        searchBase, 
+    ldap_search_ext_s(
+        this->ldapConnection,
+        searchBase,
         LDAP_SCOPE_SUBTREE,
         NULL,
         NULL,
@@ -238,14 +238,14 @@ bool ldapService::              iterate( const char* searchBase ){
         NULL,
         &this->searchTimeout,
         10,
-        &this->resultMessages 
+        &this->resultMessages
     );
 
 }
 
 
 bool ldapService::              dump( LDAPMessage* actualMessage ){
-    
+
 // vars
     const char*     entryDN = NULL;
     BerElement*     attributes = NULL;
@@ -292,12 +292,12 @@ bool ldapService::              dumpAll(){
 // iterate over messages
     actualMessage = ldap_first_entry( this->ldapConnection, this->resultMessages );
     while( actualMessage != NULL ){
-        
+
         entryDN = ldap_get_dn( this->ldapConnection, actualMessage );
 
     // dump the entry
         this->dump( actualMessage );
-        
+
         actualMessage = ldap_next_entry( this->ldapConnection, actualMessage );
     }
 }
@@ -319,7 +319,7 @@ bool ldapService::              purge(){
 // iterate over messages
     actualMessage = ldap_first_entry( this->ldapConnection, this->resultMessages );
     while( actualMessage != NULL ){
-        
+
         entryDN = ldap_get_dn( this->ldapConnection, actualMessage );
 
         ldap_delete_ext_s( this->ldapConnection, entryDN, NULL, NULL );
@@ -348,18 +348,18 @@ bool ldapService::              orgaAdd( const char *orgaName, const char* base 
     modattr_class1.mod_type = (char*)"objectClass";
     modattr_class1.mod_vals.modv_strvals = modattr_class1_values;
 
-// attribute - ou    
+// attribute - ou
     LDAPMod modattr_ou;
     char*   modattr_ou_values[] = { (char*)orgaName, NULL };
-    
+
     modattr_ou.mod_op = LDAP_MOD_ADD;
     modattr_ou.mod_type = (char*)"ou";
     modattr_ou.mod_vals.modv_strvals = modattr_ou_values;
-    
+
     mods[0] = &modattr_class1;
     mods[1] = &modattr_ou;
     mods[2] = NULL;
-    
+
 // build dn
     fullDN  = "ou=";
     fullDN += orgaName;
@@ -383,7 +383,7 @@ bool ldapService::              orgaAdd( const char *orgaName, const char* base 
 
 
 bool ldapService::              groupAdd( const char *name, const char* description, const char *firstMember ){
-    
+
 
 
 // create account-group
@@ -399,18 +399,18 @@ bool ldapService::              groupAdd( const char *name, const char* descript
     modattr_class1.mod_type = (char*)"objectClass";
     modattr_class1.mod_vals.modv_strvals = modattr_class1_values;
 
-// attribute - cn    
+// attribute - cn
     LDAPMod modattr_cn;
     char*   modattr_cn_values[] = { (char*)name, NULL };
-    
+
     modattr_cn.mod_op = LDAP_MOD_ADD;
     modattr_cn.mod_type = (char*)"cn";
     modattr_cn.mod_vals.modv_strvals = modattr_cn_values;
 
-// attribute - member    
+// attribute - member
     LDAPMod modattr_ou;
     char*   modattr_ou_values[] = { (char*)firstMember, NULL };
-    
+
     modattr_ou.mod_op = LDAP_MOD_ADD;
     modattr_ou.mod_type = (char*)"member";
     modattr_ou.mod_vals.modv_strvals = modattr_ou_values;
@@ -421,7 +421,7 @@ bool ldapService::              groupAdd( const char *name, const char* descript
     mods[1] = &modattr_cn;
     mods[2] = &modattr_ou;
     mods[3] = NULL;
-    
+
 // build dn
     fullDN  = "cn=";
     fullDN += name;
@@ -437,13 +437,13 @@ bool ldapService::              groupAdd( const char *name, const char* descript
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
         return false;
     }
-    
+
     return true;
 }
 
 
 bool ldapService::              userAdd( const char *name ){
-    
+
 
 
 // create account-group
@@ -463,16 +463,16 @@ bool ldapService::              userAdd( const char *name ){
 // attribute - uid
     LDAPMod modattr_uid;
     char*   modattr_uid_values[] = { (char*)name, NULL };
-    
+
     modattr_uid.mod_op = LDAP_MOD_ADD;
     modattr_uid.mod_type = (char*)"uid";
     modattr_uid.mod_vals.modv_strvals = modattr_uid_values;
 
 /*
-// attribute - member    
+// attribute - member
     LDAPMod modattr_ou;
     char*   modattr_ou_values[] = { (char*)firstMember, NULL };
-    
+
     modattr_ou.mod_op = LDAP_MOD_ADD;
     modattr_ou.mod_type = (char*)"member";
     modattr_ou.mod_vals.modv_strvals = modattr_ou_values;
@@ -500,7 +500,7 @@ bool ldapService::              userAdd( const char *name ){
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
         return false;
     }
-    
+
     return true;
 }
 

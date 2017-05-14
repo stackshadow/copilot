@@ -33,6 +33,16 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coPluginElement.h"
 
 
+
+#define baseFilePath /etc/copilot/services/
+
+#define STR_HELPER(x) #x
+#define STR(x) STR_HELPER(x)
+#define configFile(a) STR(baseFilePath) a
+
+
+
+
 class coCore {
 
 public:
@@ -61,7 +71,7 @@ public:
     bool            registerPlugin( coPlugin* plugin, const char *hostName, const char *group );
     bool            removePlugin( coPlugin* plugin );
     void            listPlugins( json_t* pluginNameArray );
-    
+
 
 // helper functions
     static bool     jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson );
@@ -86,12 +96,12 @@ private:
 
 
 public:
-    void            broadcast( 
-                        coPlugin*       source, 
-                        const char*     msgHostName, 
-                        const char*     msgGroup, 
-                        const char*     msgCommand, 
-                        const char*     msgPayload 
+    void            broadcast(
+                        coPlugin*       source,
+                        const char*     msgHostName,
+                        const char*     msgGroup,
+                        const char*     msgCommand,
+                        const char*     msgPayload
                     );
 
 

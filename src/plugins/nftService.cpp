@@ -23,7 +23,6 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coCore.h"
 #include "plugins/nftService.h"
 
-#define nftRuleFile "/etc/copilot/nftrules.json"
 
 nftService::                    nftService() : coPlugin( "nft" ) {
 
@@ -65,7 +64,7 @@ nftService::                    ~nftService(){
 void nftService::               load(){
 
     json_error_t jsonError;
-    this->jsonRootObject = json_load_file( nftRuleFile, JSON_PRESERVE_ORDER, &jsonError );
+    this->jsonRootObject = json_load_file( configFile("nftrules.json"), JSON_PRESERVE_ORDER, &jsonError );
     if( jsonError.position == 0 || jsonError.line >= 0 ){
 
     // there is an error, we create an empty element
@@ -104,7 +103,7 @@ void nftService::               load(){
 
 bool nftService::               save(){
     int state = json_dump_file( this->jsonRootObject,
-                    nftRuleFile, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+                    configFile("nftrules.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     if( state == 0 ){
         return true;

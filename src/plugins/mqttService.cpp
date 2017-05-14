@@ -29,6 +29,7 @@ mqttService::               mqttService() : coPlugin( "mqttService" ){
 // save
     mqttService::ptr = this;
 
+
 // register this plugin
     coCore::ptr->registerPlugin( this, "", "" );
 
@@ -86,8 +87,9 @@ bool mqttService::          configLoad(){
     const char*     hostName;
     int             hostNameLen = 0;
 
+
 // load from file
-    this->jsonConfigRoot = json_load_file( "/etc/copilot/mqtt.json", JSON_PRESERVE_ORDER, &jsonError );
+    this->jsonConfigRoot = json_load_file( configFile("mqtt.json"), JSON_PRESERVE_ORDER, &jsonError );
     if( jsonError.position == 0 || jsonError.line >= 0 ){
         this->jsonConfigRoot = json_object();
 
@@ -111,7 +113,7 @@ bool mqttService::          configLoad(){
 // port
     jsonValue = json_object_get( this->jsonConfigRoot, "port" );
     if( jsonValue == NULL ){
-        jsonValue = json_integer( 1883 );
+        jsonValue = json_integer( 5883 );
         json_object_set_new( this->jsonConfigRoot, "port", jsonValue );
         saveIt = true;
     }

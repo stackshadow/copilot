@@ -52,7 +52,7 @@ coCore::                    coCore(){
 coCore::                    ~coCore(){
 
     coPluginElement*    pluginElement = NULL;
-    
+
     this->pluginsIterate();
     while( this->pluginNext(&pluginElement) == true ){
         delete pluginElement->plugin;
@@ -84,7 +84,7 @@ bool coCore::               registerPlugin( coPlugin* plugin, const char *hostNa
     etStringCharSet( listELement->listenHostName, hostName, -1 );
     etStringCharSet( listELement->listenGroup, group, -1 );
     listELement->plugin = plugin;
-    
+
 // debug
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "Register Plugin: %s", pluginName );
     etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
@@ -167,11 +167,11 @@ bool coCore::               pluginNext( coPluginElement** pluginElement ){
 bool coCore::               pluginNext( coPlugin **plugin ){
 
     coPluginElement*    listELement = NULL;
-    
+
     if( etListIterateNext( this->iterator, listELement ) == etID_YES ){
         *plugin = listELement->plugin;
         return true;
-    }        
+    }
 
 
     *plugin = NULL;
@@ -180,11 +180,11 @@ bool coCore::               pluginNext( coPlugin **plugin ){
 
 
 bool coCore::               pluginElementGet( coPlugin* plugin, coPluginElement** pluginElement ){
-    
+
 // vars
     void*               tempIterator;
     coPluginElement*    listELement = NULL;
-    
+
     etListIterate( this->pluginList, tempIterator );
     while( etListIterateNext( tempIterator, listELement ) == etID_YES ){
 
@@ -194,7 +194,7 @@ bool coCore::               pluginElementGet( coPlugin* plugin, coPluginElement*
         }
 
     }
-    
+
     return false;
 }
 
@@ -244,10 +244,10 @@ bool coCore::               setTopic( coPluginElement* pluginElement, json_t* js
 // topic
     fullTopic += "/";
     fullTopic += json_string_value(jsonTopic);
-    
+
 // write it back
     json_object_set_new( jsonAnswerObject, "topic", json_string(fullTopic.c_str()) );
-    
+
     return true;
 }
 
@@ -260,7 +260,7 @@ bool coCore::               jsonValue( json_t* jsonObject, const char* key, char
 // from value to json
     if( toJson == true ){
         json_object_set_new( jsonObject, key, json_string(value) );
-    } 
+    }
 
 // from json to value
     else {
@@ -284,21 +284,21 @@ bool coCore::               jsonValue( json_t* jsonObject, const char* key, char
 
 
 bool coCore::               jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson ){
-    
+
 // vars
     json_t*     jsonValue = NULL;
 
 // from value to json
     if( toJson == true ){
         json_object_set_new( jsonObject, key, json_string(value->c_str()) );
-    } 
+    }
 
 // from json to value
     else {
 
     // clean
         value->clear();
-        
+
 
     // set
         jsonValue = json_object_get( jsonObject, key );
@@ -325,11 +325,11 @@ bool coCore::               passwordCheck( const char* user, const char* pass ){
     int             jsonPasswordLen = 0;
 
 // open the file
-    jsonAuthObject = json_load_file( "/etc/copilot/auth.json", JSON_PRESERVE_ORDER, &jsonError );
+    jsonAuthObject = json_load_file( configFile("auth.json"), JSON_PRESERVE_ORDER, &jsonError );
     if( jsonAuthObject == NULL ){
         jsonAuthObject = json_object();
         json_object_set_new( jsonAuthObject, "type", json_string("plain") );
-        json_dump_file( jsonAuthObject, "/etc/copilot/auth.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        json_dump_file( jsonAuthObject, configFile("auth.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
     }
 
 // try to get the user
@@ -343,10 +343,10 @@ bool coCore::               passwordCheck( const char* user, const char* pass ){
         jsonPassword = json_string_value( jsonPasswordObject );
         jsonPasswordLen = strlen( jsonPassword );
     }
-    
+
 // no password provided yet, set it
     if( jsonPasswordLen == 0 ){
-        
+
     // create the hashed password
         char hashed_password[crypto_pwhash_scryptsalsa208sha256_STRBYTES];
         if( crypto_pwhash_scryptsalsa208sha256_str( hashed_password, pass, strlen(pass),
@@ -354,10 +354,10 @@ bool coCore::               passwordCheck( const char* user, const char* pass ){
                 crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE) == 0) {
             json_object_set_new( jsonUserObject, "salsa208sha256", json_string(hashed_password) );
         }
-        
+
     // save the auth-file
-        json_dump_file( jsonAuthObject, "/etc/copilot/auth.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-        
+        json_dump_file( jsonAuthObject, configFile("auth.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+
     // recalc password-stuff
         jsonPassword = hashed_password;
         jsonPasswordLen = strlen( jsonPassword );
@@ -375,7 +375,7 @@ bool coCore::               passwordCheck( const char* user, const char* pass ){
 
 
 bool coCore::               passwordChange( const char* user, const char* oldpw, const char* newpw ){
-    
+
 }
 
 
@@ -450,7 +450,7 @@ sendToAll:
                 etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
                 break;
             }
-            
+
         // manipulate the topic
             if( coCore::setTopic( pluginElement, jsonAnswerObject, msgGroup ) == false ){
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' dont provide a topic", pluginElement->plugin->name() );
