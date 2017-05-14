@@ -1,5 +1,7 @@
 [Unit]
 Description=OpenSSH Daemon for copilotd as client
+Wants=copilotd-ssh-keygen.service
+After=copilotd-ssh-keygen.service
 ConditionPathExists=|/usr/bin
 After=network.target
 
@@ -11,7 +13,7 @@ ExecStart=/usr/bin/ssh -NTC \
 -o StrictHostKeyChecking=no \
 -o Port=5882 \
 -L 127.0.0.1:5883 \
--i /home/copilot/copilot-mqtt_ed25519 \
+-i /etc/copilot/sshd_clientkey_ed25519 \
 copilot@server
 
 # Restart every >2 seconds to avoid StartLimitInterval failure

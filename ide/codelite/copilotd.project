@@ -80,6 +80,7 @@
       <File Name="../../src/client/copilotd.service"/>
       <File Name="../../src/client/sudoers"/>
       <File Name="../../src/client/copilotd-ssh.service"/>
+      <File Name="../../src/client/copilotd-ssh-keygen.service"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="copilotd">

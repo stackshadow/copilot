@@ -165,6 +165,9 @@ $(prefix)/lib/systemd/system/copilotd-ssh.service:
 	@ServerName=$(shell read -p "Enter the Server IP or Server-Name ( like dyndns.test.com ): ";echo $$REPLY) ;\
 	sed -e "s/copilot@server/copilot@$$ServerName/" src/client/copilotd-ssh.service > $@
 
+clientTargets += $(prefix)/lib/systemd/system/copilotd-ssh-keygen.service
+$(prefix)/lib/systemd/system/copilotd-ssh-keygen.service: src/client/copilotd-ssh-keygen.service
+	@cp -v $< $@
 
 install-client: client $(clientTargets)
 	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
