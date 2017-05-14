@@ -1,0 +1,11 @@
+[Unit]
+Description=SSH Key Generation
+ConditionPathExists=|!/etc/copilot/sshd_hostkey_ed25519
+ConditionPathExists=|!/etc/copilot/sshd_hostkey_ed25519.pub
+
+[Service]
+User=copilot
+Group=copilot
+ExecStart=/usr/bin/ssh-keygen -t ed25519 -f /etc/copilot/sshd_hostkey_ed25519
+Type=oneshot
+RemainAfterExit=yes

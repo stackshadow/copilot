@@ -1,0 +1,16 @@
+[Unit]
+Description=OpenSSH Daemon for copilotd
+Wants=copilotd-sshd-keygen.service
+After=copilotd-sshd-keygen.service
+After=network.target
+
+[Service]
+User=copilot
+Group=copilot
+ExecStart=/usr/bin/sshd -f /etc/copilot/sshd_copilotd.conf
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

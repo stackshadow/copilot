@@ -1,0 +1,22 @@
+[Unit]
+Description=OpenSSH Daemon for copilotd as client
+ConditionPathExists=|/usr/bin
+After=network.target
+
+[Service]
+User=root
+ExecStart=/usr/bin/ssh -NTC \
+-o ServerAliveInterval=60 \
+-o ExitOnForwardFailure=yes \
+-o StrictHostKeyChecking=no \
+-o Port=5882 \
+-L 127.0.0.1:5883 \
+-i /home/copilot/copilot-mqtt_ed25519 \
+copilot@server
+
+# Restart every >2 seconds to avoid StartLimitInterval failure
+RestartSec=3
+Restart=always
+
+[Install]
+WantedBy=multi-user.target

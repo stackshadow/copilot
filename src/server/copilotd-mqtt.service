@@ -1,0 +1,13 @@
+[Unit]
+Description=Mosquitto MQTT Broker daemon for copilotd
+Requires=network.target
+
+[Service]
+User=copilot
+Group=copilot
+ExecStart=/usr/bin/mosquitto -c /etc/copilot/mqtt-server.conf
+ExecReload=/bin/kill -HUP $MAINPID
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

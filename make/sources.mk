@@ -53,8 +53,8 @@ sourcesUI =
 MOC = moc
 
 sourcePath	= .
-buildPath   = /tmp/dodbd-ws/build
-targetPath  = /tmp/dodbd-ws/target
+buildPath   = /tmp/copilotd/build
+targetPath  = /tmp/copilotd/target
 
 
 
@@ -100,6 +100,17 @@ CLIBS		+= $(shell pkg-config --libs libsodium)
 
 
 
+# mqtt
+ifdef DISABLE_MQTT
+CFLAGS      += -DDISABLE_MQTT
+else
+sources     += src/plugins/mqttService.cpp
+CLIBS		+= -lmosquitto
+endif
+ifdef MQTT_ONLY_LOCAL
+CFLAGS      += -DMQTT_ONLY_LOCAL
+endif
+
 # websocket
 ifdef DISABLE_WEBSOCKET
 CFLAGS      += -DDISABLE_WEBSOCKET
@@ -110,17 +121,6 @@ sources     += src/plugins/websocket.cpp
 #CLIBS		+= -lQt5Network
 #CLIBS		+= -lQt5WebSockets
 CLIBS		+= -lwebsockets
-endif
-
-# mqtt
-ifdef DISABLE_MQTT
-CFLAGS      += -DDISABLE_MQTT
-else
-ifdef MQTT_ONLY_LOCAL
-CFLAGS      += -DMQTT_ONLY_LOCAL
-endif
-sources     += src/plugins/mqttService.cpp
-CLIBS		+= -lmosquitto
 endif
 
 ifdef DISABLE_NFT
@@ -145,8 +145,70 @@ endif
 default: binary-qt
 
 client:
-	make -f make/Makefile DISABLE_WEBSOCKET=1 MQTT_ONLY_LOCAL=1 binary-qt
+	make -f make/Makefile \
+	DISABLE_WEBSOCKET=1 \
+	MQTT_ONLY_LOCAL=1 \
+	binary
+clientTargets =
 
+
+clientTargets += $(prefix)/usr/bin/copilotd
+$(prefix)/usr/bin/copilotd: $(buildPath)/app
+	@cp -v $< $@
+
+clientTargets += $(prefix)/lib/systemd/system/copilotd.service
+$(prefix)/lib/systemd/system/copilotd.service: src/client/copilotd.service
+	@cp -v $< $@
+
+clientTargets += $(prefix)/lib/systemd/system/copilotd-ssh.service
+$(prefix)/lib/systemd/system/copilotd-ssh.service:
+	@ServerName=$(shell read -p "Enter the Server IP or Server-Name ( like dyndns.test.com ): ";echo $$REPLY) ;\
+	sed -e "s/copilot@server/copilot@$$ServerName/" src/client/copilotd-ssh.service > $@
+
+
+install-client: client $(clientTargets)
+	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+
+
+engineering:
+	make -f make/Makefile \
+	binary
+
+singlestation:
+	make -f make/Makefile binary-dbg
+
+
+
+#### server
+server: src/server/sshd_hostkey_ed25519
+serverTargets =
+
+serverTargets += $(prefix)/etc/copilot/mqtt-server.conf
+$(prefix)/etc/copilot/mqtt-server.conf: src/server/mqtt-server.conf
+	@cp -v $< $@
+
+serverTargets += $(prefix)/lib/systemd/system/copilotd-mqtt.service
+$(prefix)/lib/systemd/system/copilotd-mqtt.service: src/server/copilotd-mqtt.service
+	@cp -v $< $@
+
+serverTargets += $(prefix)/etc/copilot/sshd_copilotd.conf
+$(prefix)/etc/copilot/sshd_copilotd.conf: src/server/sshd_copilotd.conf
+	@cp -v $< $@
+
+serverTargets += $(prefix)/lib/systemd/system/copilotd-sshd-keygen.service
+$(prefix)/lib/systemd/system/copilotd-sshd-keygen.service: src/server/copilotd-sshd-keygen.service
+	@cp -v $< $@
+
+serverTargets += $(prefix)/lib/systemd/system/copilotd-sshd.service
+$(prefix)/lib/systemd/system/copilotd-sshd.service: src/server/copilotd-sshd.service
+	@cp -v $< $@
+
+install-server: $(serverTargets)
+	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+uninstall-server:
+	@systemctl stop copilotd-sshd
+	@systemctl stop copilotd-mqtt
+	@rm -v $(serverTargets)
 
 install:
 	cp $(buildPath)/app /usr/bin/copilotd
@@ -155,3 +217,5 @@ install:
 	mkdir -p /etc/copilot
 	chown -R copilot:copilot /etc/copilot
 	cp $(sourcePath)/sudoers /etc/sudoers.d/copilot
+
+
