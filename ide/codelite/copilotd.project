@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeLite_Project Name="copilotd" Version="10.0.0" InternalType="">
+  <Plugins>
+    <Plugin Name="qmake">
+      <![CDATA[00010001N0005Debug000000000000]]>
+    </Plugin>
+  </Plugins>
+  <VirtualDirectory Name="make">
+    <VirtualDirectory Name="premake">
+      <File Name="../../make/premake/README"/>
+      <File Name="../../make/premake/uuid.mk"/>
+      <File Name="../../make/premake/evillib.mk"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="postmake">
+      <File Name="../../make/postmake/README"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="generic">
+      <File Name="../../make/generic/objects.mk"/>
+      <File Name="../../make/generic/library.mk"/>
+      <File Name="../../make/generic/qt.mk"/>
+      <File Name="../../make/generic/bin.mk"/>
+    </VirtualDirectory>
+    <File Name="../../make/progs.mk"/>
+    <File Name="../../make/Makefile"/>
+    <File Name="../../make/cflags.mk"/>
+    <File Name="../../make/clibs.mk"/>
+    <File Name="../../make/sources.mk"/>
+  </VirtualDirectory>
+  <Description/>
+  <Dependencies/>
+  <VirtualDirectory Name="src">
+    <File Name="../../src/doDBDws.qt.h"/>
+    <File Name="../../src/doDBDws.cpp"/>
+    <File Name="../../src/doDBDwsClient.h"/>
+    <File Name="../../src/doDBDws.h"/>
+    <File Name="../../src/doDBDwsClient.cpp"/>
+    <File Name="../../src/coPlugin.cpp"/>
+    <File Name="../../src/coPluginElement.h"/>
+    <File Name="../../src/coPluginElement.cpp"/>
+    <File Name="../../src/version.h"/>
+    <File Name="../../src/coPlugin.h"/>
+    <File Name="../../src/evillib.c"/>
+    <File Name="../../src/main.cpp"/>
+    <File Name="../../src/coCore.h"/>
+    <File Name="../../src/coCore.cpp"/>
+    <VirtualDirectory Name="classes">
+      <File Name="../../src/classes/doDBDConnection.h"/>
+      <File Name="../../src/classes/doDBDTools.cpp"/>
+      <File Name="../../src/classes/doDBDTools.h"/>
+      <File Name="../../src/classes/doDBDConnection.cpp"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="plugins">
+      <File Name="../../src/plugins/doDBTable.h"/>
+      <File Name="../../src/plugins/doDBTable.cpp"/>
+      <File Name="../../src/plugins/ldapService.cpp"/>
+      <File Name="../../src/plugins/qwebsocket.h"/>
+      <File Name="../../src/plugins/qwebsocket.cpp"/>
+      <File Name="../../src/plugins/coreService.cpp"/>
+      <File Name="../../src/plugins/doDBDConnections.cpp"/>
+      <File Name="../../src/plugins/doDBDConnections.h"/>
+      <File Name="../../src/plugins/ldapService.h"/>
+      <File Name="../../src/plugins/nftService.h"/>
+      <File Name="../../src/plugins/qwebsocketClient.cpp"/>
+      <File Name="../../src/plugins/qwebsocketClient.h"/>
+      <File Name="../../src/plugins/websocket.cpp"/>
+      <File Name="../../src/plugins/mqttService.h"/>
+      <File Name="../../src/plugins/websocket.h"/>
+      <File Name="../../src/plugins/mqttService.cpp"/>
+      <File Name="../../src/plugins/nftService.cpp"/>
+      <File Name="../../src/plugins/coreService.h"/>
+    </VirtualDirectory>
+  </VirtualDirectory>
+  <Settings Type="Dynamic Library">
+    <GlobalSettings>
+      <Compiler Options="" C_Options="" Assembler="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make -f make/Makefile clean</CleanCommand>
+        <BuildCommand>make -f make/Makefile</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)/../../</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" C_Options="" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="" IntermediateDirectory="./Release" Command="" CommandArguments="" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="Default"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make clean</CleanCommand>
+        <BuildCommand>make</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(WorkspacePath)</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths/>
+      </Completion>
+    </Configuration>
+  </Settings>
+</CodeLite_Project>
