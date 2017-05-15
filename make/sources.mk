@@ -164,6 +164,10 @@ clientTargets += $(prefix)/usr/bin/copilotd
 $(prefix)/usr/bin/copilotd: $(buildPath)/app
 	@cp -v $< $@
 
+clientTargets += $(prefix)/etc/sudoers.d/copilot
+$(prefix)/etc/sudoers.d/copilot: src/client/sudoers
+	@cp -v $< $@
+
 clientTargets += $(prefix)/lib/systemd/system/copilotd.service
 $(prefix)/lib/systemd/system/copilotd.service: src/client/copilotd.service
 	@cp -v $< $@
