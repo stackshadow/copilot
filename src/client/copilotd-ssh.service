@@ -12,7 +12,7 @@ ExecStart=/usr/bin/ssh -NTC \
 -o ExitOnForwardFailure=yes \
 -o StrictHostKeyChecking=no \
 -o Port=5882 \
--L 127.0.0.1:5883 \
+-L 127.0.0.1:5883:127.0.0.1:5883 \
 -i /etc/copilot/sshd_clientkey_ed25519 \
 copilot@server
 

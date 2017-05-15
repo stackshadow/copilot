@@ -144,12 +144,20 @@ endif
 
 default: binary-qt
 
+
+
+/etc/copilot/services:
+	@mkdir -v -p /etc/copilot/services
+	@chown -R copilot:copilot /etc/copilot
+
+
 client:
 	make -f make/Makefile \
 	DISABLE_WEBSOCKET=1 \
 	MQTT_ONLY_LOCAL=1 \
 	binary
-clientTargets =
+clientTargets = /etc/copilot/services
+
 
 
 clientTargets += $(prefix)/usr/bin/copilotd
@@ -171,6 +179,14 @@ $(prefix)/lib/systemd/system/copilotd-ssh-keygen.service: src/client/copilotd-ss
 
 install-client: client $(clientTargets)
 	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+	@chown -R copilot:copilot /etc/copilot
+	systemctl daemon-reload
+
+uninstall-client:
+	@systemctl stop copilotd-ssh
+	@rm -v $(clientTargets)
+
+
 
 
 engineering:
@@ -184,7 +200,7 @@ singlestation:
 
 #### server
 server: src/server/sshd_hostkey_ed25519
-serverTargets =
+serverTargets = /etc/copilot/services
 
 serverTargets += $(prefix)/etc/copilot/mqtt-server.conf
 $(prefix)/etc/copilot/mqtt-server.conf: src/server/mqtt-server.conf
@@ -198,6 +214,10 @@ serverTargets += $(prefix)/etc/copilot/sshd_copilotd.conf
 $(prefix)/etc/copilot/sshd_copilotd.conf: src/server/sshd_copilotd.conf
 	@cp -v $< $@
 
+serverTargets += $(prefix)/etc/copilot/sshd_authorized_keys
+$(prefix)/etc/copilot/sshd_authorized_keys:
+	touch $@
+
 serverTargets += $(prefix)/lib/systemd/system/copilotd-sshd-keygen.service
 $(prefix)/lib/systemd/system/copilotd-sshd-keygen.service: src/server/copilotd-sshd-keygen.service
 	@cp -v $< $@
@@ -208,6 +228,8 @@ $(prefix)/lib/systemd/system/copilotd-sshd.service: src/server/copilotd-sshd.ser
 
 install-server: $(serverTargets)
 	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+	@chown -R copilot:copilot /etc/copilot
+	systemctl daemon-reload
 uninstall-server:
 	@systemctl stop copilotd-sshd
 	@systemctl stop copilotd-mqtt
