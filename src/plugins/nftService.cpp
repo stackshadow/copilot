@@ -495,9 +495,14 @@ bool nftService::               onBroadcastMessage(     const char*     msgHostN
     // get the chains
         if( this->nextChain(NULL) == false ) return false;
 
-        json_object_set_new( jsonAnswerObject, "topic", json_string("chains") );
-        json_object_set( jsonAnswerObject, "payload", this->jsonChainsObject );
 
+        char* jsonString = json_dumps( this->jsonChainsObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+		fprintf( stdout, jsonString );
+
+        json_object_set_new( jsonAnswerObject, "topic", json_string("chains") );
+        json_object_set( jsonAnswerObject, "payload", json_string(jsonString) );
+
+        free( (void*)jsonString );
         return true;
     }
 
