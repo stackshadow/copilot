@@ -44,6 +44,8 @@ coCore::                    coCore(){
         //return 1;
     }
 
+	this->broadcastBusy = false;
+
 // save the instance
     this->ptr = this;
 
@@ -401,9 +403,15 @@ void coCore::               broadcast( coPlugin *source,
     json_t*                 jsonAnswerArray = json_array();
     json_t*                 jsonAnswerObject = NULL;
 
+// locked ?
+	while( this->broadcastBusy == true ){
+		sleep(1);
+	}
+	this->broadcastBusy = true;
 
 // get the source plugin element
     if( pluginElementGet(source,&pluginElement) == false ){
+		this->broadcastBusy = false;
         return;
     }
 
@@ -473,7 +481,7 @@ reply:
 
 // cleanup
     json_decref( jsonAnswerArray );
-
+	this->broadcastBusy = false;
 }
 
 

@@ -57,6 +57,9 @@ private:
     etList*             pluginListEnd;
     void*               iterator;
 
+// lock
+	bool				broadcastBusy;
+
 public:
                     coCore();
                     ~coCore();
