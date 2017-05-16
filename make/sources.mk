@@ -195,10 +195,20 @@ uninstall-client:
 
 engineering:
 	make -f make/Makefile \
-	binary
+	binary-dbg
+
+install-engineering: engineering $(clientTargets)
+	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+	@chown -R copilot:copilot /etc/copilot
+	systemctl daemon-reload
+
+
+
 
 singlestation:
-	make -f make/Makefile binary-dbg
+	make -f make/Makefile \
+	DISABLE_MQTT=1 \
+	binary
 
 
 

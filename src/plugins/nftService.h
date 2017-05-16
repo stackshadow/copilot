@@ -30,6 +30,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coPlugin.h"
 
 #include <string>
+#include "jansson.h"
 
 /*
 // create custom rule
@@ -71,10 +72,10 @@ private:
     bool            nextHost( const char** host );
     bool            nextChain( const char** chainName );
     bool            nextRule( const char **type );
-    
+
     bool            selectHost( const char* hostName );
     bool            selectChain( const char* chainName );
-    
+
     static bool     createRuleCommand( std::string* nftCommand, const char* chainName, json_t* jsonRule );
     bool            applyChain( const char* chainName, const char* chainType, json_t* jsonAnswerObject );
     bool            applyRules( const char* hostName, json_t* jsonAnswerObject );
@@ -83,10 +84,10 @@ private:
 
 // overloaded functions
 public:
-    bool            onBroadcastMessage(     const char*     msgHostName, 
-                                            const char*     msgGroup, 
-                                            const char*     msgCommand, 
-                                            const char*     msgPayload, 
+    bool            onBroadcastMessage(     const char*     msgHostName,
+                                            const char*     msgGroup,
+                                            const char*     msgCommand,
+                                            const char*     msgPayload,
                                             json_t*         jsonAnswerObject );
 
 
