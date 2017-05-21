@@ -77,8 +77,8 @@ private:
     bool            selectChain( const char* chainName );
 
     static bool     createRuleCommand( std::string* nftCommand, const char* chainName, json_t* jsonRule );
-    bool            applyChain( const char* chainName, const char* chainType, coMessage* message );
-    bool            applyRules( const char* hostName, coMessage* message );
+    bool            applyChain( const char* chainName, const char* chainType, coMessage* message = NULL );
+    bool            applyRules( const char* hostName, coMessage* message = NULL );
 
 
 

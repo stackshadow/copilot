@@ -31,6 +31,9 @@ nftService::                    nftService() : coPlugin( "nft" ) {
 // json
     this->load();
 
+// apply the rules
+	this->applyRules( coCore::ptr->hostInfo.nodename );
+
 // test
     this->iterate();
     const char* hostname;
@@ -71,31 +74,7 @@ void nftService::               load(){
         this->jsonRootObject = json_object();
     }
 
-// validate file
 
-// the host-object
-    this->jsonHostObject = json_object_get( this->jsonRootObject, coCore::ptr->hostInfo.nodename );
-    if( this->jsonHostObject == NULL ){
-        this->jsonHostObject = json_object();
-    // add the host
-        json_object_set_new( this->jsonRootObject, coCore::ptr->hostInfo.nodename, this->jsonHostObject );
-        json_object_set_new( this->jsonHostObject, "displayName", json_string(coCore::ptr->hostInfo.nodename) );
-    }
-
-
-// the chains-object inside the host
-    this->jsonChainsObject = json_object_get( this->jsonHostObject, "chains" );
-    if( this->jsonChainsObject == NULL ){
-        this->jsonChainsObject = json_object();
-        json_object_set_new( this->jsonHostObject, "chains", this->jsonChainsObject );
-
-    // add default chains
-        json_object_set_new( this->jsonChainsObject, "prerouting", json_array() );
-        json_object_set_new( this->jsonChainsObject, "input", json_array() );
-        json_object_set_new( this->jsonChainsObject, "output", json_array() );
-        json_object_set_new( this->jsonChainsObject, "forward", json_array() );
-        json_object_set_new( this->jsonChainsObject, "postrouting", json_array() );
-    }
 
 
 }
@@ -233,21 +212,40 @@ bool nftService::               nextRule( const char **type ){
 
 bool nftService::               selectHost( const char* hostName ){
 
-    if( this->jsonHostsObject == NULL ){
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "No hosts in json-file" );
+    if( this->jsonRootObject == NULL ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "No root in json-file" );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
         return false;
     }
 
-    this->jsonHostObject = json_object_get( this->jsonHostsObject, hostName );
+
+
+
+// the host-object
+    this->jsonHostObject = json_object_get( this->jsonRootObject, hostName );
     if( this->jsonHostObject == NULL ){
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Host '%s' not found in json-file.", hostName );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-        return false;
+        this->jsonHostObject = json_object();
+    // add the host
+        json_object_set_new( this->jsonRootObject, coCore::ptr->hostInfo.nodename, this->jsonHostObject );
+        json_object_set_new( this->jsonHostObject, "displayName", json_string(coCore::ptr->hostInfo.nodename) );
+    }
+
+
+// the chains-object inside the host
+    this->jsonChainsObject = json_object_get( this->jsonHostObject, "chains" );
+    if( this->jsonChainsObject == NULL ){
+        this->jsonChainsObject = json_object();
+        json_object_set_new( this->jsonHostObject, "chains", this->jsonChainsObject );
+
+    // add default chains
+        json_object_set_new( this->jsonChainsObject, "prerouting", json_array() );
+        json_object_set_new( this->jsonChainsObject, "input", json_array() );
+        json_object_set_new( this->jsonChainsObject, "output", json_array() );
+        json_object_set_new( this->jsonChainsObject, "forward", json_array() );
+        json_object_set_new( this->jsonChainsObject, "postrouting", json_array() );
     }
 
 // reset the rest
-    this->jsonChainsObject = NULL;
     this->jsonChainsIterator = NULL;
     this->jsonRulesArray = NULL;
     this->jsonRulesArrayIndex = 0;
@@ -350,8 +348,10 @@ bool nftService::               applyChain( const char* chainName, const char* c
         returnValue = system( command.c_str() );
         fprintf( stdout, "nft: %s\n", command.c_str() );
         if( returnValue != 0 ){
-			message->replyCommand("msgError");
-			message->replyPayload("Could not create chain");
+			if( message != NULL ){
+				message->replyCommand("msgError");
+				message->replyPayload("Could not create chain");
+			}
             return false;
         }
 
@@ -366,8 +366,10 @@ bool nftService::               applyChain( const char* chainName, const char* c
         returnValue = system( command.c_str() );
         fprintf( stdout, "nft: %s\n", command.c_str() );
         if( returnValue != 0 ){
-			message->replyCommand("msgError");
-			message->replyPayload("Could not create chain");
+			if( message != NULL ){
+				message->replyCommand("msgError");
+				message->replyPayload("Could not create chain");
+			}
             return false;
         }
 
@@ -380,8 +382,10 @@ bool nftService::               applyChain( const char* chainName, const char* c
 
 					command = "Could not apply " + command;
 
-					message->replyCommand("msgError");
-					message->replyPayload( command.c_str() );
+					if( message != NULL ){
+						message->replyCommand("msgError");
+						message->replyPayload( command.c_str() );
+					}
                     return false;
                 }
             }
@@ -412,8 +416,10 @@ bool nftService::               applyRules( const char* hostName, coMessage* mes
     returnValue = system( "sudo nft flush ruleset" );
     fprintf( stdout, "nft: sudo nft flush ruleset\n" );
     if( returnValue != 0 ){
-		message->replyCommand("msgError");
-		message->replyPayload("Could not flush rules");
+		if( message != NULL ){
+			message->replyCommand("msgError");
+			message->replyPayload("Could not flush rules");
+		}
         return false;
     }
 
@@ -421,15 +427,19 @@ bool nftService::               applyRules( const char* hostName, coMessage* mes
     returnValue = system( "sudo nft add table ip default" );
     fprintf( stdout, "nft: sudo nft add table ip default\n" );
     if( returnValue != 0 ){
-		message->replyCommand("msgError");
-		message->replyPayload("Could not create ip table");
+		if( message != NULL ){
+			message->replyCommand("msgError");
+			message->replyPayload("Could not create ip table");
+		}
         return false;
     }
     returnValue = system( "sudo nft add table ip6 default" );
     fprintf( stdout, "nft: sudo nft add table ip6 default\n" );
     if( returnValue != 0 ){
-		message->replyCommand("msgError");
-		message->replyPayload("Could not create ip6 table");
+		if( message != NULL ){
+			message->replyCommand("msgError");
+			message->replyPayload("Could not create ip6 table");
+		}
         return false;
     }
 
@@ -440,9 +450,10 @@ bool nftService::               applyRules( const char* hostName, coMessage* mes
     if( this->applyChain( "output",         "filter",   message ) == false ) return false;
     if( this->applyChain( "postrouting",    "nat",      message ) == false ) return false;
 
-
-	message->replyCommand("msgInfo");
-	message->replyPayload("Rules active.");
+	if( message != NULL ){
+		message->replyCommand("msgInfo");
+		message->replyPayload("Rules active.");
+	}
     return true;
 }
 
@@ -473,8 +484,6 @@ bool nftService::               onBroadcastMessage( coMessage* message ){
         if( this->selectHost(msgHostName) == false ){
             return false;
         }
-    // get the chains
-        if( this->nextChain(NULL) == false ) return false;
 
         char* jsonString = json_dumps( this->jsonChainsObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
