@@ -319,95 +319,28 @@ void mqttService::          cb_onMessage( struct mosquitto *mosq, void *obj, con
 }
 
 
-bool mqttService::          onBroadcastReply( json_t* jsonAnswerArray ){
-
-    char *dump = json_dumps( jsonAnswerArray, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-    if( dump == NULL ){
-        etDebugMessage( etID_LEVEL_ERR, "Json error" );
-        return false;
-    }
-    etDebugMessage( etID_LEVEL_DETAIL, dump );
-    free( dump );
 
 
 
 
-// we send the data back
-    json_t*     jsonAnswer = NULL;
-    json_t*     jsonTopic = NULL;
-    json_t*     jsonPayload = NULL;
-    int jsonArrayLen = json_array_size(jsonAnswerArray);
-    int jsonArrayIndex = 0;
-    for( jsonArrayIndex = 0; jsonArrayIndex < jsonArrayLen; jsonArrayIndex++ ){
 
-        jsonAnswer = json_array_get( jsonAnswerArray, jsonArrayIndex );
-        jsonTopic = json_object_get( jsonAnswer, "topic" );
-        jsonPayload = json_object_get( jsonAnswer, "payload" );
+bool mqttService::          onBroadcastMessage( coMessage* message ){
 
-    // check
-        if( jsonAnswer == NULL ) continue;
-        if( jsonTopic == NULL ) continue;
-        if( jsonPayload == NULL ) continue;
-
-        const char* jsonPayloadChar = json_string_value(jsonPayload);
-        int jsonPayloadCharLen = 0;
-        if( jsonPayloadChar != NULL ){
-            jsonPayloadCharLen = strlen( jsonPayloadChar );
-        }
-
-    // publish
-        int messageID;
-        mosquitto_publish(
-            this->mosq,
-            &messageID,
-            json_string_value(jsonTopic),
-            jsonPayloadCharLen,
-            jsonPayloadChar,
-            0,
-            false );
-
-    // save last publicated message
-        memset( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
-        memchr( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
-        strncpy( this->lastPubTopic, json_string_value(jsonTopic), json_string_length(jsonTopic) );
-
-
-    }
-
-
-}
-
-
-bool mqttService::          onBroadcastMessage(     const char*     msgHostName,
-                                                    const char*     msgGroup,
-                                                    const char*     msgCommand,
-                                                    const char*     msgPayload,
-                                                    json_t*         jsonAnswerObject ){
 
 // vars
-    std::string         fullTopic = "nodes/";
     int                 msgPayloadLen;
-
-
-// we dont send messages which are deticated to our own
-/*
-    if( strncmp(msgHostName,coCore::ptr->hostInfo.nodename,strlen(coCore::ptr->hostInfo.nodename)) == 0 ){
-        return true;
-    }
-*/
-
-// build full topic
-    fullTopic += msgHostName;
-    fullTopic += "/";
-    fullTopic += msgGroup;
-    fullTopic += "/";
-    fullTopic += msgCommand;
+	const char*			msgHostName = message->hostName();
+	const char*			msgGroup = message->group();
+	const char*			msgCommand = message->command();
+	const char*			fullTopic = message->topic();
+	const char*			msgPayload = message->payload();
 
 // infos about mqtt
     if( strncmp( msgGroup,"mqtt", 8 ) == 0 ){
         if( strncmp( msgCommand,"getinfos", 8 ) == 0 ){
 
-			json_t* jsonMQTTInfos = json_object();
+			json_t* 		jsonMQTTInfos = json_object();
+			const char* 	jsonMQTTInfoChars = NULL;
 
 		// connected ?
 			if( this->connected == true ) json_object_set_new( jsonMQTTInfos, "connected", json_integer(1) );
@@ -416,12 +349,14 @@ bool mqttService::          onBroadcastMessage(     const char*     msgHostName,
 		// connected clients
 			json_object_set_new( jsonMQTTInfos, "clients", json_integer(this->connectedClients) );
 
-
-			json_object_set_new( jsonAnswerObject, "topic", json_string("infos") );
-			json_object_set_new( jsonAnswerObject, "payload", jsonMQTTInfos );
-
             //mosquitto_lib_version()
+			message->replyCommand( "infos" );
 
+			jsonMQTTInfoChars = json_dumps( jsonMQTTInfos, JSON_PRESERVE_ORDER | JSON_COMPACT );
+			message->replyPayload( jsonMQTTInfoChars );
+
+			free( (void*)jsonMQTTInfoChars );
+			json_decref( jsonMQTTInfos );
 
             return true;
         }
@@ -441,7 +376,7 @@ bool mqttService::          onBroadcastMessage(     const char*     msgHostName,
     mosquitto_publish(
         this->mosq,
         &messageID,
-        fullTopic.c_str(),
+        fullTopic,
         msgPayloadLen,
         msgPayload,
         0,
@@ -449,13 +384,50 @@ bool mqttService::          onBroadcastMessage(     const char*     msgHostName,
 
 // save last publicated message
     memchr( this->lastPubTopic, 0, sizeof(this->lastPubTopic) );
-    strncpy( this->lastPubTopic, fullTopic.c_str(), fullTopic.length() );
+    strncpy( this->lastPubTopic, fullTopic, strlen(fullTopic) );
 
 
     return true;
+
 }
 
 
+bool mqttService::          onBroadcastReply( coMessage* message ){
+
+// vars
+	const char*			msgHostName = message->hostName();
+	const char*			msgGroup = message->group();
+	const char*			msgCommand = message->command();
+	const char*			fullReplyTopic = message->replyComandFull();
+	const char*			msgPayload = message->payload();
+    int                 msgPayloadLen;
+	const char*			msgReplyPayload = message->replyPayload();
+	int                 msgReplyPayloadLen = strlen( msgReplyPayload );
+
+
+    etDebugMessage( etID_LEVEL_DETAIL, msgReplyPayload );
+
+
+
+// publish
+	int messageID;
+	mosquitto_publish(
+		this->mosq,
+		&messageID,
+		fullReplyTopic,
+		msgReplyPayloadLen,
+		msgReplyPayload,
+		0,
+		false );
+
+// save last publicated message
+	memset( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
+	memchr( mqttService::ptr->lastPubTopic, 0, sizeof(mqttService::ptr->lastPubTopic) );
+	strncpy( this->lastPubTopic, fullReplyTopic, strlen(fullReplyTopic) );
+
+
+
+}
 
 
 #endif

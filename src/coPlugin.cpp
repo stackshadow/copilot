@@ -20,7 +20,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef doDBDPlugin_C
 #define doDBDPlugin_C
 
-#include "coCore.h"
+
 #include "coPlugin.h"
 
 

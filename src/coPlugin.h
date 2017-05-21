@@ -25,7 +25,10 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "string/etStringChar.h"
 
 #include "jansson.h"
+
+#include "coMessage.h"
 //class doDBDChannel;
+
 
 class coPlugin {
 
@@ -33,6 +36,8 @@ class coPlugin {
 protected:
     etString*           pluginName;
     etString*           pluginInfo;
+
+public:
 
 
 public:
@@ -44,16 +49,10 @@ public:
     bool                info( const char *shortInfo );
     const char*         info();
 
-    virtual bool        onBroadcastMessage(  const char*     msgHostName, 
-                                    const char*     msgGroup, 
-                                    const char*     msgCommand, 
-                                    const char*     msgPayload, 
-                                    json_t*         jsonAnswerObject ){
-                                        return true;
-                                    }
 
-    virtual bool        onBroadcastReply( json_t* jsonAnswerArray ){ return true; }
 
+	virtual bool		onBroadcastMessage( coMessage* message ){ return true; }
+	virtual bool        onBroadcastReply( coMessage* message ){ return true; }
 
 
 

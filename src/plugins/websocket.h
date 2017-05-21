@@ -55,7 +55,7 @@ private:
         "copilot",
         websocket::wsCallbackCopilot,
         sizeof( struct clientSessionData),
-        4096,
+        65536,
     },/*
     {
         "lws-mirror-protocol",
@@ -69,7 +69,7 @@ private:
     struct lws_context*         wsContext;
     pthread_t                   thread;
 
-              
+
     struct clientSessionData*   actualClientSession = NULL;
     etString*                   actualClientReply = NULL;
 
@@ -77,7 +77,7 @@ public:
                                 websocket( int wsPort );
                                 ~websocket();
     static websocket*           ptr;
-                                
+
 public:
     static void*                wsThread( void* data );
     static int                  wsCallbackHttp( struct lws *wsi, enum lws_callback_reasons reason, void *user, void *in, size_t len );
@@ -86,17 +86,13 @@ public:
     void                        wsReply( const char* message );
 
 // auth
-    
+
     bool                        isAuth();
     void                        setAuth( bool authenticated );
 
 // handlers
-    bool                        onBroadcastMessage(     const char*     msgHostName, 
-                                                        const char*     msgGroup, 
-                                                        const char*     msgCommand, 
-                                                        const char*     msgPayload, 
-                                                        json_t*         jsonAnswerObject );
-    bool                        onBroadcastReply( json_t* jsonAnswerArray );
+	bool 						onBroadcastMessage( coMessage* message );
+	bool        				onBroadcastReply( coMessage* message );
 
 /*
 public slots:

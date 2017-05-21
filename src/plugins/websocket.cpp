@@ -16,7 +16,7 @@ websocket::websocket( int wsPort ) : coPlugin( "websocketClient" ) {
 // create websocket
     struct lws_context_creation_info info;
     memset( &info, 0, sizeof(lws_context_creation_info) );
-    
+
     info.server_string = "copilot-ws";
     info.port = wsPort;
     info.protocols = this->protocols;
@@ -43,28 +43,28 @@ websocket::websocket( int wsPort ) : coPlugin( "websocketClient" ) {
 
 }
 websocket::~websocket(){
-    
+
 }
 
 
 void* websocket::           wsThread( void* data ){
-    
+
     websocket* wsInstance = (websocket*)data;
-    
+
     while(1){
         lws_service( wsInstance->wsContext, 50000 );
     }
-    
+
     pthread_exit(NULL);
 }
 
-int websocket::             wsCallbackHttp(     struct lws *wsi, enum lws_callback_reasons reason, 
+int websocket::             wsCallbackHttp(     struct lws *wsi, enum lws_callback_reasons reason,
                                                 void *user, void *in, size_t len ){
     return 0;
 }
 
 
-int websocket::             wsCallbackCopilot(  struct lws *wsi, enum lws_callback_reasons reason, 
+int websocket::             wsCallbackCopilot(  struct lws *wsi, enum lws_callback_reasons reason,
                                                 void *user, void *in, size_t len ){
 
     struct websocket::clientSessionData*    pss = (struct websocket::clientSessionData *)user;
@@ -73,18 +73,18 @@ int websocket::             wsCallbackCopilot(  struct lws *wsi, enum lws_callba
     switch (reason) {
 
 
-                
+
         case LWS_CALLBACK_ESTABLISHED:
             fprintf( stdout, "[%p] LWS_CALLBACK_ESTABLISHED\n", pss );
             fflush( stdout );
-            
+
         // only one connection is allowed
             if( websocket::ptr->actualClientSession != NULL ){
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p] Somebody already connected, you can not do anything !" );
                 etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
                 break;
             }
-            
+
             websocket::ptr->actualClientSession = pss;
             websocket::ptr->actualClientSession->wsi = wsi;
 
@@ -93,28 +93,28 @@ int websocket::             wsCallbackCopilot(  struct lws *wsi, enum lws_callba
         case LWS_CALLBACK_RECEIVE:
             fprintf( stdout, "[%p] LWS_CALLBACK_RECEIVE", pss );
             fflush( stdout );
-            
+
         // are we allowed ?
             if( websocket::ptr->actualClientSession != pss ){
                 fprintf( stdout, "\n" );
                 fflush( stdout );
-                
+
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p] Somebody already connected, you can not do anything !" );
                 etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
                 break;
             }
-        
+
             websocket::ptr->wsOnMessage( (const char*)in, len );
             break;
-            
+
         case LWS_CALLBACK_CLOSED:
 
         // are we allowed ?
             if( websocket::ptr->actualClientSession != pss ){
                 fprintf( stdout, "\n" );
                 fflush( stdout );
-                
+
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p] Somebody already connected, you can not do anything !" );
                 etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
@@ -186,7 +186,7 @@ void websocket::            wsOnMessage( const char* message, int messageLen ){
 
 // websocket must do auth
     if( strncmp( (char*)cmd, "login", 5 ) == 0 ){
-        
+
         json_t* jsonCredentials = json_loads( json_string_value(jsonPayload), JSON_PRESERVE_ORDER, &jsonError );
         if( jsonCredentials == NULL ) return;
 
@@ -221,7 +221,7 @@ void websocket::            wsOnMessage( const char* message, int messageLen ){
         json_decref(jsonAnswerObject);
         json_decref(jsonCredentials);
     }
-    
+
 // authenticated ?
     if( this->isAuth() == false ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] %s", __PRETTY_FUNCTION__, "not authenticated, close connection" );
@@ -240,12 +240,15 @@ void websocket::            wsOnMessage( const char* message, int messageLen ){
 void websocket::            wsReply( const char *message ){
     if( this->actualClientSession == NULL ) return;
 
-// buffer the message
-    etStringCharSet( this->actualClientReply, message, -1 );
-    etStringCharGet( this->actualClientReply, message );
-    
-    lws_write( this->actualClientSession->wsi, (unsigned char *)message, strlen(message), LWS_WRITE_TEXT );
-    
+	int 	messageLen = strlen(message);
+	char 	messageBuf[LWS_PRE + messageLen];
+	memset( messageBuf, 0, LWS_PRE + messageLen);
+
+// clear and copy to the send-buffer
+	memcpy( &messageBuf[LWS_PRE], message, messageLen );
+
+    lws_write( this->actualClientSession->wsi, (unsigned char*)&messageBuf[LWS_PRE], messageLen, LWS_WRITE_TEXT );
+
 }
 
 
@@ -267,18 +270,22 @@ void websocket::            setAuth( bool authenticated ){
 
 
 
-bool websocket::            onBroadcastMessage(     const char*     msgHostName, 
-                                                    const char*     msgGroup, 
-                                                    const char*     msgCommand, 
-                                                    const char*     msgPayload, 
-                                                    json_t*         jsonAnswerObject ){
+
+bool websocket::			onBroadcastMessage( coMessage* message ){
+
 // vars
-    json_t*             jsonObject = json_object();
+	const char*			msgHostName = message->hostName();
+	const char*			msgGroup = message->group();
+	const char*			msgCommand = message->command();
+	const char*			msgPayload = message->payload();
+
+    json_t*             jsonObject = NULL;
     const char*         jsonObjectChar = NULL;
-    std::string         fullTopic = "nodes/";
+    std::string         fullTopic = "";
     int                 msgPayloadLen;
-    
+
 // build full topic
+	fullTopic = "nodes/";
     fullTopic += msgHostName;
     fullTopic += "/";
     fullTopic += msgGroup;
@@ -286,9 +293,52 @@ bool websocket::            onBroadcastMessage(     const char*     msgHostName,
     fullTopic += msgCommand;
 
 // setup jsonObject
+	jsonObject = json_object();
     json_object_set_new( jsonObject, "topic", json_string(fullTopic.c_str()) );
     json_object_set_new( jsonObject, "payload", json_string(msgPayload) );
     jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+/*
+	char jsonDump[4096]; memset( jsonDump, 0, 4096 );
+	json_dumpb( jsonObject, jsonDump, 4096, JSON_PRESERVE_ORDER | JSON_COMPACT );
+*/
+// send it out
+    this->wsReply( jsonObjectChar );
+
+// cleanup
+    free( (void*)jsonObjectChar );
+    json_decref( jsonObject );
+
+
+    return true;
+}
+
+
+bool websocket:: 			onBroadcastReply( coMessage* message ){
+
+// vars
+	const char*			msgReplyPayload = message->replyPayload();
+
+// there was no reply-data
+	if( message->replyExists() == false ){
+		return true;
+	}
+
+
+    json_t*             jsonObject = NULL;
+    char*         		jsonObjectChar = NULL;
+    const char*         fullTopic = "";
+    int                 msgPayloadLen;
+
+// build full topic
+	fullTopic = message->replyComandFull();
+
+// setup jsonObject
+	jsonObject = json_object();
+    json_object_set_new( jsonObject, "topic", json_string(fullTopic) );
+    json_object_set_new( jsonObject, "payload", json_string(msgReplyPayload) );
+    jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
 
 // send it out
     this->wsReply( jsonObjectChar );
@@ -301,33 +351,3 @@ bool websocket::            onBroadcastMessage(     const char*     msgHostName,
     return true;
 }
 
-bool  websocket::           onBroadcastReply( json_t* jsonAnswerArray ){ 
-
-// debug message
-    char *dump = json_dumps( jsonAnswerArray, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-    if( dump == NULL ){
-        etDebugMessage( etID_LEVEL_ERR, "Json error" );
-        return false;
-    }
-    etDebugMessage( etID_LEVEL_DETAIL, dump );
-    free( dump );
-
-
-// we send the data back
-    json_t*     jsonAnswer = NULL;
-    int jsonArrayLen = json_array_size(jsonAnswerArray);
-    int jsonArrayIndex = 0;
-    for( jsonArrayIndex = 0; jsonArrayIndex < jsonArrayLen; jsonArrayIndex++ ){
-
-        jsonAnswer = json_array_get( jsonAnswerArray, jsonArrayIndex );
-
-        char*   jsonDump = json_dumps( jsonAnswer, JSON_PRESERVE_ORDER | JSON_COMPACT );
-        
-        
-        this->wsReply( jsonDump );
-        free( jsonDump );
-
-    }
-    
-    return true;
-}

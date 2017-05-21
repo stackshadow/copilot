@@ -40,14 +40,10 @@ public:
 private:
 	json_t*						jsonHosts;
 
-// overloaded functions
 public:
-// get data
-    bool                        onBroadcastMessage(     const char*     msgHostName,
-                                                        const char*     msgGroup,
-                                                        const char*     msgCommand,
-                                                        const char*     msgPayload,
-                                                        json_t*         jsonAnswerObject );
+// handlers
+	bool 						onBroadcastMessage( coMessage* message );
+
 
 
 };

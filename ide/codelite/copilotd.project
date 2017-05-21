@@ -65,9 +65,9 @@
       <File Name="../../src/plugins/websocket.cpp"/>
       <File Name="../../src/plugins/mqttService.h"/>
       <File Name="../../src/plugins/websocket.h"/>
-      <File Name="../../src/plugins/mqttService.cpp"/>
       <File Name="../../src/plugins/nftService.cpp"/>
       <File Name="../../src/plugins/coreService.h"/>
+      <File Name="../../src/plugins/mqttService.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="server">
       <File Name="../../src/server/copilotd-mqtt.service"/>
@@ -82,6 +82,8 @@
       <File Name="../../src/client/copilotd-ssh.service"/>
       <File Name="../../src/client/copilotd-ssh-keygen.service"/>
     </VirtualDirectory>
+    <File Name="../../src/coMessage.cpp"/>
+    <File Name="../../src/coMessage.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="copilotd">
     <File Name="../../doDBDConnections.json"/>
@@ -135,7 +137,8 @@
         <ClangCmpFlagsC/>
         <ClangCmpFlags/>
         <ClangPP/>
-        <SearchPaths>/usr/include</SearchPaths>
+        <SearchPaths>/usr/include
+/usr/src/projekte/copilot/copilotd/libs/evillib/core</SearchPaths>
       </Completion>
     </Configuration>
     <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">

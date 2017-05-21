@@ -30,6 +30,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "string/etStringChar.h"
 
 
+#include "coMessage.h"
 #include "coPluginElement.h"
 
 
@@ -59,6 +60,7 @@ private:
 
 // lock
 	bool				broadcastBusy;
+	coMessage*			broadcastMessage;
 
 public:
                     coCore();

@@ -33,7 +33,7 @@ class mqttService : public coPlugin {
 
 private:
     json_t*             jsonConfigRoot;
-    
+
 // configs
     char                hostName[128];
     int                 hostPort;
@@ -77,11 +77,15 @@ public:
 // callbacks
 public:
     bool            onBroadcastReply( json_t* jsonAnswerArray );
-    bool            onBroadcastMessage(     const char*     msgHostName, 
-                                            const char*     msgGroup, 
-                                            const char*     msgCommand, 
-                                            const char*     msgPayload, 
+    bool            onBroadcastMessage(     const char*     msgHostName,
+                                            const char*     msgGroup,
+                                            const char*     msgCommand,
+                                            const char*     msgPayload,
                                             json_t*         jsonAnswerObject );
+
+	bool			onBroadcastMessage( coMessage* message );
+	bool        	onBroadcastReply( coMessage* message );
+
 
 };
 

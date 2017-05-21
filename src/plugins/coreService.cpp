@@ -41,58 +41,45 @@ coreService::                   ~coreService(){
 }
 
 
-bool coreService::              onBroadcastMessage(     const char*     msgHostName, 
-                                                        const char*     msgGroup, 
-                                                        const char*     msgCommand, 
-                                                        const char*     msgPayload, 
-                                                        json_t*         jsonAnswerObject ){
+bool coreService::              onBroadcastMessage( coMessage* message ){
 
-
-
+// vars
+	const char*			msgHostName = message->hostName();
+	const char*			msgGroup = message->group();
+	const char*			msgCommand = message->command();
+	const char*			msgPayload = message->payload();
 
 // to all hosts
     if( strncmp( (char*)msgHostName, "all", 3 ) == 0 ){
-        
+
     // ping
         if( strncmp(msgCommand,"ping",4) == 0 ){
-            
-            std::string tempString = "nodes/";
-            tempString += coCore::ptr->hostInfo.nodename;
-            tempString += "/co/pong";
 
-            json_object_set_new( jsonAnswerObject, "topic", json_string("pong") );
-            json_object_set_new( jsonAnswerObject, "payload", json_string("") );
-            
+			message->hostName( coCore::ptr->hostInfo.nodename );
+			message->replyCommand( "pong" );
+
             return true;
         }
     }
 
+
 // to "localhost" or to the nodename-host
     if( strncmp("localhost",msgHostName,9) != 0 &&
-    strncmp(coCore::ptr->hostInfo.nodename,msgHostName,coCore::ptr->hostNodeNameLen) != 0 ){
+	strncmp(coCore::ptr->hostInfo.nodename,msgHostName,coCore::ptr->hostNodeNameLen) != 0 ){
         return true;
     }
 
 
     if( strncmp( (char*)msgCommand, "getVersion", 10 ) == 0 ){
-        
-        json_object_set_new( jsonAnswerObject, "topic", json_string("version") );
-        json_object_set_new( jsonAnswerObject, "payload", json_string( copilotVersion ) );
-        
+
+		message->replyCommand( "version" );
+		message->replyPayload( copilotVersion );
+
         return true;
     }
 
 
     if( strncmp( (char*)msgCommand, "getServices", 11 ) == 0 ){
-
-        json_t* jsonArray = json_array();
-        coCore::ptr->listPlugins( jsonArray );
-
-
-        json_object_set_new( jsonAnswerObject, "topic", json_string("services") );
-        json_object_set_new( jsonAnswerObject, "payload", jsonArray );
-
-
         return true;
     }
 

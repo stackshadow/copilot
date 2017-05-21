@@ -77,20 +77,14 @@ private:
     bool            selectChain( const char* chainName );
 
     static bool     createRuleCommand( std::string* nftCommand, const char* chainName, json_t* jsonRule );
-    bool            applyChain( const char* chainName, const char* chainType, json_t* jsonAnswerObject );
-    bool            applyRules( const char* hostName, json_t* jsonAnswerObject );
+    bool            applyChain( const char* chainName, const char* chainType, coMessage* message );
+    bool            applyRules( const char* hostName, coMessage* message );
 
 
 
 // overloaded functions
 public:
-    bool            onBroadcastMessage(     const char*     msgHostName,
-                                            const char*     msgGroup,
-                                            const char*     msgCommand,
-                                            const char*     msgPayload,
-                                            json_t*         jsonAnswerObject );
-
-
+	bool 						onBroadcastMessage( coMessage* message );
 
 };
 

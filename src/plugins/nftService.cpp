@@ -330,7 +330,7 @@ bool nftService::               createRuleCommand( std::string* nftCommand, cons
 }
 
 
-bool nftService::               applyChain( const char* chainName, const char* chainType, json_t* jsonAnswerObject ){
+bool nftService::               applyChain( const char* chainName, const char* chainType, coMessage* message ){
 
 // vars
     std::string     command;
@@ -350,8 +350,8 @@ bool nftService::               applyChain( const char* chainName, const char* c
         returnValue = system( command.c_str() );
         fprintf( stdout, "nft: %s\n", command.c_str() );
         if( returnValue != 0 ){
-            json_object_set_new( jsonAnswerObject, "topic", json_string("msgError") );
-            json_object_set_new( jsonAnswerObject, "payload", json_string("Could not create chain") );
+			message->replyCommand("msgError");
+			message->replyPayload("Could not create chain");
             return false;
         }
 
@@ -366,8 +366,8 @@ bool nftService::               applyChain( const char* chainName, const char* c
         returnValue = system( command.c_str() );
         fprintf( stdout, "nft: %s\n", command.c_str() );
         if( returnValue != 0 ){
-            json_object_set_new( jsonAnswerObject, "topic", json_string("msgError") );
-            json_object_set_new( jsonAnswerObject, "payload", json_string("Could not create chain") );
+			message->replyCommand("msgError");
+			message->replyPayload("Could not create chain");
             return false;
         }
 
@@ -377,8 +377,11 @@ bool nftService::               applyChain( const char* chainName, const char* c
                 fprintf( stdout, "nft: %s\n", command.c_str() );
                 returnValue = system( command.c_str() );
                 if( returnValue != 0 ){
-                    json_object_set_new( jsonAnswerObject, "topic", json_string("msgError") );
-                    json_object_set_new( jsonAnswerObject, "payload", json_string("Could not apply rule") );
+
+					command = "Could not apply " + command;
+
+					message->replyCommand("msgError");
+					message->replyPayload( command.c_str() );
                     return false;
                 }
             }
@@ -389,7 +392,7 @@ bool nftService::               applyChain( const char* chainName, const char* c
 }
 
 
-bool nftService::               applyRules( const char* hostName, json_t* jsonAnswerObject ){
+bool nftService::               applyRules( const char* hostName, coMessage* message ){
 
 // vars
     int             returnValue = -1;
@@ -409,8 +412,8 @@ bool nftService::               applyRules( const char* hostName, json_t* jsonAn
     returnValue = system( "sudo nft flush ruleset" );
     fprintf( stdout, "nft: sudo nft flush ruleset\n" );
     if( returnValue != 0 ){
-        json_object_set_new( jsonAnswerObject, "topic", json_string("msgError") );
-        json_object_set_new( jsonAnswerObject, "payload", json_string("Could not flush rules") );
+		message->replyCommand("msgError");
+		message->replyPayload("Could not flush rules");
         return false;
     }
 
@@ -418,71 +421,49 @@ bool nftService::               applyRules( const char* hostName, json_t* jsonAn
     returnValue = system( "sudo nft add table ip default" );
     fprintf( stdout, "nft: sudo nft add table ip default\n" );
     if( returnValue != 0 ){
-        json_object_set_new( jsonAnswerObject, "topic", json_string("msgError") );
-        json_object_set_new( jsonAnswerObject, "payload", json_string("Could not create ip table") );
+		message->replyCommand("msgError");
+		message->replyPayload("Could not create ip table");
         return false;
     }
     returnValue = system( "sudo nft add table ip6 default" );
     fprintf( stdout, "nft: sudo nft add table ip6 default\n" );
     if( returnValue != 0 ){
-        json_object_set_new( jsonAnswerObject, "topic", json_string("msgError") );
-        json_object_set_new( jsonAnswerObject, "payload", json_string("Could not create ip6 table") );
+		message->replyCommand("msgError");
+		message->replyPayload("Could not create ip6 table");
         return false;
     }
 
 // prerouting
-    if( this->applyChain( "prerouting",     "nat",      jsonAnswerObject ) == false ) return false;
-    if( this->applyChain( "input",          "filter",   jsonAnswerObject ) == false ) return false;
-    if( this->applyChain( "forward",        "filter",   jsonAnswerObject ) == false ) return false;
-    if( this->applyChain( "output",         "filter",   jsonAnswerObject ) == false ) return false;
-    if( this->applyChain( "postrouting",    "nat",      jsonAnswerObject ) == false ) return false;
+    if( this->applyChain( "prerouting",     "nat",      message ) == false ) return false;
+    if( this->applyChain( "input",          "filter",   message ) == false ) return false;
+    if( this->applyChain( "forward",        "filter",   message ) == false ) return false;
+    if( this->applyChain( "output",         "filter",   message ) == false ) return false;
+    if( this->applyChain( "postrouting",    "nat",      message ) == false ) return false;
 
 
-    json_object_set_new( jsonAnswerObject, "topic", json_string("msgInfo") );
-    json_object_set_new( jsonAnswerObject, "payload", json_string("Rules active.") );
+	message->replyCommand("msgInfo");
+	message->replyPayload("Rules active.");
     return true;
 }
 
 
 
 
-bool nftService::               onBroadcastMessage(     const char*     msgHostName,
-                                                        const char*     msgGroup,
-                                                        const char*     msgCommand,
-                                                        const char*     msgPayload,
-                                                        json_t*         jsonAnswerObject ){
+
+
+bool nftService::               onBroadcastMessage( coMessage* message ){
+
+// vars
+	const char*			msgHostName = message->hostName();
+	const char*			msgGroup = message->group();
+	const char*			msgCommand = message->command();
+	const char*			msgPayload = message->payload();
+
+
 
     std::string     answerTopic;
 
 
-
-    if( strncmp( (char*)msgCommand, "hostsList", 9 ) == 0 ){
-
-        json_t* jsonHosts = json_object();
-
-    // iterate over hosts
-        void* hostsIterator = json_object_iter( this->jsonRootObject );
-        while( hostsIterator != NULL ){
-            json_t*         jsonHost = json_object_iter_value(hostsIterator);
-            const char*     hostName = json_object_iter_key(hostsIterator);
-
-        // the display name
-            json_t* jsonHostDisplayName = json_object_get( jsonHost, "displayName" );
-            const char* hostDisplayName = json_string_value(jsonHostDisplayName);
-
-        // set the hostname
-            json_object_set_new( jsonHosts, hostName, json_string(hostDisplayName) );
-
-        // next
-            hostsIterator = json_object_iter_next( this->jsonRootObject, hostsIterator );
-        }
-
-
-        json_object_set_new( jsonAnswerObject, "topic", json_string("hosts") );
-        json_object_set_new( jsonAnswerObject, "payload", jsonHosts );
-
-        return true;
-    }
 
 
     if( strncmp( (char*)msgCommand, "chainsList", 10 ) == 0 ){
@@ -495,12 +476,10 @@ bool nftService::               onBroadcastMessage(     const char*     msgHostN
     // get the chains
         if( this->nextChain(NULL) == false ) return false;
 
-
         char* jsonString = json_dumps( this->jsonChainsObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
-		fprintf( stdout, jsonString );
 
-        json_object_set_new( jsonAnswerObject, "topic", json_string("chains") );
-        json_object_set( jsonAnswerObject, "payload", json_string(jsonString) );
+		message->replyCommand( "chains" );
+		message->replyPayload( jsonString );
 
         free( (void*)jsonString );
         return true;
@@ -530,24 +509,22 @@ bool nftService::               onBroadcastMessage(     const char*     msgHostN
     // save it to the file
         this->save();
 
-
-        json_object_set_new( jsonAnswerObject, "topic", json_string("saveok") );
-        json_object_set_new( jsonAnswerObject, "payload", json_string("") );
+		message->replyCommand( "saveok" );
 
         return true;
     }
 
 
     if( strncmp( (char*)msgCommand, "apply", 4 ) == 0 ){
-        this->applyRules(msgHostName, jsonAnswerObject);
+        this->applyRules(msgHostName, message);
         return true;
     }
 
 
     return false;
+
+
 }
-
-
 
 
 

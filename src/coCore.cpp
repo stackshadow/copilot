@@ -45,6 +45,7 @@ coCore::                    coCore(){
     }
 
 	this->broadcastBusy = false;
+	this->broadcastMessage = new coMessage();
 
 // save the instance
     this->ptr = this;
@@ -391,6 +392,7 @@ void coCore::               broadcast( coPlugin *source,
     if( msgGroup == NULL ) return;
     if( msgCommand == NULL ) return;
 
+
 // vars
     coPluginElement*        pluginElement = NULL;
     const char*             pluginHostName = NULL;
@@ -414,8 +416,6 @@ void coCore::               broadcast( coPlugin *source,
 		this->broadcastBusy = false;
         return;
     }
-
-
 
 
 // iterate through the list
@@ -444,43 +444,37 @@ void coCore::               broadcast( coPlugin *source,
         if( cmpResult != 0 && pluginHostNameLen > 0 ) continue;
 
 
-sendToAll:
     // iterate
         if( pluginElement->plugin != NULL ){
 
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "Run onMessage() for Plugin: %s", pluginElement->plugin->name() );
             etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
 
+		// build the message
+			this->broadcastMessage->hostName( msgHostName );
+			this->broadcastMessage->group( msgGroup );
+			this->broadcastMessage->command( msgCommand );
+			this->broadcastMessage->payload( msgPayload );
+
+			this->broadcastMessage->clearReply();
+
+
             jsonAnswerObject = json_object();
-            if( pluginElement->plugin->onBroadcastMessage( msgHostName, msgGroup, msgCommand, msgPayload, jsonAnswerObject ) == false ){
-                json_decref( jsonAnswerObject );
+            if( pluginElement->plugin->onBroadcastMessage( this->broadcastMessage ) == false ){
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' requests break", pluginElement->plugin->name() );
                 etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
                 break;
             }
 
         // manipulate the topic
-            if( coCore::setTopic( pluginElement, jsonAnswerObject, msgGroup ) == false ){
-                snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' dont provide a topic", pluginElement->plugin->name() );
-                etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
-                continue;
-            }
-
-
-            json_array_append_new( jsonAnswerArray, jsonAnswerObject );
+			source->onBroadcastReply( this->broadcastMessage );
         }
 
 
     }
 
-reply:
-    if( json_array_size(jsonAnswerArray) > 0 ){
-    // answer back
-        source->onBroadcastReply( jsonAnswerArray );
-    }
 
 // cleanup
-    json_decref( jsonAnswerArray );
 	this->broadcastBusy = false;
 }
 

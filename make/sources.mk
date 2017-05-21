@@ -66,7 +66,7 @@ sources     += src/main.cpp
 sources     += src/coCore.cpp
 sources     += src/coPluginElement.cpp
 sources     += src/coPlugin.cpp
-
+sources     += src/coMessage.cpp
 
 # plugins
 sources     += src/plugins/coreService.cpp
