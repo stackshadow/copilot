@@ -33,6 +33,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 //#include "plugins/qwebsocket.h"
 #include "plugins/websocket.h"
 #include "plugins/coreService.h"
+#include "plugins/sysState.h"
 #include "plugins/nftService.h"
 #include "plugins/ldapService.h"
 #include "plugins/mqttService.h"
@@ -93,7 +94,10 @@ int main( int argc, char *argv[] ){
 // create services
     coreService*    newCoreService = new coreService();
 
-/** @todo Here are memory leaks ! */
+// sysState
+	sysState*		newSysState = new sysState();
+
+/** @todo Here are memory leaks ! */ /*
 #ifndef DISABLE_MQTT
     mqttService*    mqqtPlugin = new mqttService();
 #endif
@@ -109,13 +113,15 @@ int main( int argc, char *argv[] ){
 #ifndef DISABLE_LDAP
     ldapService*    newLdapService = new ldapService();
 #endif
-
+*/
 
     //return a.exec();
-    newcoCore->mainLoop();
+    //newcoCore->mainLoop();
 
 // cleanup
     delete newcoCore;
+	delete newCoreService;
+	delete newSysState;
 
     etDebugMessage( etID_LEVEL_WARNING, "Test" );
 }

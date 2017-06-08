@@ -68,6 +68,8 @@
       <File Name="../../src/plugins/nftService.cpp"/>
       <File Name="../../src/plugins/coreService.h"/>
       <File Name="../../src/plugins/mqttService.cpp"/>
+      <File Name="../../src/plugins/sysState.h"/>
+      <File Name="../../src/plugins/sysState.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="server">
       <File Name="../../src/server/copilotd-mqtt.service"/>

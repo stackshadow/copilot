@@ -70,7 +70,7 @@ sources     += src/coMessage.cpp
 
 # plugins
 sources     += src/plugins/coreService.cpp
-
+sources     += src/plugins/sysState.cpp
 
 
 
