@@ -32,7 +32,6 @@ coCore::                    coCore(){
 
 // plugin-list
     etListAlloc( this->pluginList );
-    this->pluginListEnd = this->pluginList;
     this->iterator = NULL;
 
 // get the hostinfo
@@ -44,7 +43,6 @@ coCore::                    coCore(){
         //return 1;
     }
 
-	this->broadcastBusy = false;
 	this->broadcastMessage = new coMessage();
 
 // save the instance
@@ -58,11 +56,13 @@ coCore::                    ~coCore(){
 
     this->pluginsIterate();
     while( this->pluginNext(&pluginElement) == true ){
-        delete pluginElement->plugin;
+//        delete pluginElement->plugin;
         delete pluginElement;
     }
 
     etListFree( this->pluginList );
+	
+	delete( this->broadcastMessage );
 }
 
 
@@ -76,7 +76,7 @@ void coCore::               setHostName( const char *hostname ){
 
 bool coCore::               registerPlugin( coPlugin* plugin, const char *hostName, const char *group ){
 // check
-    if( this->pluginListEnd == NULL ) return false;
+    if( this->pluginList == NULL ) return false;
 
 // vars
     const char*         pluginName = plugin->name();
@@ -93,7 +93,7 @@ bool coCore::               registerPlugin( coPlugin* plugin, const char *hostNa
     etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
 
 // add it to the list
-    etListAppend( this->pluginListEnd, (void*)listELement );
+    etListAppend( this->pluginList, (void*)listELement );
 
 }
 
@@ -406,14 +406,11 @@ void coCore::               broadcast( coPlugin *source,
     json_t*                 jsonAnswerObject = NULL;
 
 // locked ?
-	while( this->broadcastBusy == true ){
-		sleep(1);
-	}
-	this->broadcastBusy = true;
+	pthread_mutex_lock( &this->broadcastRunning );
 
 // get the source plugin element
     if( pluginElementGet(source,&pluginElement) == false ){
-		this->broadcastBusy = false;
+		pthread_mutex_unlock( &this->broadcastRunning );
         return;
     }
 
@@ -475,7 +472,7 @@ void coCore::               broadcast( coPlugin *source,
 
 
 // cleanup
-	this->broadcastBusy = false;
+	pthread_mutex_unlock( &this->broadcastRunning );
 }
 
 
