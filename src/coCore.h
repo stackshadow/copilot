@@ -23,6 +23,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <unistd.h>
 #include <sys/utsname.h>
 #include <string>
+#include <pthread.h>
 
 #include "evillib_depends.h"
 #include "memory/etList.h"
@@ -53,13 +54,12 @@ public:
 private:
     coPlugin*           authPlugin;             /**< The plugin which authenticate the user-login */
     json_t*             jsonAnswerArray;
-    bool                locked;
+
     etList*             pluginList;
-    etList*             pluginListEnd;
     void*               iterator;
 
 // lock
-	bool				broadcastBusy;
+	pthread_mutex_t 	broadcastRunning = PTHREAD_MUTEX_INITIALIZER;
 	coMessage*			broadcastMessage;
 
 public:

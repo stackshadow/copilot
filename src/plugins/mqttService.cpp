@@ -163,7 +163,7 @@ bool mqttService::          configLoad(){
 
 bool mqttService::          configSave(){
     int returnCode = json_dump_file( this->jsonConfigRoot,
-        "/etc/copilot/mqtt.json",
+        configFile("mqtt.json"),
         JSON_PRESERVE_ORDER | JSON_INDENT(4)
     );
 

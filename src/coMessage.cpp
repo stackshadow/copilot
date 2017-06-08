@@ -20,6 +20,20 @@ coMessage::					coMessage(){
 	etStringAllocLen( this->temp, 1024 );
 }
 
+coMessage::					~coMessage(){
+	
+	etStringFree( this->hostName_t );
+	etStringFree( this->group_t );
+	etStringFree( this->command_t );
+	etStringFree( this->payload_t );
+	
+	etStringFree( this->replyCommand_t );
+	etStringFree( this->replyPayload_t );
+	
+	etStringFree( this->temp );
+
+}
+
 const char* coMessage::		setValue( etString* string, const char* newValue ){
 
 	if( newValue == NULL ){
