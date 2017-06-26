@@ -49,22 +49,24 @@ sysState::         							sysState() : coPlugin( "sysState" ){
 
 
 // register this plugin
-    coCore::ptr->registerPlugin( this, coCore::ptr->hostInfo.nodename, "systate" );
+    coCore::ptr->registerPlugin( this, "", "systate" );
 
 // test
 	coMessage* message = new coMessage();
 	message->command( "getinfos" );
+	this->onBroadcastMessage( message );
+	message->command( "getHealth" );
 	this->onBroadcastMessage( message );
 	delete message;
 
 }
 
 sysState:: 									~sysState(){
-	
+
 // wait for finish the thread
 	this->stateThreadRun = sysState::THREAD_END;
 	pthread_join( this->stateThread, NULL );
-	
+
 	etDebugMessage( etID_LEVEL_DETAIL, "sysState Deleted" );
 	fflush( stdout );
 	fflush( stderr );
@@ -77,7 +79,7 @@ void* sysState::							stateRefreshThread( void *userdata ){
 
 // vars
 	sysState*		sysInstance = (sysState*)userdata;
-	
+
 	while( sysInstance->stateThreadRun == sysState::THREAD_LOOP ){
 
 		pthread_mutex_lock( &sysInstance->trv_Mutex );
@@ -85,16 +87,16 @@ void* sysState::							stateRefreshThread( void *userdata ){
 		sysInstance->refreshLoad();
 		sysInstance->refreshRam();
 		pthread_mutex_unlock( &sysInstance->trv_Mutex );
-		
+
 		sleep( sysInstance->stateThreadRefreshSeconds );
 	}
-	
+
 	return NULL;
 }
 
 
 void sysState::    							refreshFreeSpace(){
-	
+
 // vars
 	FILE* 				mtab = NULL;
 	struct mntent*		entry = NULL;
@@ -106,17 +108,17 @@ void sysState::    							refreshFreeSpace(){
 	while( (entry = getmntent(mtab)) != NULL ){
 		this->updateDeviceSize(entry);
 	}
-	
+
 // release sources
 	endmntent( mtab );
 }
 
 
 void sysState::    							refreshLoad(){
-	
+
 // vars
 	struct sysinfo		systemInfo;
-	
+
 // get system info
 	sysinfo( &systemInfo );
 
@@ -141,8 +143,8 @@ void sysState::  	  						refreshRam(){
 	FILE* fp = fopen( "/proc/meminfo", "r" );
 	if ( fp != NULL ){
 		while ( getline( &readBuffer, &readBufferSize, fp ) >= 0 ){
-			
-			
+
+
 			if ( strncmp( readBuffer, "MemTotal", 8 ) == 0 ){
 				sscanf( readBuffer, "%*s%ld", &totalRam );
 			}
@@ -165,18 +167,18 @@ void sysState::  	  						refreshRam(){
 	}
 
 // calculate health
-	if( this->trv_health > this->trv_ramFreePercent ){
-		this->trv_health = this->trv_ramFreePercent;
+	if( this->trv_health > this->trv_ramFreePercent * this->hmRamSize ){
+		this->trv_health = this->trv_ramFreePercent * this->hmRamSize;
 	}
 
 }
 
 /** @brief Get a Device by source-name
- 
+
 @warn This function dont lock the mutex !
- 
+
 @param source The source of mount
-@return 
+@return
 */
 sysState::mountedDevice_t* sysState::		deviceGet( const char* source ){
 
@@ -184,7 +186,7 @@ sysState::mountedDevice_t* sysState::		deviceGet( const char* source ){
 	void*							iterator = NULL;
 	const char*						sourceChar;
 	size_t							sourceLen = strlen(source);
-	
+
 	etListIterate( this->trv_devicesList, iterator );
 	while( etListIterateNext(iterator,mountedDevice) == etID_YES ){
 
@@ -194,17 +196,17 @@ sysState::mountedDevice_t* sysState::		deviceGet( const char* source ){
 		}
 
 	}
-	
+
 	return NULL;
 }
 
 
 void sysState::								updateDeviceSize( struct mntent* mountEntry ){
-	
+
 // first check if device exist
 	sysState::mountedDevice_t* 		mountedDevice = NULL;
 	struct statvfs					deviceStat;
-	
+
 
 // read statistic
 	if( statvfs( mountEntry->mnt_dir, &deviceStat ) != 0 ){
@@ -218,7 +220,7 @@ void sysState::								updateDeviceSize( struct mntent* mountEntry ){
 
 // try to find the device
 	mountedDevice = this->deviceGet( mountEntry->mnt_fsname );
-	
+
 // create new
 	if( mountedDevice == NULL ){
 
@@ -227,7 +229,7 @@ void sysState::								updateDeviceSize( struct mntent* mountEntry ){
 		etStringCharSet( mountedDevice->source, mountEntry->mnt_fsname, -1 );
 		mountedDevice->f_bsize = deviceStat.f_bsize;
 		mountedDevice->f_frsize = deviceStat.f_frsize;
-		
+
 		etListAppend( this->trv_devicesList, mountedDevice );
 	}
 
@@ -241,10 +243,10 @@ void sysState::								updateDeviceSize( struct mntent* mountEntry ){
 	} else {
 		mountedDevice->percentFree = 0.0;
 	}
-	
+
 // calculate health
-	if( this->trv_health > mountedDevice->percentFree ){
-		this->trv_health = mountedDevice->percentFree;
+	if( this->trv_health > mountedDevice->percentFree * this->hmDeviceSize ){
+		this->trv_health = mountedDevice->percentFree * this->hmDeviceSize;
 	}
 
 }
@@ -253,12 +255,12 @@ void sysState::								updateDeviceSize( struct mntent* mountEntry ){
 
 
 void sysState::								mountedDeviceAppendToJson( mountedDevice_t* mountedDevice, json_t* outJson ){
-	
+
 // vars
 	json_t*							jsonDevice = NULL;
 	const char*						tempConstChar = NULL;
 	char							tempIntChar[10] = { 0,0,0,0,0,0,0,0,0,0 };
-	
+
 // single device
 	jsonDevice = json_object();
 	snprintf( tempIntChar, sizeof(tempIntChar), "%3.2f\0", mountedDevice->percentFree );
@@ -267,12 +269,12 @@ void sysState::								mountedDeviceAppendToJson( mountedDevice_t* mountedDevice
 // add device to global object
 	etStringCharGet( mountedDevice->source, tempConstChar );
 	json_object_set_new( outJson, tempConstChar, jsonDevice );
-	
+
 }
 
 
 void sysState::								freeRamAppendToJson( json_t* outJson ){
-	
+
 // convert time to char
 	char	tempChar[10] = { 0,0,0,0,0,0,0,0,0,0 };
 	snprintf( tempChar, 10, "%3.2f", this->trv_ramFreePercent );
@@ -283,27 +285,27 @@ void sysState::								freeRamAppendToJson( json_t* outJson ){
 
 
 void sysState::								cpuLoadAppendToJson( json_t* outJson ){
-	
+
 // convert time to char
 	char	tempChar[10] = { 0,0,0,0,0,0,0,0,0,0 };
-	
+
 
 	snprintf( tempChar, 10, "%3.2f", this->trv_load01 );
 	json_object_set_new( outJson, "load01", json_string(tempChar) );
-	
+
 	snprintf( tempChar, 10, "%3.2f", this->trv_load05 );
 	json_object_set_new( outJson, "load05", json_string(tempChar) );
 
 	snprintf( tempChar, 10, "%3.2f", this->trv_load15 );
-	json_object_set_new( outJson, "load15", json_string(tempChar) );	
+	json_object_set_new( outJson, "load15", json_string(tempChar) );
 }
 
 
 
 
 bool sysState:: 							onBroadcastMessage( coMessage* message ){
-	
-	
+
+
 // vars
     int                 			msgPayloadLen;
 	const char*						msgHostName = message->hostName();
@@ -314,16 +316,55 @@ bool sysState:: 							onBroadcastMessage( coMessage* message ){
 	sysState::mountedDevice_t* 		mountedDevice = NULL;
 	void*							mountedDeviceIterator = NULL;
 	const char*						tempConstChar = NULL;
-	char							tempIntChar[10] = { 0,0,0,0,0,0,0,0,0,0 };
+	bool							messageForThisHost = false;
+	bool							messageForAllHost = false;
+
+
+// to this host
+	if( strncmp( msgHostName, coCore::ptr->hostInfo.nodename, strlen(msgHostName) ) == 0 ){
+		messageForThisHost = true;
+	}
+// to all hosts
+    if( strncmp( (char*)msgHostName, "all", 3 ) == 0 ){
+		messageForAllHost = true;
+	}
+
+
+
+// for all or this
+	if( messageForThisHost || messageForAllHost ){
+
+		if( strncmp( msgCommand,"getHealth", 9 ) == 0 ){
+
+		// temp value
+			char jsonValue[64];
+			memset( jsonValue, 0, 64 );
+
+
+			pthread_mutex_lock( &this->trv_Mutex );
+			snprintf( jsonValue, 64, "{ \"value\": %3.2f }", this->trv_health );
+			pthread_mutex_unlock( &this->trv_Mutex );
+			message->replyCommand( "health" );
+			message->replyPayload( jsonValue );
+			return true;
+		}
+
+	}
+
+
+// only for this host
+	if( messageForThisHost == false ){
+		return true;
+	}
 
 
 
 // infos of system
-	if( strncmp( msgCommand,"getinfos", 8 ) == 0 ){
-		
+	if( strncmp( msgCommand,"getInfos", 8 ) == 0 ){
+
 		json_t*		jsonObject = json_object();
 
-		
+
 	// #################### Devices
 	// lock
 		pthread_mutex_lock(&this->trv_Mutex);
@@ -339,12 +380,12 @@ bool sysState:: 							onBroadcastMessage( coMessage* message ){
 		json_t* jsonRam = json_object();
 		freeRamAppendToJson( jsonRam );
 		json_object_set_new( jsonObject, "ram", jsonRam );
-	
+
 	// #################### CPU
 		json_t* jsonCPULoad = json_object();
 		cpuLoadAppendToJson( jsonCPULoad );
-		json_object_set_new( jsonObject, "cpu", jsonCPULoad );	
-	
+		json_object_set_new( jsonObject, "cpu", jsonCPULoad );
+
 
 	// unlock
 		pthread_mutex_unlock(&this->trv_Mutex);
@@ -359,6 +400,7 @@ bool sysState:: 							onBroadcastMessage( coMessage* message ){
 	// clean
 		json_decref( jsonObject );
 
+		return true;
 	}
 
 

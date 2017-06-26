@@ -52,6 +52,13 @@ private:
 		threadAction_t		stateThreadRun = THREAD_LOOP;
 		int					stateThreadRefreshSeconds = 10;
 
+		// (h)ealth (m)ultiplikator
+		/**
+		This multiply the free size of an device ( in percent ) and compare it to the actual trv_health.
+		For example if you use 2.0 the size of an device must be lower than 50% to effekt the trv_health.
+		*/
+		float				hmDeviceSize = 2.0;
+		float				hmRamSize = 1.0;
 
 		// trv ( Threaded values )
 		pthread_mutex_t 	trv_Mutex = PTHREAD_MUTEX_INITIALIZER;
