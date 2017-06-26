@@ -37,8 +37,9 @@ public:
                                 coreService();
                                 ~coreService();
 
+
 private:
-	json_t*						jsonHosts;
+	void						appendKnownNodes( const char* hostName );
 
 public:
 // handlers

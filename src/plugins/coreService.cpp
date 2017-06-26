@@ -28,6 +28,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 coreService::                   coreService() : coPlugin( "core" ) {
 
+// alloc
 
 
 // register this plugin
@@ -39,6 +40,37 @@ coreService::                   coreService() : coPlugin( "core" ) {
 coreService::                   ~coreService(){
 
 }
+
+
+
+void coreService:: 				appendKnownNodes( const char* hostName ){
+
+	json_t*			jsonObject = NULL;
+	json_error_t	jsonError;
+	json_t*			jsonNode = NULL;
+	json_t*			jsonNodes = NULL;
+
+// open the file
+    jsonObject = json_load_file( configFile("known_nodes.json"), JSON_PRESERVE_ORDER, &jsonError );
+    if( jsonObject == NULL ){
+        jsonObject = json_object();
+        json_object_set_new( jsonObject, "nodes", json_object() );
+    }
+	jsonNodes = json_object_get( jsonObject, "nodes" );
+
+// check if node exist
+	jsonNode = json_object_get( jsonNodes, hostName );
+	if( jsonNode == NULL ){
+		jsonNode = json_object();
+		json_object_set_new( jsonNodes, hostName, jsonNode );
+		json_dump_file( jsonObject, configFile("known_nodes.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+	}
+
+// cleanup
+	json_decref( jsonObject );
+}
+
+
 
 
 bool coreService::              onBroadcastMessage( coMessage* message ){
@@ -64,12 +96,15 @@ bool coreService::              onBroadcastMessage( coMessage* message ){
 
 
 // to "localhost" or to the nodename-host
-    if( strncmp("localhost",msgHostName,9) != 0 &&
-	strncmp(coCore::ptr->hostInfo.nodename,msgHostName,coCore::ptr->hostNodeNameLen) != 0 ){
+    if( strncmp(msgHostName,"localhost",9) != 0 &&
+	strncmp(msgHostName,coCore::ptr->hostInfo.nodename,coCore::ptr->hostNodeNameLen) != 0 ){
         return true;
     }
 
+// append hostname to known hosts
+	this->appendKnownNodes( msgHostName );
 
+// get version
     if( strncmp( (char*)msgCommand, "getVersion", 10 ) == 0 ){
 
 		message->replyCommand( "version" );
@@ -78,10 +113,14 @@ bool coreService::              onBroadcastMessage( coMessage* message ){
         return true;
     }
 
-
+// get services
     if( strncmp( (char*)msgCommand, "getServices", 11 ) == 0 ){
         return true;
     }
+
+// get hosts
+
+
 
 
     return true;
