@@ -29,6 +29,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 class coMessage {
 
 public:
+	etString*		reqID_t;
 	etString*		hostName_t;
 	etString*		group_t;
 	etString*		command_t;
@@ -44,12 +45,14 @@ public:
 	~coMessage();
 
 // base
+	const char*		reqID( const char *newRequestID = NULL ){ return this->setValue(this->reqID_t, newRequestID); };
 	const char*		hostName( const char* newHostName = NULL ){ return this->setValue(this->hostName_t, newHostName); };
 	const char*		group( const char* newGroup = NULL ){ return this->setValue(this->group_t, newGroup); };
 	const char*		command( const char* newCommand = NULL ){ return this->setValue(this->command_t, newCommand); };
 	const char*		payload( const char* newPayload = NULL ){ return this->setValue(this->payload_t, newPayload); };
 
-	const char*		topic();
+// topic
+	const char*		topic( const char* newTopic = NULL, bool isReply = false );
 
 // reply
 	const char*		replyCommand( const char* newReplyCommand = NULL ){ return this->setValue(this->replyCommand_t, newReplyCommand); };
@@ -60,6 +63,11 @@ public:
 
 	bool			clear();
 	bool			clearReply();
+
+// json-stuff
+
+	bool			toJson( json_t* jsonObject, bool isReply );
+	bool			fromJson( json_t* jsonObject );
 
 private:
 	const char*		setValue( etString* string, const char* newValue );
