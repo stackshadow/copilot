@@ -33,6 +33,14 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 class coPlugin {
 
 
+public:
+	typedef enum e_state {
+		NO_REPLY = -1,
+		REPLY = 0,
+		BREAK = 1
+	} t_state;
+
+
 protected:
     etString*           pluginName;
     etString*           pluginInfo;
@@ -49,11 +57,11 @@ public:
     bool                info( const char *shortInfo );
     const char*         info();
 
-
-
-	virtual bool		onBroadcastMessage( coMessage* message ){ return true; }
+	virtual t_state		onBroadcastMessage( coMessage* message ){ return NO_REPLY; }
 	virtual bool        onBroadcastReply( coMessage* message ){ return true; }
 
+protected:
+	void				setName( const char* name );
 
 
 };

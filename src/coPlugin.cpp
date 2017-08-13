@@ -49,6 +49,11 @@ const char* coPlugin::              name(){
 }
 
 
+void coPlugin::						setName( const char* name ){
+    etStringCharSet( this->pluginName, name, -1 );
+}
+
+
 bool coPlugin::                     info( const char *shortInfo ){
     etStringCharSet( this->pluginInfo, shortInfo, -1 );
 }

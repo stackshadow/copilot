@@ -43,6 +43,7 @@ coCore::                    coCore(){
         //return 1;
     }
 
+// create temporary message
 	this->broadcastMessage = new coMessage();
 
 // save the instance
@@ -61,7 +62,7 @@ coCore::                    ~coCore(){
     }
 
     etListFree( this->pluginList );
-	
+
 	delete( this->broadcastMessage );
 }
 
@@ -90,7 +91,7 @@ bool coCore::               registerPlugin( coPlugin* plugin, const char *hostNa
 
 // debug
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "Register Plugin: %s", pluginName );
-    etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 // add it to the list
     etListAppend( this->pluginList, (void*)listELement );
@@ -111,7 +112,7 @@ bool coCore::               removePlugin( coPlugin* plugin ){
 
         // debug
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove Plugin: %s", pluginElement->plugin->name() );
-            etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
             etListDataRemove( this->pluginList, pluginElement, etID_TRUE );
             return true;
@@ -399,6 +400,7 @@ void coCore::               broadcast( coPlugin *source,
     int                     pluginHostNameLen = 0;
     const char*             pluginGroup = NULL;
     int                     pluginGroupLen = 0;
+	coPlugin::t_state		pluginState = coPlugin::BREAK;
     int                     cmpResult = -1;
 
     json_error_t            jsonError;
@@ -444,8 +446,8 @@ void coCore::               broadcast( coPlugin *source,
     // iterate
         if( pluginElement->plugin != NULL ){
 
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Run onMessage() for Plugin: %s", pluginElement->plugin->name() );
-            etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
+			snprintf( etDebugTempMessage, etDebugTempMessageLen, "CMD %s", msgCommand );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 		// build the message
 			this->broadcastMessage->hostName( msgHostName );
@@ -455,15 +457,24 @@ void coCore::               broadcast( coPlugin *source,
 
 			this->broadcastMessage->clearReply();
 
+		// send it to the plugin and wait for response
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "CALL %s::onBroadcastMessage()", pluginElement->plugin->name() );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
             jsonAnswerObject = json_object();
-            if( pluginElement->plugin->onBroadcastMessage( this->broadcastMessage ) == false ){
+			pluginState = pluginElement->plugin->onBroadcastMessage( this->broadcastMessage );
+
+		// plugin dont reply something
+			if( pluginState == coPlugin::NO_REPLY ) continue;
+
+		// plugin want to break
+			if( pluginState == coPlugin::BREAK ) {
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "Plugin '%s' requests break", pluginElement->plugin->name() );
                 etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
                 break;
-            }
+			}
 
-        // manipulate the topic
+        // reply back to plugin
 			source->onBroadcastReply( this->broadcastMessage );
         }
 

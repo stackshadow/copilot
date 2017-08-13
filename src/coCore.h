@@ -47,6 +47,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 class coCore {
 
+
+
 public:
     struct utsname      hostInfo;
     int                 hostNodeNameLen;
