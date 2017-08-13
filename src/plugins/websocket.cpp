@@ -7,7 +7,7 @@
 
 websocket* websocket::ptr = NULL;
 
-websocket::websocket( int wsPort ) : coPlugin( "websocketClient" ) {
+websocket::							websocket( int wsPort ) : coPlugin( "websocketClient" ) {
 
     this->ptr = this;
 
@@ -42,12 +42,12 @@ websocket::websocket( int wsPort ) : coPlugin( "websocketClient" ) {
     coCore::ptr->registerPlugin( this, "", "" );
 
 }
-websocket::~websocket(){
+websocket::							~websocket(){
 
 }
 
 
-void* websocket::           wsThread( void* data ){
+void* websocket::           		wsThread( void* data ){
 
     websocket* wsInstance = (websocket*)data;
 
@@ -58,13 +58,13 @@ void* websocket::           wsThread( void* data ){
     pthread_exit(NULL);
 }
 
-int websocket::             wsCallbackHttp(     struct lws *wsi, enum lws_callback_reasons reason,
+int websocket::             		wsCallbackHttp(     struct lws *wsi, enum lws_callback_reasons reason,
                                                 void *user, void *in, size_t len ){
     return 0;
 }
 
 
-int websocket::             wsCallbackCopilot(  struct lws *wsi, enum lws_callback_reasons reason,
+int websocket::             		wsCallbackCopilot(  struct lws *wsi, enum lws_callback_reasons reason,
                                                 void *user, void *in, size_t len ){
 
     struct websocket::clientSessionData*    pss = (struct websocket::clientSessionData *)user;
@@ -136,7 +136,7 @@ int websocket::             wsCallbackCopilot(  struct lws *wsi, enum lws_callba
 }
 
 
-void websocket::            wsOnMessage( const char* message, int messageLen ){
+void websocket::            		wsOnMessage( const char* message, int messageLen ){
 
 
     fprintf( stdout, "[%p]: Message: %s\n", __PRETTY_FUNCTION__, message );
@@ -149,79 +149,75 @@ void websocket::            wsOnMessage( const char* message, int messageLen ){
         return;
     }
 
-    json_t*             jsonTopic = json_object_get( jsonObject, "topic" );
-    json_t*             jsonPayload = json_object_get( jsonObject, "payload" );
-    const char*         topic = json_string_value( jsonTopic );
-    char*               hostName;
-    char*               group;
-    char*               cmd;
+// we need a small message
+	coMessage* tempMessage = new coMessage();
+	tempMessage->fromJson( jsonObject );
 
+    const char*			cmd = tempMessage->command();
+	const char*			payload = tempMessage->payload();
 
 // websocket only message
-    if( strncmp((char*)topic, "nodes/localhost/co/gethostname", messageLen) == 0 ){
+    if( strncmp((char*)cmd, "gethostname", 11) == 0 ){
 
+	// vars
         json_t* jsonAnswerObject = json_object();
-        json_object_set_new( jsonAnswerObject, "topic", json_string("nodes/localhost/co/hostname") );
-        json_object_set_new( jsonAnswerObject, "payload", json_string(coCore::ptr->hostInfo.nodename) );
+
+	// set reply
+		tempMessage->replyCommand( "hostname" );
+		tempMessage->replyPayload( coCore::ptr->hostInfo.nodename );
 
     // reply
-        char*   jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+		tempMessage->toJson( jsonAnswerObject, true );
+        char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
         this->wsReply( jsonDump );
         free( jsonDump );
         json_decref(jsonAnswerObject);
         return;
     }
 
-
-// we grab the hostname out of the topic
-    hostName = strtok( (char*)topic, "/" );
-    hostName = strtok( NULL, "/" );
-    group = strtok( NULL, "/" );
-    cmd = strtok( NULL, "/" );
-
-// check
-    if( hostName == NULL ) return;
-    if( group == NULL ) return;
-    if( cmd == NULL ) return;
-
 // websocket must do auth
     if( strncmp( (char*)cmd, "login", 5 ) == 0 ){
 
-        json_t* jsonCredentials = json_loads( json_string_value(jsonPayload), JSON_PRESERVE_ORDER, &jsonError );
+        json_t* jsonCredentials = json_loads( payload, JSON_PRESERVE_ORDER, &jsonError );
         if( jsonCredentials == NULL ) return;
+		json_t*			jsonString = NULL;
+		const char* 	userName = NULL;
+		const char* 	userPass = NULL;
 
-        const char* userName = json_string_value( json_object_get( jsonCredentials, "user" ) );
-        const char* userPass = json_string_value( json_object_get( jsonCredentials, "password" ) );
+		jsonString = json_object_get( jsonCredentials, "user" );
+		if( jsonString != NULL ) userName = json_string_value( jsonString );
+
+		jsonString = json_object_get( jsonCredentials, "password" );
+		if( jsonString != NULL ) userPass = json_string_value( jsonString );
 
     // check password
         if( coCore::ptr->passwordCheck(userName,userPass) == false ){
             this->setAuth( false );
-            json_decref(jsonCredentials);
-
-            return;
+            //json_decref(jsonCredentials);
+			goto checkAuth;
         }
         this->setAuth( true );
 
-    // create answer topic
+	// ckeanup
+		json_decref(jsonCredentials);
+
+	// vars
         json_t* jsonAnswerObject = json_object();
-        std::string fullTopic = "nodes/";
-        fullTopic += hostName;
-        fullTopic += "/";
-        fullTopic += group;
-        fullTopic += "/loginok";
-        json_object_set_new( jsonAnswerObject, "topic", json_string(fullTopic.c_str()) );
-        json_object_set_new( jsonAnswerObject, "payload", json_string("") );
+
+	// set reply
+		tempMessage->replyCommand( "loginok" );
+		tempMessage->replyPayload( "" );
 
     // reply
+		tempMessage->toJson( jsonAnswerObject, true );
         char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
         this->wsReply( jsonDump );
-
-    // clean
         free( jsonDump );
         json_decref(jsonAnswerObject);
-        json_decref(jsonCredentials);
+        return;
     }
 
+checkAuth:
 // authenticated ?
     if( this->isAuth() == false ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] %s", __PRETTY_FUNCTION__, "not authenticated, close connection" );
@@ -232,12 +228,12 @@ void websocket::            wsOnMessage( const char* message, int messageLen ){
 
 
 // broadcast
-    coCore::ptr->broadcast( this, hostName, group, cmd, json_string_value(jsonPayload) );
+    coCore::ptr->broadcast( this, tempMessage->hostName(), tempMessage->group(), tempMessage->command(), payload );
 
 }
 
 
-void websocket::            wsReply( const char *message ){
+void websocket::            		wsReply( const char *message ){
     if( this->actualClientSession == NULL ) return;
 
 	int 	messageLen = strlen(message);
@@ -254,14 +250,14 @@ void websocket::            wsReply( const char *message ){
 
 
 
-bool websocket::            isAuth(){
+bool websocket::            		isAuth(){
     if( this->actualClientSession == NULL ) return false;
 
     return this->actualClientSession->authenthicated;
 }
 
 
-void websocket::            setAuth( bool authenticated ){
+void websocket::            		setAuth( bool authenticated ){
     if( this->actualClientSession == NULL ) return;
 
     this->actualClientSession->authenthicated = authenticated;
@@ -271,9 +267,10 @@ void websocket::            setAuth( bool authenticated ){
 
 
 
-bool websocket::			onBroadcastMessage( coMessage* message ){
+coPlugin::t_state websocket::		onBroadcastMessage( coMessage* message ){
 
 // vars
+	const char*			msgID = message->reqID();
 	const char*			msgHostName = message->hostName();
 	const char*			msgGroup = message->group();
 	const char*			msgCommand = message->command();
@@ -294,6 +291,7 @@ bool websocket::			onBroadcastMessage( coMessage* message ){
 
 // setup jsonObject
 	jsonObject = json_object();
+	json_object_set_new( jsonObject, "id", json_string(msgID) );
     json_object_set_new( jsonObject, "topic", json_string(fullTopic.c_str()) );
     json_object_set_new( jsonObject, "payload", json_string(msgPayload) );
     jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
@@ -310,11 +308,11 @@ bool websocket::			onBroadcastMessage( coMessage* message ){
     json_decref( jsonObject );
 
 
-    return true;
+    return coPlugin::NO_REPLY;
 }
 
 
-bool websocket:: 			onBroadcastReply( coMessage* message ){
+bool websocket:: 					onBroadcastReply( coMessage* message ){
 
 // vars
 	const char*			msgReplyPayload = message->replyPayload();

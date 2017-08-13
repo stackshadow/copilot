@@ -28,7 +28,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "coPlugin.h"
 
-#include "libwebsockets.h"
+#include <libwebsockets.h>
 
 
 
@@ -91,7 +91,7 @@ public:
     void                        setAuth( bool authenticated );
 
 // handlers
-	bool 						onBroadcastMessage( coMessage* message );
+	coPlugin::t_state			onBroadcastMessage( coMessage* message );
 	bool        				onBroadcastReply( coMessage* message );
 
 /*
