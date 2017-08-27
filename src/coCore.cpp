@@ -30,6 +30,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 coCore* coCore::ptr = NULL;
 coCore::                    coCore(){
 
+// init the semaphore
+	sem_init( &this->mutex, 0, 1 );
+
 // plugin-list
     etListAlloc( this->pluginList );
     this->iterator = NULL;
@@ -45,6 +48,9 @@ coCore::                    coCore(){
 
 // create temporary message
 	this->broadcastMessage = new coMessage();
+
+// load config
+	this->configLoad();
 
 // save the instance
     this->ptr = this;
@@ -68,9 +74,226 @@ coCore::                    ~coCore(){
 
 
 
+
+
+bool coCore::				configLoad(){
+	sem_wait( &this->mutex );
+
+// vars
+    json_error_t    jsonError;
+	json_t*			jsonValue;
+	bool			saveToFile = false;
+
+// clear
+	this->jsonConfig = NULL;
+	this->jsonNodes = NULL;
+	this->jsonNodesIterator = NULL;
+
+
+// open the file
+    this->jsonConfig = json_load_file( configFile("core.json"), JSON_PRESERVE_ORDER, &jsonError );
+    if( this->jsonConfig == NULL ){
+        this->jsonConfig = json_object();
+		saveToFile = true;
+    }
+
+// get nodes
+	this->jsonNodes = json_object_get( this->jsonConfig, "nodes" );
+	if( this->jsonNodes == NULL ){
+		this->jsonNodes = json_object();
+
+		jsonValue = json_object();
+		json_object_set_new( jsonValue, "host", json_string("") );
+		json_object_set_new( jsonValue, "port", json_integer(0) );
+		json_object_set_new( jsonValue, "type", json_integer(coCore::UNKNOWN) );
+
+		json_object_set_new( this->jsonNodes, "dummyNode", jsonValue );
+		json_object_set_new( this->jsonConfig, "nodes", this->jsonNodes );
+		saveToFile = true;
+	}
+
+	sem_post( &this->mutex );
+
+	if( saveToFile == true ){
+		this->configSave(NULL);
+	}
+
+	return true;
+}
+
+
+bool coCore::				configSave( const char* jsonString ){
+	sem_wait( &this->mutex );
+
+// vars
+	json_t*			jsonObject = NULL;
+	json_error_t	jsonError;
+
+	if( jsonString != NULL ){
+	// parse json
+		jsonObject = json_loads( jsonString, JSON_PRESERVE_ORDER | JSON_INDENT(4), &jsonError );
+		if( jsonObject == NULL | jsonError.line > -1 ){
+			snprintf( etDebugTempMessage, etDebugTempMessageLen, "json-error: %s", jsonError.text );
+			etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+			sem_post( &this->mutex );
+			return false;
+		}
+
+	// cool, we parse the json, now we can save it
+	// but before we release the old memory
+		if( this->jsonConfig != NULL ){
+			json_decref( this->jsonConfig );
+		}
+
+	// set
+		this->jsonConfig = jsonObject;
+	}
+
+// save the json to file
+	if( json_dump_file( this->jsonConfig, configFile("core.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
+		sem_post( &this->mutex );
+		return true;
+	}
+
+	sem_post( &this->mutex );
+	return false;
+}
+
+
+bool coCore::				nodesGet( json_t** jsonObject ){
+	if( jsonObject == NULL ) return false;
+	if( this->jsonNodes == NULL ) return false;
+
+	*jsonObject = this->jsonNodes;
+	return true;
+}
+
+
+bool  coCore::				nodesArrayGet( json_t* jsonArray ){
+	if( jsonArray == NULL ) return false;
+	if( this->jsonNodes == NULL ) return false;
+
+	sem_wait( &this->mutex );
+
+
+// vars
+	void*		iterator = NULL;
+
+	iterator = json_object_iter( this->jsonNodes );
+	while( iterator != NULL ){
+		json_array_append_new( jsonArray, json_string(json_object_iter_key(iterator)) );
+		iterator = json_object_iter_next( this->jsonNodes, iterator );
+	}
+
+// return
+	sem_post( &this->mutex );
+	return true;
+}
+
+
+bool coCore::				nodesIterate(){
+	sem_wait( &this->mutex );
+	return true;
+}
+
+
+bool coCore::				nodeNext( const char** name, coCore::nodeType* type, bool set ){
+
+// vars
+	json_t*		jsonVar = NULL;
+
+// iterate from beginning
+	if( this->jsonNodesIterator == NULL ){
+		this->jsonNodesIterator = json_object_iter( this->jsonNodes );
+	}
+
+// next node
+	this->jsonNodesIterator = json_object_iter_next( this->jsonNodes, this->jsonNodesIterator );
+	if( this->jsonNodesIterator == NULL ){
+		return false;
+	}
+
+// get name and type
+	this->jsonNode = json_object_iter_value( this->jsonNodesIterator );
+
+// name
+	*name = json_object_iter_key( this->jsonNodesIterator );
+
+// type
+	jsonVar = json_object_get( this->jsonNode, "type" );
+	if( jsonVar == NULL ){
+		jsonVar = json_integer( coCore::UNKNOWN );
+		json_object_set_new( this->jsonNode, "type", jsonVar );
+	}
+	*type = (coCore::nodeType)json_integer_value( jsonVar );
+
+	return true;
+}
+
+
+bool coCore::				nodeConnInfo( const char** host, int* port ){
+
+// vars
+	json_t*		jsonVar = NULL;
+
+// host
+	if( host != NULL ){
+		if( *host = NULL ){
+			jsonVar = json_object_get( this->jsonNode, "host" );
+			if( jsonVar == NULL ){
+				return false;
+			}
+			*host = json_string_value( jsonVar );
+		}
+	}
+
+// port
+	jsonVar = json_object_get( this->jsonNode, "port" );
+	if( jsonVar == NULL ){
+		return false;
+	}
+	if( port != NULL ){
+		*port = (int)json_integer_value( jsonVar );
+	}
+
+// return
+	return true;
+}
+
+
+bool coCore::				nodesIterateFinish(){
+	sem_post( &this->mutex );
+	return true;
+}
+
+
+
+
+
 void coCore::               setHostName( const char *hostname ){
     memset( this->hostInfo.nodename, 0, _UTSNAME_NODENAME_LENGTH );
     strncat( this->hostInfo.nodename, hostname, _UTSNAME_NODENAME_LENGTH );
+}
+
+bool coCore::				hostNameGet( const char** hostName, int* hostNameChars ){
+	if( hostName != NULL ){
+		*hostName = (const char*)&this->hostInfo.nodename;
+	}
+	if( hostNameChars != NULL ){
+		*hostNameChars = this->hostNodeNameLen;
+	}
+	return true;
+}
+
+bool coCore::				hostNameAppend( etString* string ){
+	etStringCharAdd( string, this->hostInfo.nodename );
+}
+
+bool coCore::				isHostName( const char* hostNameToCheck ){
+	if( strncmp( this->hostInfo.nodename, hostNameToCheck, this->hostNodeNameLen) == 0 ){
+		return true;
+	}
+	return false;
 }
 
 
@@ -332,7 +555,7 @@ bool coCore::               passwordCheck( const char* user, const char* pass ){
     jsonAuthObject = json_load_file( configFile("auth.json"), JSON_PRESERVE_ORDER, &jsonError );
     if( jsonAuthObject == NULL ){
         jsonAuthObject = json_object();
-        json_object_set_new( jsonAuthObject, "type", json_string("plain") );
+        json_object_set_new( jsonAuthObject, "username", json_object() );
         json_dump_file( jsonAuthObject, configFile("auth.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
     }
 
@@ -384,6 +607,7 @@ bool coCore::               passwordChange( const char* user, const char* oldpw,
 
 
 void coCore::               broadcast( coPlugin *source,
+										const char* msgID,
                                         const char* msgHostName,
                                         const char* msgGroup,
                                         const char* msgCommand,
@@ -450,6 +674,7 @@ void coCore::               broadcast( coPlugin *source,
             etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 		// build the message
+			this->broadcastMessage->reqID( msgID );
 			this->broadcastMessage->hostName( msgHostName );
 			this->broadcastMessage->group( msgGroup );
 			this->broadcastMessage->command( msgCommand );

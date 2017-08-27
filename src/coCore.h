@@ -24,6 +24,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/utsname.h>
 #include <string>
 #include <pthread.h>
+#include "semaphore.h"
 
 #include "evillib_depends.h"
 #include "memory/etList.h"
@@ -47,69 +48,97 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 class coCore {
 
+// types
+	public:
+		typedef enum {
+			UNKNOWN = 0,
+			SERVER = 1,
+			CLIENT = 10
+		} nodeType;
+
+// public values
+	private:
+		struct utsname      hostInfo;
+		int                 hostNodeNameLen;
+
+	// settings
+		sem_t 				mutex;
+		json_t*				jsonConfig = NULL;
+		json_t*				jsonNodes = NULL;
+		void*				jsonNodesIterator;
+		json_t*				jsonNode = NULL;
+
+	// plugins
+		etList*             pluginList;
+		void*               iterator;
+		json_t*             jsonAnswerArray;
+
+	// lock
+		pthread_mutex_t 	broadcastRunning = PTHREAD_MUTEX_INITIALIZER;
+		coMessage*			broadcastMessage;
+
+	public:
+							coCore();
+							~coCore();
+		static coCore*  	ptr;
+
+	public:
+
+	// set / get
+		void            	setHostName( const char* hostname );
+		bool				hostNameGet( const char** hostName, int* hostNameChars );
+		bool				hostNameAppend( etString* string );
+		bool				isHostName( const char* hostNameToCheck );
+
+	// config
+		bool				configLoad();
+		bool				configSave( const char* jsonString );
+	// nodes
+		bool				nodesGet( json_t** jsonObject );
+		bool				nodesArrayGet( json_t* jsonArray );
+		bool				nodesIterate();
+		bool				nodeNext( const char** name, coCore::nodeType* type, bool set = false );
+		bool				nodeConnInfo( const char** host, int* port );
+		bool				nodesIterateFinish();
 
 
-public:
-    struct utsname      hostInfo;
-    int                 hostNodeNameLen;
-
-private:
-    coPlugin*           authPlugin;             /**< The plugin which authenticate the user-login */
-    json_t*             jsonAnswerArray;
-
-    etList*             pluginList;
-    void*               iterator;
-
-// lock
-	pthread_mutex_t 	broadcastRunning = PTHREAD_MUTEX_INITIALIZER;
-	coMessage*			broadcastMessage;
-
-public:
-                    coCore();
-                    ~coCore();
-    static coCore*  ptr;
-
-public:
-
-// set / get
-    void            setHostName( const char *hostname );
-
-// functions to work with the list
-    bool            registerPlugin( coPlugin* plugin, const char *hostName, const char *group );
-    bool            removePlugin( coPlugin* plugin );
-    void            listPlugins( json_t* pluginNameArray );
+	// functions to work with the list
+		bool        	    registerPlugin( coPlugin* plugin, const char *hostName, const char *group );
+		bool       	 	    removePlugin( coPlugin* plugin );
+		void        	    listPlugins( json_t* pluginNameArray );
 
 
-// helper functions
-    static bool     jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson );
-    static bool     jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson );
+	// helper functions
+		static bool  		jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson );
+		static bool  		jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson );
 
-// login / auth / permissions
-    static bool     passwordCheck( const char* user, const char* pass );
-    static bool     passwordChange( const char* user, const char* oldpw, const char* newpw );
+	// login / auth / permissions
+		static bool  		passwordCheck( const char* user, const char* pass );
+		static bool			passwordChange( const char* user, const char* oldpw, const char* newpw );
 
-// the main loop
-    void            mainLoop();
+	// the main loop
+		void				mainLoop();
 
-private:
-    bool            pluginsIterate();
-    bool            pluginNext( coPluginElement** pluginElement );
-    bool            pluginNext( coPlugin** plugin );
-    bool            pluginElementGet( coPlugin* plugin, coPluginElement** pluginElement );
-    bool            nextAviable();
+	private:
+		bool       			pluginsIterate();
+		bool    	        pluginNext( coPluginElement** pluginElement );
+		bool     	       	pluginNext( coPlugin** plugin );
+		bool     	       	pluginElementGet( coPlugin* plugin, coPluginElement** pluginElement );
+		bool     	       	nextAviable();
 
-// some helper stuff
-    static bool     setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject, const char* msgGroup );
+	// some helper stuff
+		static bool     	setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject, const char* msgGroup );
 
 
-public:
-    void            broadcast(
-                        coPlugin*       source,
-                        const char*     msgHostName,
-                        const char*     msgGroup,
-                        const char*     msgCommand,
-                        const char*     msgPayload
-                    );
+	public:
+		void            	broadcast(
+								coPlugin*       source,
+								const char* 	msgID,
+								const char*     msgHostName,
+								const char*     msgGroup,
+								const char*     msgCommand,
+								const char*     msgPayload
+							);
 
 
 
