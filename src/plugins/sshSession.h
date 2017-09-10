@@ -20,7 +20,6 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef sshSession_H
 #define sshSession_H
 
-#include "sshService.h"
 
 class sshSession : public coPlugin {
 
@@ -45,6 +44,12 @@ class sshSession : public coPlugin {
 	public:
 							sshSession();
 							~sshSession();
+
+
+// API
+		coPlugin::t_state	onBroadcastMessage( coMessage* message );
+		bool        		onBroadcastReply( coMessage* message );
+
 
 // common stuff
 		void				setConnection( int port, const char* hostname );
@@ -72,7 +77,7 @@ class sshSession : public coPlugin {
 													const char *command,
 													void *userdata );
 
-		bool				waitForClient();
+		bool				waitForClient( const char* bindAddr = "::", int bindPort = 8989 );
 		bool				keyExchange();
 		bool				pollUntilShell( ssh_event mainLoop );
 		bool				pollEvents( ssh_event mainLoop );
@@ -81,10 +86,6 @@ class sshSession : public coPlugin {
 // client-side
 		bool				connectToClient();
 
-
-// API
-		coPlugin::t_state	onBroadcastMessage( coMessage* message );
-		bool        		onBroadcastReply( coMessage* message );
 
 
 };

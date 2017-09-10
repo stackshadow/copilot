@@ -84,7 +84,7 @@ private:
 
 // overloaded functions
 public:
-	bool 						onBroadcastMessage( coMessage* message );
+	coPlugin::t_state 		onBroadcastMessage( coMessage* message );
 
 };
 

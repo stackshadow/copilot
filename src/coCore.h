@@ -31,81 +31,44 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "string/etString.h"
 #include "string/etStringChar.h"
 
-
+#include "coCoreConfig.h"
 #include "coMessage.h"
-#include "coPluginElement.h"
-
-
-
-#define baseFilePath /etc/copilot/services/
-
-#define STR_HELPER(x) #x
-#define STR(x) STR_HELPER(x)
-#define configFile(a) STR(baseFilePath) a
-
-
+//#include "coPluginElement.h"
+#include "coPlugin.h"
+#include "coPluginList.h"
 
 
 class coCore {
 
-// types
-	public:
-		typedef enum {
-			UNKNOWN = 0,
-			SERVER = 1,
-			CLIENT = 10
-		} nodeType;
 
 // public values
 	private:
-		struct utsname      hostInfo;
+		pthread_t			threadLock;
+
+		etString*			hostName;
 		int                 hostNodeNameLen;
 
-	// settings
-		sem_t 				mutex;
-		json_t*				jsonConfig = NULL;
-		json_t*				jsonNodes = NULL;
-		void*				jsonNodesIterator;
-		json_t*				jsonNode = NULL;
-
 	// plugins
-		etList*             pluginList;
-		void*               iterator;
 		json_t*             jsonAnswerArray;
 
-	// lock
-		pthread_mutex_t 	broadcastRunning = PTHREAD_MUTEX_INITIALIZER;
-		coMessage*			broadcastMessage;
 
 	public:
 							coCore();
 							~coCore();
 		static coCore*  	ptr;
+		static bool			setupMode;
+		static coMessage*	message;
+
 
 	public:
+		coCoreConfig*		config;
+		coPluginList*		plugins;
 
 	// set / get
 		void            	setHostName( const char* hostname );
 		bool				hostNameGet( const char** hostName, int* hostNameChars );
-		bool				hostNameAppend( etString* string );
+		const char*			hostNameGet();
 		bool				isHostName( const char* hostNameToCheck );
-
-	// config
-		bool				configLoad();
-		bool				configSave( const char* jsonString );
-	// nodes
-		bool				nodesGet( json_t** jsonObject );
-		bool				nodesArrayGet( json_t* jsonArray );
-		bool				nodesIterate();
-		bool				nodeNext( const char** name, coCore::nodeType* type, bool set = false );
-		bool				nodeConnInfo( const char** host, int* port );
-		bool				nodesIterateFinish();
-
-
-	// functions to work with the list
-		bool        	    registerPlugin( coPlugin* plugin, const char *hostName, const char *group );
-		bool       	 	    removePlugin( coPlugin* plugin );
-		void        	    listPlugins( json_t* pluginNameArray );
 
 
 	// helper functions
@@ -120,26 +83,10 @@ class coCore {
 		void				mainLoop();
 
 	private:
-		bool       			pluginsIterate();
-		bool    	        pluginNext( coPluginElement** pluginElement );
-		bool     	       	pluginNext( coPlugin** plugin );
-		bool     	       	pluginElementGet( coPlugin* plugin, coPluginElement** pluginElement );
-		bool     	       	nextAviable();
+
 
 	// some helper stuff
-		static bool     	setTopic( coPluginElement* pluginElement, json_t* jsonAnswerObject, const char* msgGroup );
-
-
-	public:
-		void            	broadcast(
-								coPlugin*       source,
-								const char* 	msgID,
-								const char*     msgHostName,
-								const char*     msgGroup,
-								const char*     msgCommand,
-								const char*     msgPayload
-							);
-
+		//static bool     	setTopic( coPlugin* pluginElement, json_t* jsonAnswerObject, const char* msgGroup );
 
 
 

@@ -7,7 +7,7 @@
 
 websocket* websocket::ptr = NULL;
 
-websocket::							websocket( int wsPort ) : coPlugin( "websocketClient" ) {
+websocket::							websocket( int wsPort ) : coPlugin( "websocketClient", "", "" ) {
 
     this->ptr = this;
 
@@ -38,8 +38,8 @@ websocket::							websocket( int wsPort ) : coPlugin( "websocketClient" ) {
     pthread_create( &this->thread, NULL, &websocket::wsThread, this );
     pthread_detach( this->thread );
 
-// register this plugin
-    coCore::ptr->registerPlugin( this, "", "" );
+// register plugin
+	coCore::ptr->plugins->append( this );
 
 }
 websocket::							~websocket(){
@@ -157,19 +157,48 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
 	const char*			payload = tempMessage->payload();
 
 // websocket only message
-    if( strncmp((char*)cmd, "gethostname", 11) == 0 ){
+    if( strncmp((char*)cmd, "hostNameGet", 11) == 0 ){
 
 	// vars
         json_t* jsonAnswerObject = json_object();
 
+	// get the hostname
+		coCore::ptr->hostNameGet( &payload, NULL );
+
 	// set reply
-		tempMessage->replyCommand( "hostname" );
-		tempMessage->replyPayload( coCore::ptr->hostInfo.nodename );
+		tempMessage->replyCommand( "hostName" );
+		tempMessage->replyPayload( payload );
 
     // reply
 		tempMessage->toJson( jsonAnswerObject, true );
         char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
         this->wsReply( jsonDump );
+        free( jsonDump );
+        json_decref(jsonAnswerObject);
+        return;
+    }
+
+    if( strncmp((char*)cmd, "authMethodeGet", 11) == 0 ){
+
+	// vars
+        json_t* jsonAnswerObject = json_object();
+
+	// set reply
+		tempMessage->replyCommand( "authMethode" );
+
+        if( coCore::ptr->config->authMethode() == false ){
+            tempMessage->replyPayload( "none" );
+            this->setAuth( true );
+        } else {
+            tempMessage->replyPayload( "password" );
+        }
+
+    // reply
+		tempMessage->toJson( jsonAnswerObject, true );
+        char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+        this->wsReply( jsonDump );
+
+    // clean and return
         free( jsonDump );
         json_decref(jsonAnswerObject);
         return;
@@ -220,15 +249,15 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
 checkAuth:
 // authenticated ?
     if( this->isAuth() == false ){
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] %s", __PRETTY_FUNCTION__, "not authenticated, close connection" );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] %s", __PRETTY_FUNCTION__, "not authenticated, do nothing" );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
         return;
     }
 
 
 
 // broadcast
-    coCore::ptr->broadcast( this, tempMessage->hostName(), tempMessage->group(), tempMessage->command(), payload );
+    coCore::ptr->plugins->broadcast( this, tempMessage );
 
 }
 
@@ -270,36 +299,14 @@ void websocket::            		setAuth( bool authenticated ){
 coPlugin::t_state websocket::		onBroadcastMessage( coMessage* message ){
 
 // vars
-	const char*			msgID = message->reqID();
-	const char*			msgHostName = message->hostName();
-	const char*			msgGroup = message->group();
-	const char*			msgCommand = message->command();
-	const char*			msgPayload = message->payload();
-
     json_t*             jsonObject = NULL;
     const char*         jsonObjectChar = NULL;
-    std::string         fullTopic = "";
-    int                 msgPayloadLen;
 
-// build full topic
-	fullTopic = "nodes/";
-    fullTopic += msgHostName;
-    fullTopic += "/";
-    fullTopic += msgGroup;
-    fullTopic += "/";
-    fullTopic += msgCommand;
-
-// setup jsonObject
+// convert message to json
 	jsonObject = json_object();
-	json_object_set_new( jsonObject, "id", json_string(msgID) );
-    json_object_set_new( jsonObject, "topic", json_string(fullTopic.c_str()) );
-    json_object_set_new( jsonObject, "payload", json_string(msgPayload) );
-    jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+	message->toJson( jsonObject, false );
+	jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
-/*
-	char jsonDump[4096]; memset( jsonDump, 0, 4096 );
-	json_dumpb( jsonObject, jsonDump, 4096, JSON_PRESERVE_ORDER | JSON_COMPACT );
-*/
 // send it out
     this->wsReply( jsonObjectChar );
 
@@ -307,7 +314,7 @@ coPlugin::t_state websocket::		onBroadcastMessage( coMessage* message ){
     free( (void*)jsonObjectChar );
     json_decref( jsonObject );
 
-
+// return
     return coPlugin::NO_REPLY;
 }
 
@@ -315,28 +322,13 @@ coPlugin::t_state websocket::		onBroadcastMessage( coMessage* message ){
 bool websocket:: 					onBroadcastReply( coMessage* message ){
 
 // vars
-	const char*			msgReplyPayload = message->replyPayload();
-
-// there was no reply-data
-	if( message->replyExists() == false ){
-		return true;
-	}
-
-
     json_t*             jsonObject = NULL;
-    char*         		jsonObjectChar = NULL;
-    const char*         fullTopic = "";
-    int                 msgPayloadLen;
+    const char*         jsonObjectChar = NULL;
 
-// build full topic
-	fullTopic = message->replyComandFull();
-
-// setup jsonObject
+// convert message to json
 	jsonObject = json_object();
-    json_object_set_new( jsonObject, "topic", json_string(fullTopic) );
-    json_object_set_new( jsonObject, "payload", json_string(msgReplyPayload) );
-    jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
-
+	message->toJson( jsonObject, true );
+	jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
 // send it out
     this->wsReply( jsonObjectChar );
@@ -345,7 +337,7 @@ bool websocket:: 					onBroadcastReply( coMessage* message ){
     free( (void*)jsonObjectChar );
     json_decref( jsonObject );
 
-
-    return true;
+// return
+    return coPlugin::NO_REPLY;
 }
 

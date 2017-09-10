@@ -64,20 +64,26 @@ sources     += src/evillib.c
 sources     += src/main.cpp
 
 sources     += src/coCore.cpp
-sources     += src/coPluginElement.cpp
+sources     += src/coCoreConfig.cpp
+#sources     += src/coPluginElement.cpp
 sources     += src/coPlugin.cpp
+sources     += src/coPluginList.cpp
 sources     += src/coMessage.cpp
 
 # plugins
+sources     += src/plugins/sshService.cpp
+sources     += src/plugins/sshSession.cpp
 sources     += src/plugins/coreService.cpp
 sources     += src/plugins/sysState.cpp
-
+sources     += src/plugins/lxcService.cpp
+sources     += src/plugins/lxcContainer.cpp
 
 
 # additional sources which compiles to an shared object
 sourcesLib  +=
 
 CFLAGS      += -pie -fPIE -fPIC
+CFLAGS      += -I/usr/include
 CFLAGS      += -I/usr/include/qt
 CFLAGS      += -I$(sourcePath)/src
 CFLAGS      += -I$(sourcePath)/libs/evillib/core
@@ -94,11 +100,22 @@ CLIBS       += -ljansson
 CLIBS       += -lpthread
 CLIBS       += -lz
 CLIBS       += -luuid
+CLIBS       += -ldl
+
+# for testing
+CLIBS       += -lssh
+CLIBS       += -lssh_threads
+
+
 #CLIBS       += -luWS
 #CLIBS       += -Wl,-rpath /usr/lib64
 CLIBS		+= $(shell pkg-config --libs libsodium)
 
 
+# use SSH or not
+ifdef DISABLE_SSH
+CFLAGS      += -DDISABLE_SSH
+endif
 
 # mqtt
 ifdef DISABLE_MQTT
@@ -142,6 +159,8 @@ CFLAGS      += -D_DEBUG
 endif
 
 
+CFLAGS      += -DbaseFilePath="\"/tmp/etc/copilotd/\""
+
 default: binary-qt
 
 
@@ -155,7 +174,7 @@ client:
 	make -f make/Makefile \
 	DISABLE_WEBSOCKET=1 \
 	MQTT_ONLY_LOCAL=1 \
-	binary
+	binary-dbg
 clientTargets = /etc/copilot/services
 
 
@@ -172,15 +191,6 @@ clientTargets += $(prefix)/lib/systemd/system/copilotd.service
 $(prefix)/lib/systemd/system/copilotd.service: src/client/copilotd.service
 	@cp -v $< $@
 
-clientTargets += $(prefix)/lib/systemd/system/copilotd-ssh.service
-$(prefix)/lib/systemd/system/copilotd-ssh.service:
-	@ServerName=$(shell read -p "Enter the Server IP or Server-Name ( like dyndns.test.com ): ";echo $$REPLY) ;\
-	sed -e "s/copilot@server/copilot@$$ServerName/" src/client/copilotd-ssh.service > $@
-
-clientTargets += $(prefix)/lib/systemd/system/copilotd-ssh-keygen.service
-$(prefix)/lib/systemd/system/copilotd-ssh-keygen.service: src/client/copilotd-ssh-keygen.service
-	@cp -v $< $@
-
 install-client: client $(clientTargets)
 	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
 	@chown -R copilot:copilot /etc/copilot
@@ -195,6 +205,7 @@ uninstall-client:
 
 engineering:
 	make -f make/Makefile \
+	SSH_SERVER=1 \
 	binary-dbg
 
 install-engineering: engineering $(clientTargets)
@@ -256,5 +267,3 @@ install:
 	mkdir -p /etc/copilot
 	chown -R copilot:copilot /etc/copilot
 	cp $(sourcePath)/sudoers /etc/sudoers.d/copilot
-
-

@@ -6,9 +6,17 @@
       <Environment/>
       <Project Name="copilotd" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Release"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Client" Selected="no">
+      <Environment/>
+      <Project Name="copilotd" ConfigName="Client"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Setup" Selected="no">
+      <Environment/>
+      <Project Name="copilotd" ConfigName="Setup"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

@@ -27,25 +27,21 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "memory/etList.h"
 
 #include "coPlugin.h"
+#include "coCoreConfig.h"
 
 #include <libssh/libssh.h>
 #include <libssh/server.h>
 #include <libssh/callbacks.h>
 
-#define sshClientKeyPath "/etc/copilot/services/sshd_client_keys/"
-#define sshServerKeyPath "/etc/copilot/services/sshd_server_keys/"
+#define sshClientKeyPath baseFilePath "sshd_client_keys/"
+#define sshServerKeyPath baseFilePath "sshd_server_keys/"
+
 
 class sshService : public coPlugin {
 
 	private:
 		unsigned int		maxConnections = 1;
 		unsigned int		curConnections = 0;
-
-		json_t*				jsonConfig = NULL;
-		json_t*				jsonArrayServer = NULL;
-		void*				jsonServerIterator = NULL;
-		json_t*				jsonArrayClient = NULL;
-		json_t*				jsonClientIterator = NULL;
 
 		pthread_t			threadWaitForNewClients;
 
@@ -56,15 +52,19 @@ class sshService : public coPlugin {
 	public:
 							sshService();
 							~sshService();
-
-// load json
-		void				loadConfig();
-		bool				nextServerConfig( const char** host, int* port );
-		bool				nextClientConfig( const char** host, int* port );
+// API
+		coPlugin::t_state	onBroadcastMessage( coMessage* message );
+		bool        		onBroadcastReply( coMessage* message );
+		bool 				onSetup();
+		bool				onExecute();
 
 // helper
 		static bool 		cmpToAllLokalKeys( ssh_key clientKey );
+		static bool			askForSaveClientKey( ssh_key clientKey );
 		static bool			verify_knownhost( ssh_session session );
+
+// session-list
+		//bool				append(  )
 
 // server ( copilotd-devices )
 		bool				checkAndCreateServerKeys();
@@ -76,11 +76,6 @@ class sshService : public coPlugin {
 		static void*		connectToClientThread( void* void_service );
 		void				appendClient( const char* ipv6 );
 		void				appendClientv4( const char* ipv4 );
-
-// callbacks
-	public:
-		//bool				onBroadcastMessage( coMessage* message );
-		//bool        		onBroadcastReply( coMessage* message );
 
 
 };

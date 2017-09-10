@@ -24,15 +24,17 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "plugins/nftService.h"
 
 
-nftService::                    nftService() : coPlugin( "nft" ) {
+nftService::                    	nftService() : coPlugin( "nft", coCore::ptr->hostNameGet(), "nft" ) {
 
     this->jsonRootObject = NULL;
 
 // json
     this->load();
 
-// apply the rules
-	this->applyRules( coCore::ptr->hostInfo.nodename );
+// apply the rules for the local host
+	const char* hostName = NULL;
+	coCore::ptr->hostNameGet( &hostName, NULL );
+	this->applyRules( hostName );
 
 // test
     this->iterate();
@@ -49,13 +51,13 @@ nftService::                    nftService() : coPlugin( "nft" ) {
 
 
 
-// register this plugin
-    coCore::ptr->registerPlugin( this, coCore::ptr->hostInfo.nodename, "nft" );
+// register plugin
+	coCore::ptr->plugins->append( this );
 
 }
 
 
-nftService::                    ~nftService(){
+nftService::                    	~nftService(){
     if( this->jsonRootObject != NULL ){
         json_decref( this->jsonRootObject );
     }
@@ -64,10 +66,10 @@ nftService::                    ~nftService(){
 
 
 
-void nftService::               load(){
+void nftService::               	load(){
 
     json_error_t jsonError;
-    this->jsonRootObject = json_load_file( configFile("nftrules.json"), JSON_PRESERVE_ORDER, &jsonError );
+    this->jsonRootObject = json_load_file( baseFilePath "nftrules.json", JSON_PRESERVE_ORDER, &jsonError );
     if( jsonError.position == 0 || jsonError.line >= 0 ){
 
     // there is an error, we create an empty element
@@ -80,9 +82,9 @@ void nftService::               load(){
 }
 
 
-bool nftService::               save(){
+bool nftService::               	save(){
     int state = json_dump_file( this->jsonRootObject,
-                    configFile("nftrules.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+                    baseFilePath "nftrules.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     if( state == 0 ){
         return true;
@@ -94,7 +96,7 @@ bool nftService::               save(){
 
 
 
-void nftService::               iterate(){
+void nftService::               	iterate(){
 
 // reset
     this->jsonHostsObject = this->jsonRootObject;
@@ -108,7 +110,7 @@ void nftService::               iterate(){
 }
 
 
-bool nftService::               nextHost( const char** host ){
+bool nftService::               	nextHost( const char** host ){
 
 
 
@@ -139,7 +141,7 @@ bool nftService::               nextHost( const char** host ){
 }
 
 
-bool nftService::               nextChain( const char** chainName ){
+bool nftService::               	nextChain( const char** chainName ){
 // precheck
     if( this->jsonHostObject == NULL ) return false;
 
@@ -181,7 +183,7 @@ bool nftService::               nextChain( const char** chainName ){
 }
 
 
-bool nftService::               nextRule( const char **type ){
+bool nftService::               	nextRule( const char **type ){
 
 // end of the list
     if( this->jsonRulesArrayIndex >= this->jsonRulesArrayLen ){
@@ -210,7 +212,7 @@ bool nftService::               nextRule( const char **type ){
 
 
 
-bool nftService::               selectHost( const char* hostName ){
+bool nftService::               	selectHost( const char* hostName ){
 
     if( this->jsonRootObject == NULL ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "No root in json-file" );
@@ -225,9 +227,17 @@ bool nftService::               selectHost( const char* hostName ){
     this->jsonHostObject = json_object_get( this->jsonRootObject, hostName );
     if( this->jsonHostObject == NULL ){
         this->jsonHostObject = json_object();
+
+	/** @todo This is maybe useless, because we WANT to select a host
+	not use only the local hostname.
+	*/
+	// vars
+		const char* localHostName = NULL;
+		coCore::ptr->hostNameGet( &localHostName, NULL );
+
     // add the host
-        json_object_set_new( this->jsonRootObject, coCore::ptr->hostInfo.nodename, this->jsonHostObject );
-        json_object_set_new( this->jsonHostObject, "displayName", json_string(coCore::ptr->hostInfo.nodename) );
+        json_object_set_new( this->jsonRootObject, localHostName, this->jsonHostObject );
+        json_object_set_new( this->jsonHostObject, "displayName", json_string(localHostName) );
     }
 
 
@@ -256,7 +266,7 @@ bool nftService::               selectHost( const char* hostName ){
 }
 
 
-bool nftService::               selectChain( const char* chainName ){
+bool nftService::               	selectChain( const char* chainName ){
 // precheck
     if( this->jsonHostObject == NULL ) return false;
 
@@ -284,7 +294,7 @@ bool nftService::               selectChain( const char* chainName ){
 
 
 
-bool nftService::               createRuleCommand( std::string* nftCommand, const char* chainName, json_t* jsonRule ){
+bool nftService::               	createRuleCommand( std::string* nftCommand, const char* chainName, json_t* jsonRule ){
 
     // vars
     json_t*         jsonString = NULL;
@@ -328,7 +338,7 @@ bool nftService::               createRuleCommand( std::string* nftCommand, cons
 }
 
 
-bool nftService::               applyChain( const char* chainName, const char* chainType, coMessage* message ){
+bool nftService::               	applyChain( const char* chainName, const char* chainType, coMessage* message ){
 
 // vars
     std::string     command;
@@ -396,7 +406,7 @@ bool nftService::               applyChain( const char* chainName, const char* c
 }
 
 
-bool nftService::               applyRules( const char* hostName, coMessage* message ){
+bool nftService::               	applyRules( const char* hostName, coMessage* message ){
 
 // vars
     int             returnValue = -1;
@@ -462,7 +472,7 @@ bool nftService::               applyRules( const char* hostName, coMessage* mes
 
 
 
-bool nftService::               onBroadcastMessage( coMessage* message ){
+coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
 
 // vars
 	const char*			msgHostName = message->hostName();
@@ -482,7 +492,7 @@ bool nftService::               onBroadcastMessage( coMessage* message ){
 
     // get the host
         if( this->selectHost(msgHostName) == false ){
-            return false;
+            return coPlugin::NO_REPLY;
         }
 
         char* jsonString = json_dumps( this->jsonChainsObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
@@ -491,7 +501,7 @@ bool nftService::               onBroadcastMessage( coMessage* message ){
 		message->replyPayload( jsonString );
 
         free( (void*)jsonString );
-        return true;
+        return coPlugin::REPLY;
     }
 
 
@@ -502,14 +512,14 @@ bool nftService::               onBroadcastMessage( coMessage* message ){
         json_t*         jsonChains = NULL;
 
     // get the host
-        if( this->selectHost(msgHostName) == false ) return false;
+        if( this->selectHost(msgHostName) == false ) return coPlugin::NO_REPLY;
 
 
     // because jsonPayload is a string, we need to reparse it
-        if( msgPayload == NULL ) return false;
+        if( msgPayload == NULL ) return coPlugin::NO_REPLY;
         msgPayloadLen = strlen(msgPayload);
         jsonChains = json_loads( msgPayload, msgPayloadLen, &jsonError );
-        if( jsonError.column >= 0 ) return false;
+        if( jsonError.column >= 0 ) return coPlugin::NO_REPLY;
 
 
     // overwrite with new chains
@@ -520,17 +530,21 @@ bool nftService::               onBroadcastMessage( coMessage* message ){
 
 		message->replyCommand( "saveok" );
 
-        return true;
+        return coPlugin::REPLY;
     }
 
 
     if( strncmp( (char*)msgCommand, "apply", 4 ) == 0 ){
-        this->applyRules(msgHostName, message);
-        return true;
+        if( this->applyRules(msgHostName, message) == false ){
+			return coPlugin::REPLY;
+		}
+
+		message->replyCommand( "applyok" );
+        return coPlugin::REPLY;
     }
 
 
-    return false;
+    return coPlugin::NO_REPLY;
 
 
 }

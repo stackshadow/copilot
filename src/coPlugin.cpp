@@ -24,14 +24,20 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coPlugin.h"
 
 
-coPlugin::                          coPlugin( const char* name ){
+coPlugin::                          coPlugin( const char* name, const char* listenHostName, const char* listenGroup ){
 
 // alloc
     etStringAllocLen( this->pluginName, 128 );
     etStringAllocLen( this->pluginInfo, 128 );
 
+// alloc private stuff
+    etStringAllocLen( this->filterHostName, 128 );
+    etStringAllocLen( this->filterGroup, 128 );
+
 // save
     etStringCharSet( this->pluginName, name, -1 );
+	etStringCharSet( this->filterHostName, listenHostName, -1 );
+	etStringCharSet( this->filterGroup, listenGroup, -1 );
 }
 
 
@@ -54,7 +60,7 @@ void coPlugin::						setName( const char* name ){
 }
 
 
-bool coPlugin::                     info( const char *shortInfo ){
+bool coPlugin::                     info( const char* shortInfo ){
     etStringCharSet( this->pluginInfo, shortInfo, -1 );
 }
 
@@ -64,6 +70,41 @@ const char* coPlugin::              info(){
     etStringCharGet( this->pluginInfo, returnChar );
     return returnChar;
 }
+
+
+bool coPlugin::						filterCheck( const char* hostName, const char* group ){
+
+// vars
+	const char* 	tempCharArray = NULL;
+	size_t			tempLen = 0;
+	int				tempCmpResult = -1;
+
+// hostname
+	if( hostName == NULL ) return false;
+	if( group == NULL ) return false;
+
+
+	etStringCharGet( this->filterHostName, tempCharArray );
+	tempLen = strlen(tempCharArray);
+	tempCmpResult = strncmp( hostName, tempCharArray, tempLen );
+	if( tempCmpResult != 0 && tempLen > 0 ){
+		return false;
+	}
+
+// group
+	etStringCharGet( this->filterGroup, tempCharArray );
+	tempLen = strlen(tempCharArray);
+	tempCmpResult = strncmp( group, tempCharArray, tempLen );
+	if( tempCmpResult != 0 && tempLen > 0 ){
+		return false;
+	}
+
+// return
+	return true;
+}
+
+
+
 
 
 

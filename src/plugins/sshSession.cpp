@@ -22,8 +22,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 // {"id":"","h":"all","g":"co","c":"ping","v":""}
 
-
+// For static functions
 #include "plugins/sshService.h"
+
 #include "coCore.h"
 #include <libssh/libssh.h>
 #include <libssh/server.h>
@@ -31,7 +32,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "plugins/sshSession.h"
 
-sshSession::               			sshSession() : coPlugin( "sshSession" ){
+sshSession::               			sshSession() : coPlugin( "sshSession", "", "" ){
 	this->session = ssh_new();
 	this->channelShell = NULL;
 
@@ -40,7 +41,7 @@ sshSession::               			sshSession() : coPlugin( "sshSession" ){
 	etStringAllocLen( this->host, 32 );
 
 // register plugin
-	coCore::ptr->registerPlugin( this, "", "" );
+	coCore::ptr->plugins->append( this );
 }
 
 
@@ -61,9 +62,40 @@ sshSession::						~sshSession(){
 	etStringFree( this->host );
 
 // deregister plugin
-	coCore::ptr->removePlugin( this );
+	coCore::ptr->plugins->remove( this );
 
 }
+
+
+
+// API
+
+coPlugin::t_state	sshSession::	onBroadcastMessage( coMessage* message ){
+	if( this->isActive() == false ) return coPlugin::NO_REPLY;
+
+// vars
+	const char*		messageHostName = message->hostName();
+	json_t*			jsonMessageObject = json_object();
+	char*			jsonString = NULL;
+
+// we only accept message for other hosts
+	if( strncmp("localhost",messageHostName,9) == 0 ) return coPlugin::NO_REPLY;
+	if( coCore::ptr->isHostName(messageHostName) == true ) return coPlugin::NO_REPLY;
+
+// send out the message
+	this->send( message, this->channelShell, false );
+
+// we dont have anything to reply, because the answer comes asynchron
+	return coPlugin::NO_REPLY;
+}
+
+
+bool sshSession::       			onBroadcastReply( coMessage* message ){
+	this->send( message, this->channelShell, true );
+}
+
+
+
 
 
 
@@ -106,7 +138,15 @@ bool sshSession:: 					send( coMessage* message, ssh_channel sshChannel, bool us
 // dump / send json
 	jsonChar = json_dumps( jsonMessage, JSON_PRESERVE_ORDER | JSON_COMPACT );
 	if( jsonChar != NULL ){
+
+	// debugging message
+		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Send %s", jsonChar );
+		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+	// write to ssh-channel
 		ssh_channel_write( sshChannel, jsonChar, strlen(jsonChar) );
+
+	// cleanup
 		free(jsonChar);
 		json_decref(jsonMessage);
 		return true;
@@ -138,6 +178,13 @@ int sshSession::					cbAuthPubkey( ssh_session session, const char *user, struct
 	switch( signature_state ){
 
 		case SSH_PUBLICKEY_STATE_NONE:
+			if( coCore::setupMode == true ){
+				if( sshService::askForSaveClientKey(pubkey) == true ){
+					return SSH_AUTH_SUCCESS;
+				} else {
+					break;
+				}
+			}
 			if( sshService::cmpToAllLokalKeys(pubkey) == true ){
 				return SSH_AUTH_SUCCESS;
 			}
@@ -256,10 +303,7 @@ int sshSession:: 					cbServerChannelData(	ssh_session 	session,
 	}
 
 // broadcast it to all plugins
-	coCore::ptr->broadcast( psession, 	psession->tempMessage.hostName(),
-										psession->tempMessage.group(),
-										psession->tempMessage.command(),
-										psession->tempMessage.payload() );
+	coCore::ptr->plugins->broadcast( psession, &psession->tempMessage );
 
 
 	return len;
@@ -282,11 +326,11 @@ int sshSession:: 					cbServerChannelExec( 	ssh_session session,
 // ############################################################################################
 
 
-bool sshSession::					waitForClient(){
+bool sshSession::					waitForClient( const char* bindAddr, int bindPort ){
 
 // vars
-	const char 		bindAddr[] = "::";
-	int 			bindPort = 8989;
+//	const char 		bindAddr[] = "::";
+//	int 			bindPort = 8989;
 
 // setup server
 	this->sshServer = ssh_bind_new();
@@ -295,11 +339,15 @@ bool sshSession::					waitForClient(){
 	ssh_options_set( this->session, SSH_OPTIONS_LOG_VERBOSITY, &verbository );
 
 // config
-	ssh_bind_options_set( this->sshServer, SSH_BIND_OPTIONS_BINDADDR, &bindAddr );
+	ssh_bind_options_set( this->sshServer, SSH_BIND_OPTIONS_BINDADDR, (const char*)bindAddr );
 	ssh_bind_options_set( this->sshServer, SSH_BIND_OPTIONS_BINDPORT, &bindPort );
 	ssh_bind_options_set( this->sshServer, SSH_BIND_OPTIONS_RSAKEY, "/etc/copilot/services/sshd_server_keys/rsa" );
 	ssh_bind_options_set( this->sshServer, SSH_BIND_OPTIONS_DSAKEY, "/etc/copilot/services/sshd_server_keys/dsa" );
 	ssh_bind_options_set( this->sshServer, SSH_BIND_OPTIONS_ECDSAKEY, "/etc/copilot/services/sshd_server_keys/ed25519" );
+
+// debugging message
+	snprintf( etDebugTempMessage, etDebugTempMessageLen, "Start Server on %s on port %i", bindAddr, bindPort );
+	etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 // register listener
 	if( ssh_bind_listen(this->sshServer) < 0 ){
@@ -462,30 +510,6 @@ bool sshSession::					connectToClient(){
 
 
 
-
-coPlugin::t_state	sshSession::	onBroadcastMessage( coMessage* message ){
-	if( this->isActive() == false ) return coPlugin::NO_REPLY;
-
-// vars
-	const char*		messageHostName = message->hostName();
-	json_t*			jsonMessageObject = json_object();
-	char*			jsonString = NULL;
-
-// we only accept message for other hosts
-	if( strncmp("localhost",messageHostName,9) == 0 ) return coPlugin::NO_REPLY;
-	if( strncmp(coCore::ptr->hostInfo.nodename,messageHostName,coCore::ptr->hostNodeNameLen) == 0 ) return coPlugin::NO_REPLY;
-
-// send out the message
-	this->send( message, this->channelShell, false );
-
-// we dont have anything to reply, because the answer comes asynchron
-	return coPlugin::NO_REPLY;
-}
-
-
-bool sshSession::       			onBroadcastReply( coMessage* message ){
-	this->send( message, this->channelShell, true );
-}
 
 
 

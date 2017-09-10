@@ -122,6 +122,7 @@ bool coMessage:: 			replyExists(){
 	return false;
 }
 
+
 const char* coMessage:: 	replyComandFull(){
 	return this->topic( NULL, true );
 }

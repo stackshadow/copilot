@@ -28,8 +28,12 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "plugins/sshSession.h"
 
-sshService::               			sshService() : coPlugin( "sshService" ){
-	this->loadConfig();
+
+sshService::               			sshService() : coPlugin( "sshService", "", "cocom" ){
+	etListAlloc( this->sessions );
+
+// register plugin
+	coCore::ptr->plugins->append( this );
 }
 
 
@@ -40,74 +44,114 @@ sshService::               			~sshService(){
 
 
 
-void sshService:: 					loadConfig(){
+coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
 // vars
-    json_error_t    jsonError;
-	json_t*			jsonValue;
+	const char*		msgCommand = message->command();
+	const char*		msgPayload = message->payload();
+	json_t*			jsonPayload;
+	json_error_t	jsonError;
 
-// clear
-	this->jsonConfig = NULL;
-	this->jsonArrayServer = NULL;
-	this->jsonServerIterator = NULL;
-	this->jsonArrayClient = NULL;
-	this->jsonClientIterator = NULL;
 
-// open the file
-    this->jsonConfig = json_load_file( configFile("ssh.json"), JSON_PRESERVE_ORDER, &jsonError );
-    if( this->jsonConfig == NULL ){
-        this->jsonConfig = json_object();
-    }
+	if( strncmp(msgCommand,"serverSave",10) == 0 ){
 
-// servers
-	this->jsonArrayServer = json_object_get( this->jsonConfig, "server" );
-	if( this->jsonArrayServer == NULL ){
-		this->jsonArrayServer = json_array();
-		json_object_set_new( this->jsonConfig, "server", this->jsonArrayServer );
-		jsonValue = json_object();
-		json_object_set_new( jsonValue, "host", json_string("::") );
-		json_object_set_new( jsonValue, "port", json_integer(8989) );
-		json_array_append_new( this->jsonArrayServer, jsonValue );
+	// parse json
+		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
+		if( jsonPayload == NULL || jsonError.line > -1 ){
+			return coPlugin::NO_REPLY;
+		}
+
+
+		json_object_get( jsonPayload, "host" );
+		json_object_get( jsonPayload, "port" );
+
+	// cleanup
+		json_decref(jsonPayload);
 	}
-
-// clients
-	this->jsonArrayClient = json_object_get( this->jsonConfig, "client" );
-	if( this->jsonArrayClient == NULL ){
-		this->jsonArrayClient = json_array();
-		json_object_set_new( this->jsonConfig, "client", this->jsonArrayClient );
-	}
-
-// save
-	json_dump_file( this->jsonConfig, configFile("ssh.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-
-}
-
-
-bool sshService:: 					nextServerConfig( const char** host, int* port ){
-
-// vars
-    json_error_t    jsonError;
-	json_t*			jsonValue;
-
-	if( this->jsonConfig == NULL ) return false;
-
-// get the server configs
-	jsonValue = json_object_get( this->jsonConfig, "server" );
-	if( jsonValue == NULL ) return false;
-
 
 
 }
 
 
-bool sshService:: 					nextClientConfig( const char** host, int* port ){
+bool sshService::        			onBroadcastReply( coMessage* message ){
 
+}
+
+
+bool sshService:: 					onSetup(){
+
+// check if we have an server connection
+
+// get the server infos
+	bool 					serverFound = false;
+	coCoreConfig::nodeType 	serverType;
+	const char* 			serverHost;
+	int 					serverPort;
+	char 					answer[512] = { '0' };
+	int						answerLen = 0;
+	const char* 			pAnswer = (const char*)&answer;
+
+	fprintf( stdout, "Copilot Node-Connection-Setup \n" );
+
+ask:
+	fprintf( stdout, "1.) Accept Connection from another node ( aka training-mode ) \n" );
+	fprintf( stdout, "2.) Connect to another node \n" );
+	fprintf( stdout, "What would you like to do ? (1/2) \n" );
+	fflush( stdout );
+	read( STDIN_FILENO, answer, 512 );
+	fprintf( stdout, "\n" );
+
+	if( answer[0] != '1' && answer[0] != '2' ) goto ask;
+
+	if( answer[0] == '1' ){
+
+		coCore::ptr->config->nodesIterate();
+
+	// default server / port
+		answer[0] = ':'; answer[1] = ':'; answer[2] = '\0';
+		serverType = coCoreConfig::SERVER;
+		serverPort = 4567;
+
+	// read hostname
+		fprintf( stdout, "Enter host/IP to bind. ( user :: for IPv6 and IPv4 ) " );
+		fflush( stdout );
+		read( STDIN_FILENO, answer, 512 );
+		fprintf( stdout, "\n" );
+	// remove 0
+		answerLen = strlen(answer);
+		if( answerLen > 0 ) answerLen--;
+		answer[answerLen] = '\0';
+
+	// save
+		coCore::ptr->config->nodeAppend("nodeServer");
+		coCore::ptr->config->nodeInfo( NULL, &serverType, true );
+		coCore::ptr->config->nodeConnInfo( (const char**)&pAnswer, &serverPort, true );
+		coCore::ptr->config->nodesIterateFinish();
+
+	// save it
+		coCore::ptr->config->save();
+
+	// serve connection
+		this->serve();
+
+	}
+
+
+}
+
+
+bool sshService:: 					onExecute(){
+	if( coCore::setupMode == true ) return true;
+
+	this->serve();
+	this->connectAll();
 }
 
 
 
 
 bool sshService:: 					cmpToAllLokalKeys( ssh_key clientKey ){
+
 
 
 // vars
@@ -167,6 +211,67 @@ nextKey:
 	closedir( keyDirectory );
 	etStringFree( fullPath );
 	return returnValue;
+}
+
+
+bool sshService::					askForSaveClientKey( ssh_key clientKey ){
+
+// vars
+	unsigned char* 		hash;
+	size_t				hlen;
+	char 				answer[512] = { '0' };
+
+// is the key public?
+	if( ssh_key_is_public(clientKey) != 1 ){
+		return false;
+	}
+
+
+// get key-hash
+	if( ssh_get_publickey_hash( clientKey, SSH_PUBLICKEY_HASH_SHA1, &hash, &hlen ) != SSH_OK ){
+		return false;
+	}
+
+	char* str = ssh_get_hexa( hash, hlen );
+
+	fprintf( stdout, "Accept Key? %s \n", str );
+	fflush( stdout );
+	read( STDIN_FILENO, answer, 512 );
+
+
+	if( answer[0] == 'y' ){
+
+	keyName:
+		fprintf( stdout, "Enter a key name:" );
+		fflush( stdout );
+		read( STDIN_FILENO, answer, 512 );
+		fprintf( stdout, "\n" );
+		if( strlen(answer) <= 0 ) goto keyName;
+		if( answer[0] == '.' ) goto keyName;
+		if( answer[0] == '/' ) goto keyName;
+
+
+	// remove 0
+		int answerLen = strlen(answer);
+		if( answerLen > 0 ) answerLen--;
+		answer[answerLen] = '\0';
+
+	// we build the full path
+		etString* fullKeyPath; const char* keyPath;
+		etStringAllocLen( fullKeyPath, 128 );
+		etStringCharSet( fullKeyPath, sshClientKeyPath, -1 );
+		etStringCharAdd( fullKeyPath, answer );
+		etStringCharGet( fullKeyPath, keyPath );
+
+
+		ssh_pki_export_pubkey_file( clientKey, keyPath );
+		return true;
+	}
+
+
+
+
+	return false;
 }
 
 
@@ -266,21 +371,18 @@ bool sshService::					checkAndCreateServerKeys(){
 	}
 
 // create RSA
-	keyFile = fopen( "/etc/copilot/services/sshd_server_keys/rsa", "r" );
-	if( keyFile == NULL ){
-		system("ssh-keygen -t rsa -q -N \"\" -b 2048 -f /etc/copilot/services/sshd_server_keys/rsa" );
+	if( access( sshServerKeyPath "rsa", F_OK ) != 0 ) {
+		system("ssh-keygen -t rsa -q -N \"\" -b 2048 -f " sshServerKeyPath "rsa" );
 	}
 
 // create DSA
-	keyFile = fopen( "/etc/copilot/services/sshd_server_keys/dsa", "r" );
-	if( keyFile == NULL ){
-		system("ssh-keygen -t dsa -q -N \"\" -b 1024 -f /etc/copilot/services/sshd_server_keys/dsa" );
+	if( access( sshServerKeyPath "dsa", F_OK ) != 0 ) {
+		system("ssh-keygen -t dsa -q -N \"\" -b 1024 -f " sshServerKeyPath "dsa" );
 	}
 
 // create ED25519
-	keyFile = fopen( "/etc/copilot/services/sshd_server_keys/ed25519", "r" );
-	if( keyFile == NULL ){
-		system("ssh-keygen -t ed25519 -q -N \"\" -b 521 -f /etc/copilot/services/sshd_server_keys/ed25519" );
+	if( access( sshServerKeyPath "ed25519", F_OK ) != 0 ) {
+		system("ssh-keygen -t ed25519 -q -N \"\" -b 521 -f " sshServerKeyPath "ed25519" );
 	}
 
 	return true;
@@ -317,8 +419,25 @@ void* sshService::					serveThread( void* void_service ){
 // create a new Session
 	session = new sshSession();
 
+// get the server infos
+	bool serverFound = false; coCoreConfig::nodeType serverType; const char* serverHost; int serverPort;
+	coCore::ptr->config->nodesIterate();
+	while( coCore::ptr->config->nodeNext() == true ){
+		coCore::ptr->config->nodeInfo(NULL, &serverType);
+		if( serverType == coCoreConfig::SERVER ){
+			coCore::ptr->config->nodeConnInfo( &serverHost, &serverPort );
+			serverFound = true;
+		}
+	}
+	coCore::ptr->config->nodesIterateFinish();
+// no server found
+	if( serverFound == false ){
+
+		return NULL;
+	}
+
 // wait for incoming connection
-	session->waitForClient();
+	session->waitForClient( serverHost, serverPort );
 
 // exchange keys and init crypto
 	if( session->keyExchange() == false ){
@@ -351,15 +470,42 @@ void* sshService::					serveThread( void* void_service ){
 
 void sshService::					connectAll(){
 
-// check if there is a possible client
-	if( this->jsonArrayClient == NULL ) return;
-	if( json_array_size( this->jsonArrayClient ) <= 0 ) return;
+// vars
+	const char*					clientHost;
+	int							clientPort;
+	coCoreConfig::nodeType		nodeType;
 
-// start the thread which wait for clients
-	pthread_t thread;
-	pthread_create( &thread, NULL, sshService::connectToClientThread, this );
+// start iteration ( and lock core )
+	coCore::ptr->config->nodesIterate();
 
+	while( coCore::ptr->config->nodeNext() == true ){
 
+		coCore::ptr->config->nodeInfo(&clientHost,&nodeType);
+
+	// only clients
+		if( nodeType != coCoreConfig::CLIENT ){
+			continue;
+		}
+
+	// get host/port
+		if( coCore::ptr->config->nodeConnInfo( &clientHost, &clientPort ) != true ){
+			continue;
+		}
+
+	// create new session
+		sshSession* session = NULL;
+		session = new sshSession();
+		session->setConnection( clientPort, clientHost );
+
+	// start the thread which wait for clients
+		pthread_t thread;
+		pthread_create( &thread, NULL, sshService::connectToClientThread, session );
+		pthread_detach( thread );
+
+	}
+
+// finish
+	coCore::ptr->config->nodesIterateFinish();
 }
 
 
@@ -370,20 +516,15 @@ void* sshService::					connectToClientThread( void* void_service ){
 	int 			bindPort = 8989;
 // vars
 	sshService* service = (sshService*)void_service;
-	sshSession* session = NULL;
+	sshSession* session = (sshSession*)void_service;
 
 wait:
-
-	session = new sshSession();
-	session->setConnection( 8989, "localhost" );
 	session->connectToClient();
 	//session->connectToClient( "localhost", 22 );
 
 
 
 }
-
-
 
 
 

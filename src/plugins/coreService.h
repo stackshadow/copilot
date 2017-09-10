@@ -20,6 +20,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef authService_H
 #define authService_H
 
+
+
 #include "string/etString.h"
 #include "string/etStringChar.h"
 
@@ -33,17 +35,22 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 class coreService : public coPlugin
 {
 
-public:
+
+	public:
                                 coreService();
                                 ~coreService();
 
 
+
+
 private:
+#ifndef MQTT_ONLY_LOCAL
 	void						appendKnownNodes( const char* hostName );
+#endif
 
 public:
 // handlers
-	bool 						onBroadcastMessage( coMessage* message );
+	coPlugin::t_state 			onBroadcastMessage( coMessage* message );
 
 
 

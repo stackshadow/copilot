@@ -17,6 +17,10 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+/**
+@defgroup coPlugin coPlugin - A single Plugin
+*/
+
 #ifndef doDBDPlugin_H
 #define doDBDPlugin_H
 
@@ -44,21 +48,29 @@ public:
 protected:
     etString*           pluginName;
     etString*           pluginInfo;
+private:
+	etString*			filterHostName;
+	etString*			filterGroup;
 
 public:
 
 
 public:
-    coPlugin( const char* name );
+    coPlugin( const char* name, const char* listenHostName, const char* listenGroup );
     ~coPlugin();
 
 public:
     const char*         name();
-    bool                info( const char *shortInfo );
+    bool                info( const char* shortInfo );
     const char*         info();
+	bool				filterCheck( const char* hostName, const char* group );
 
+
+// API
 	virtual t_state		onBroadcastMessage( coMessage* message ){ return NO_REPLY; }
 	virtual bool        onBroadcastReply( coMessage* message ){ return true; }
+	virtual bool 		onSetup(){ return true; }
+	virtual bool		onExecute(){ return true; }
 
 protected:
 	void				setName( const char* name );

@@ -44,4 +44,3 @@ clean: binClean qtClean
 	$(MAKE) {} clean \;
 	@$(MAKE) make/generic/qt.mk clean
 	#@$(MAKE) make/generic/bin.mk clean
-

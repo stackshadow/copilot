@@ -26,24 +26,23 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <string>
 
-coreService::                   coreService() : coPlugin( "core" ) {
-
-// alloc
+coreService::                   		coreService() : coPlugin( "core", "", "co" ) {
 
 
-// register this plugin
-    coCore::ptr->registerPlugin( this, "", "co" );
+// register plugin
+	coCore::ptr->plugins->append( this );
 
 }
 
 
-coreService::                   ~coreService(){
+coreService::                   		~coreService(){
 
 }
 
 
 
-void coreService:: 				appendKnownNodes( const char* hostName ){
+#ifndef MQTT_ONLY_LOCAL
+void coreService:: 						appendKnownNodes( const char* hostName ){
 
 	json_t*			jsonObject = NULL;
 	json_error_t	jsonError;
@@ -51,7 +50,7 @@ void coreService:: 				appendKnownNodes( const char* hostName ){
 	json_t*			jsonNodes = NULL;
 
 // open the file
-    jsonObject = json_load_file( configFile("known_nodes.json"), JSON_PRESERVE_ORDER, &jsonError );
+    jsonObject = json_load_file( baseFilePath "known_nodes.json", JSON_PRESERVE_ORDER, &jsonError );
     if( jsonObject == NULL ){
         jsonObject = json_object();
         json_object_set_new( jsonObject, "nodes", json_object() );
@@ -63,17 +62,17 @@ void coreService:: 				appendKnownNodes( const char* hostName ){
 	if( jsonNode == NULL ){
 		jsonNode = json_object();
 		json_object_set_new( jsonNodes, hostName, jsonNode );
-		json_dump_file( jsonObject, configFile("known_nodes.json"), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+		json_dump_file( jsonObject, baseFilePath "known_nodes.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 	}
 
 // cleanup
 	json_decref( jsonObject );
 }
+#endif
 
 
 
-
-bool coreService::              onBroadcastMessage( coMessage* message ){
+coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
 // vars
 	const char*			msgHostName = message->hostName();
@@ -87,43 +86,66 @@ bool coreService::              onBroadcastMessage( coMessage* message ){
     // ping
         if( strncmp(msgCommand,"ping",4) == 0 ){
 
-			message->hostName( coCore::ptr->hostInfo.nodename );
+			const char* tempHostName = NULL;
+			coCore::ptr->hostNameGet( &tempHostName, NULL );
+
+			message->hostName( tempHostName );
 			message->replyCommand( "pong" );
 
-            return true;
+            return coPlugin::REPLY;
         }
     }
 
 
 // to "localhost" or to the nodename-host
     if( strncmp(msgHostName,"localhost",9) != 0 &&
-	strncmp(msgHostName,coCore::ptr->hostInfo.nodename,coCore::ptr->hostNodeNameLen) != 0 ){
-        return true;
+	coCore::ptr->isHostName(msgHostName) == false ){
+        return coPlugin::NO_REPLY;
     }
 
+#ifndef MQTT_ONLY_LOCAL
 // append hostname to known hosts
 	this->appendKnownNodes( msgHostName );
+#endif
 
 // get version
-    if( strncmp( (char*)msgCommand, "getVersion", 10 ) == 0 ){
+    if( strncmp( (char*)msgCommand, "copilotdVersionGet", 10 ) == 0 ){
 
-		message->replyCommand( "version" );
+		message->replyCommand( "copilotdVersion" );
 		message->replyPayload( copilotVersion );
 
-        return true;
+        return coPlugin::REPLY;
     }
 
 // get services
     if( strncmp( (char*)msgCommand, "getServices", 11 ) == 0 ){
-        return true;
+        return coPlugin::NO_REPLY;
     }
 
 // get hosts
+    if( strncmp( (char*)msgCommand, "knownHostsGet", 10 ) == 0 ){
+
+	// vars
+		//json_t*			jsonArray = json_array();
+		json_t*			jsonObject = NULL;
+		char*			jsonArrayChar = NULL;
+
+		coCore::ptr->config->nodesGet( &jsonObject );
+		jsonArrayChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+		message->replyCommand( "knownHosts" );
+		message->replyPayload( jsonArrayChar );
+
+	// free
+		free(jsonArrayChar);
+		//json_decref(jsonArray);
+
+        return coPlugin::REPLY;
+    }
 
 
 
-
-    return true;
+    return coPlugin::NO_REPLY;
 }
 
 
