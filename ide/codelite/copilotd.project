@@ -186,7 +186,26 @@
       <File Name="../../src/client/copilotd.service"/>
       <File Name="../../src/client/sudoers"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="develop"/>
+    <VirtualDirectory Name="develop">
+      <File Name="../../src/develop/mqttService.cpp"/>
+      <File Name="../../src/develop/ldapService.cpp"/>
+      <File Name="../../src/develop/lxcService.cpp"/>
+      <File Name="../../src/develop/sysState.cpp"/>
+      <File Name="../../src/develop/doDBDConnections.cpp"/>
+      <File Name="../../src/develop/mqttService.h"/>
+      <File Name="../../src/develop/qwebsocketClient.cpp"/>
+      <File Name="../../src/develop/lxcContainer.cpp"/>
+      <File Name="../../src/develop/sysState.h"/>
+      <File Name="../../src/develop/lxcContainer.h"/>
+      <File Name="../../src/develop/lxcService.h"/>
+      <File Name="../../src/develop/qwebsocketClient.h"/>
+      <File Name="../../src/develop/ldapService.h"/>
+      <File Name="../../src/develop/doDBDConnections.h"/>
+      <File Name="../../src/develop/qwebsocket.cpp"/>
+      <File Name="../../src/develop/qwebsocket.h"/>
+      <File Name="../../src/develop/doDBTable.cpp"/>
+      <File Name="../../src/develop/doDBTable.h"/>
+    </VirtualDirectory>
     <VirtualDirectory Name="plugins">
       <File Name="../../src/plugins/coreService.cpp"/>
       <File Name="../../src/plugins/coreService.h"/>
@@ -199,15 +218,7 @@
       <File Name="../../src/plugins/websocket.cpp"/>
       <File Name="../../src/plugins/websocket.h"/>
     </VirtualDirectory>
-    <VirtualDirectory Name="server">
-      <File Name="../../src/server/copilotd-mqtt.service"/>
-      <File Name="../../src/server/copilotd-sshd.service"/>
-      <File Name="../../src/server/copilotd-sshd-keygen.service"/>
-      <File Name="../../src/server/mqtt-server.conf"/>
-      <File Name="../../src/server/sshd_copilotd.conf"/>
-      <File Name="../../src/server/sshd_hostkey_ed25519"/>
-      <File Name="../../src/server/sshd_hostkey_ed25519.pub"/>
-    </VirtualDirectory>
+    <VirtualDirectory Name="server"/>
     <File Name="../../src/coCore.cpp"/>
     <File Name="../../src/coCore.h"/>
     <File Name="../../src/coCoreConfig.cpp"/>
@@ -221,6 +232,21 @@
     <File Name="../../src/evillib.c"/>
     <File Name="../../src/main.cpp"/>
     <File Name="../../src/version.h"/>
+    <VirtualDirectory Name="classes">
+      <File Name="../../src/classes/doDBDConnection.cpp"/>
+      <File Name="../../src/classes/doDBDTools.h"/>
+      <File Name="../../src/classes/doDBDTools.cpp"/>
+      <File Name="../../src/classes/doDBDConnection.h"/>
+    </VirtualDirectory>
+    <VirtualDirectory Name="deprecated">
+      <File Name="../../src/deprecated/coPluginElement.cpp"/>
+      <File Name="../../src/deprecated/coPluginElement.h"/>
+      <File Name="../../src/deprecated/doDBDwsClient.cpp"/>
+      <File Name="../../src/deprecated/doDBDws.h"/>
+      <File Name="../../src/deprecated/doDBDwsClient.h"/>
+      <File Name="../../src/deprecated/doDBDws.cpp"/>
+      <File Name="../../src/deprecated/doDBDws.qt.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="make">
     <VirtualDirectory Name="generic">

@@ -1,22 +1,27 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="copilotd" Database="" Version="10.0.0">
   <Project Name="copilotd" Path="copilotd.project" Active="Yes"/>
+  <Project Name="copilotc-web" Path="../../../copilotc-web/ide/codelite/copilotc-web.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Debug" Selected="yes">
       <Environment/>
       <Project Name="copilotd" ConfigName="Debug"/>
+      <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="no">
+    <WorkspaceConfiguration Name="Release" Selected="yes">
       <Environment/>
       <Project Name="copilotd" ConfigName="Release"/>
+      <Project Name="copilotc-web" ConfigName="Release"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Client" Selected="no">
+    <WorkspaceConfiguration Name="Client" Selected="yes">
       <Environment/>
       <Project Name="copilotd" ConfigName="Client"/>
+      <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Setup" Selected="no">
+    <WorkspaceConfiguration Name="Setup" Selected="yes">
       <Environment/>
       <Project Name="copilotd" ConfigName="Setup"/>
+      <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

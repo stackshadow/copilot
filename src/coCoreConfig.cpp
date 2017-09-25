@@ -168,6 +168,41 @@ bool  coCoreConfig::		nodesGetAsArray( json_t* jsonArray ){
 }
 
 
+bool  coCoreConfig::		nodeGetServerInfo( const char** host, int* port, bool set, bool enabled ){
+    if( host == NULL ) return false;
+    if( port == NULL ) return false;
+
+// get the server infos
+	bool                        serverFound = false;
+	coCoreConfig::nodeType      serverType = coCoreConfig::SERVER;
+	const char*                 serverHost;
+	int                         serverPort;
+
+    if( enabled == true ){
+        serverType = coCoreConfig::SERVER;
+    } else {
+        serverType = coCoreConfig::UNKNOWN;
+    }
+
+    this->nodesIterate(); // lock the iterate
+
+    if( this->nodeSelect("sshServer") == false ) return false;
+    if( this->nodeInfo( host, &serverType, set ) == false ) return false;
+    if( serverType != coCoreConfig::SERVER ) return false;
+    this->nodeConnInfo( host, port, set );
+
+    this->nodesIterateFinish();
+
+// save it
+    if( set == true ){
+        this->save();
+    }
+
+    return true;
+}
+
+
+
 
 
 bool coCoreConfig::			nodesIterate(){
@@ -197,7 +232,10 @@ bool  coCoreConfig::		nodeSelect( const char* name ){
 	this->jsonNode = json_object_get( this->jsonNodes, name );
 	if( this->jsonNode != NULL ) return true;
 
-	return false;
+// node not found, create a new one
+    if( this->nodeAppend(name) != true ) return false;
+
+	return true;
 }
 
 

@@ -74,9 +74,8 @@ sources     += src/coMessage.cpp
 sources     += src/plugins/sshService.cpp
 sources     += src/plugins/sshSession.cpp
 sources     += src/plugins/coreService.cpp
-sources     += src/plugins/sysState.cpp
-sources     += src/plugins/lxcService.cpp
-sources     += src/plugins/lxcContainer.cpp
+#sources     += src/plugins/lxcService.cpp
+#sources     += src/plugins/lxcContainer.cpp
 
 
 # additional sources which compiles to an shared object
@@ -115,6 +114,12 @@ CLIBS		+= $(shell pkg-config --libs libsodium)
 # use SSH or not
 ifdef DISABLE_SSH
 CFLAGS      += -DDISABLE_SSH
+endif
+
+ifdef DISABLE_SYSSTATE
+CFLAGS      += -DDISABLE_SYSSTATE
+else
+sources     += src/plugins/sysState.cpp
 endif
 
 # mqtt
@@ -174,6 +179,7 @@ client:
 	make -f make/Makefile \
 	DISABLE_WEBSOCKET=1 \
 	MQTT_ONLY_LOCAL=1 \
+	DISABLE_MQTT=1 \
 	binary-dbg
 clientTargets = /etc/copilot/services
 
@@ -206,6 +212,9 @@ uninstall-client:
 engineering:
 	make -f make/Makefile \
 	SSH_SERVER=1 \
+	DISABLE_SYSSTATE=1 \
+	DISABLE_MQTT=1 \
+	DISABLE_LDAP=1 \
 	binary-dbg
 
 install-engineering: engineering $(clientTargets)

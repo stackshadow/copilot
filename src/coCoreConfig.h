@@ -90,6 +90,7 @@ public:
 	// nodes
 		bool				nodesGet( json_t** jsonObject );
 		bool				nodesGetAsArray( json_t* jsonArray );
+		bool                nodeGetServerInfo( const char** host, int* port, bool set = false, bool enabled = true );
 
 	// iterate nodes / get node-infos
 		bool				nodesIterate();
