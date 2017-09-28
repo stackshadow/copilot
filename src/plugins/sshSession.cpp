@@ -19,26 +19,29 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #ifndef sshSession_C
 #define sshSession_C
-
-// {"id":"","h":"all","g":"co","c":"ping","v":""}
-
-// For static functions
-#include "plugins/sshService.h"
+// ssh -T -p 4567 copilotd@localhost -i /tmp/etc/copilotd/sshd_server_keys/ed25519
 
 #include "coCore.h"
+#include <unistd.h>             // usleep
+#include <arpa/inet.h>          // inet_ntop
 #include <libssh/libssh.h>
 #include <libssh/server.h>
 #include <libssh/callbacks.h>
 
+#include "plugins/sshService.h" // For static helper functions
 #include "plugins/sshSession.h"
+
 
 sshSession::               			sshSession() : coPlugin( "sshSession", "", "" ){
 	this->session = ssh_new();
 	this->channelShell = NULL;
 
+
+
 // connect infos
 	this->port = 8989;
 	etStringAllocLen( this->host, 32 );
+//	etStringAllocLen( this->peerName, 32 );
 
 // register plugin
 	coCore::ptr->plugins->append( this );
@@ -60,6 +63,7 @@ sshSession::						~sshSession(){
 // free memory
 	this->port = 0;
 	etStringFree( this->host );
+//	etStringFree( this->peerName );
 
 // deregister plugin
 	coCore::ptr->plugins->remove( this );
@@ -179,6 +183,9 @@ int sshSession::					cbAuthPubkey( ssh_session session, const char *user, struct
 
 		case SSH_PUBLICKEY_STATE_NONE:
 			if( coCore::setupMode == true ){
+
+                /** @todo Change this to a function which move the key to an "request_auth" folder, which can be later listed with something
+                like "copilotd auth list" and accepted by "copilotd auth accept" */
 				if( sshService::askForSaveClientKey(pubkey) == true ){
 					return SSH_AUTH_SUCCESS;
 				} else {
@@ -248,9 +255,36 @@ int sshSession::					cbServerShellRequest( ssh_session session, ssh_channel chan
 		ssh_channel_free( psession->channelShell );
 	}
 
+
+// get the host
+    struct sockaddr_storage     tmp;
+    struct sockaddr_in*         sock;
+    unsigned int                len = 100;
+    char                        ip[100] = "\0";
+    char*                       ipName = NULL;
+
+// get peer
+    getpeername( ssh_get_fd(session), (struct sockaddr*)&tmp, &len );
+    sock = (struct sockaddr_in *)&tmp;
+    sock->sin_family = AF_INET;
+
+
+// try to resolve the hostname
+    char node[NI_MAXHOST];
+    int res = getnameinfo((struct sockaddr*)sock, sizeof(*sock), node, sizeof(node), NULL, 0, 0);
+    if( res == 0 ){
+        etStringCharSet( psession->host, node, NI_MAXHOST );
+    } else {
+    // could not get hostname, get the ip
+        inet_ntop(AF_INET, &sock->sin_addr, ip, len);
+        ipName = ip;
+        etStringCharSet( psession->host, ipName, 100 );
+    }
+
 // save new shell
 	psession->channelShell = channel;
 
+// return
 	return 0;
 }
 
@@ -327,6 +361,8 @@ int sshSession:: 					cbServerChannelExec( 	ssh_session session,
 
 
 bool sshSession::					waitForClient( const char* bindAddr, int bindPort ){
+    if( bindAddr == NULL ) return false;
+    if( bindPort == 0 ) return false;
 
 // vars
 //	const char 		bindAddr[] = "::";
@@ -396,17 +432,31 @@ bool sshSession::					keyExchange(){
 }
 
 
-bool sshSession::					pollUntilShell( ssh_event mainLoop ){
+bool sshSession::					pollUntilShell( ssh_event mainLoop, unsigned int timeoutSeconds ){
+
+// vars
+    unsigned int timeoutCounter = timeoutSeconds * 20;
+
+// add this session to the main loop
     ssh_event_add_session( mainLoop, this->session);
 
-	while( this->channelShell == NULL ){
+    while( timeoutCounter >= 0 ){
+
 		if( ssh_event_dopoll( mainLoop, -1 ) != SSH_OK ){
 			break;
 		}
-		usleep( 50000L );
-	}
 
-	return true;
+		if( this->channelShell != NULL ){
+            return true;
+		}
+
+        usleep( 50000L );
+        timeoutCounter--;
+    }
+
+    etDebugMessage( etID_LEVEL_ERR, "Timeout" );
+
+	return false;
 }
 
 
@@ -449,8 +499,7 @@ bool sshSession::					connectToClient(){
 	ssh_options_set( this->session, SSH_OPTIONS_HOST, hostNameChar );
 	ssh_options_set( this->session, SSH_OPTIONS_PORT, &this->port );
 	if( ssh_connect( this->session ) != SSH_OK ){
-		snprintf( etDebugTempMessage, etDebugTempMessageLen,
-		"Error connecting to %s Port %i: %s\n", host, port, ssh_get_error(this->session) );
+		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Error connecting to %s Port %i: %s\n", host, port, ssh_get_error(this->session) );
 		etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 	}
 

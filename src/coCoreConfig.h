@@ -58,6 +58,22 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 	this->threadLock = 0; \
 
 
+
+#define lockPthread( threadLock ) \
+	pid_t myThreadTIDLock = syscall(SYS_gettid); \
+	while( threadLock != myThreadTIDLock && threadLock != 0 ){ \
+		usleep( 10000 ); \
+	} \
+	threadLock = myThreadTIDLock; \
+
+#define unlockPthread( threadLock ) \
+	pid_t myThreadTIDUnLock = syscall(SYS_gettid); \
+	while( threadLock != myThreadTIDUnLock && threadLock != 0 ){ \
+		usleep( 10000 ); \
+	} \
+	threadLock = 0; \
+
+
 class coCoreConfig {
 
 
@@ -90,12 +106,12 @@ public:
 	// nodes
 		bool				nodesGet( json_t** jsonObject );
 		bool				nodesGetAsArray( json_t* jsonArray );
-		bool                nodeGetServerInfo( const char** host, int* port, bool set = false, bool enabled = true );
 
 	// iterate nodes / get node-infos
 		bool				nodesIterate();
 		bool				nodeAppend( const char* name );
 		bool				nodeSelect( const char* name );
+        bool                nodeSelectByHostName( const char* hostName );
 		bool				nodeNext();
 		bool				nodeInfo( const char** name, coCoreConfig::nodeType* type, bool set = false );
 		bool				nodeConnInfo( const char** host, int* port, bool set = false );

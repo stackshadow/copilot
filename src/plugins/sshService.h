@@ -39,14 +39,20 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 class sshService : public coPlugin {
 
-	private:
+    typedef enum {
+        in_connected,
+        in_disconnected,
+        out_connected,
+        out_disconnected,
+    } sessionState;
+
+    private:
+        lockID				sessionStateLock = 0;
 		unsigned int		maxConnections = 1;
 		unsigned int		curConnections = 0;
 
 		pthread_t			threadWaitForNewClients;
-
-		etList*				sessions;
-
+        json_t*             sessionStates;
 
 // public functions
 	public:
@@ -64,7 +70,11 @@ class sshService : public coPlugin {
 		static bool			verify_knownhost( ssh_session session );
 
 // session-list
-		//bool				append(  )
+        json_t*             sessionGet( const char* id );
+        bool                sessionHostSet( const char* id, const char* hostname );
+		bool				sessionStateSet( const char* id, sessionState state );
+        bool				sessionRemove( const char* id );
+
 
 // server ( copilotd-devices )
 		bool				checkAndCreateServerKeys();

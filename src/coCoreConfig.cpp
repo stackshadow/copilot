@@ -168,39 +168,6 @@ bool  coCoreConfig::		nodesGetAsArray( json_t* jsonArray ){
 }
 
 
-bool  coCoreConfig::		nodeGetServerInfo( const char** host, int* port, bool set, bool enabled ){
-    if( host == NULL ) return false;
-    if( port == NULL ) return false;
-
-// get the server infos
-	bool                        serverFound = false;
-	coCoreConfig::nodeType      serverType = coCoreConfig::SERVER;
-	const char*                 serverHost;
-	int                         serverPort;
-
-    if( enabled == true ){
-        serverType = coCoreConfig::SERVER;
-    } else {
-        serverType = coCoreConfig::UNKNOWN;
-    }
-
-    this->nodesIterate(); // lock the iterate
-
-    if( this->nodeSelect("sshServer") == false ) return false;
-    if( this->nodeInfo( host, &serverType, set ) == false ) return false;
-    if( serverType != coCoreConfig::SERVER ) return false;
-    this->nodeConnInfo( host, port, set );
-
-    this->nodesIterateFinish();
-
-// save it
-    if( set == true ){
-        this->save();
-    }
-
-    return true;
-}
-
 
 
 
@@ -235,6 +202,41 @@ bool  coCoreConfig::		nodeSelect( const char* name ){
 // node not found, create a new one
     if( this->nodeAppend(name) != true ) return false;
 
+	return true;
+}
+
+
+bool  coCoreConfig::		nodeSelectByHostName( const char* hostName ){
+	if( this->jsonNodes == NULL ) return false;
+
+// vars
+    void*           iterator = NULL;
+    json_t*         node = NULL;
+    json_t*         jsonString = NULL;
+    const char*     jsonStringChar = NULL;
+
+
+    iterator = json_object_iter( this->jsonNodes );
+    while( iterator != NULL ){
+
+    // get the node
+        node = json_object_iter_value(iterator);
+
+    // get the host
+        jsonString = json_object_get( node, "host" );
+
+    // compare to parameter
+        jsonStringChar = json_string_value(jsonString);
+        if( strncmp(hostName,jsonStringChar,strlen(hostName)) == 0 ){
+            this->jsonNode = node;
+            return true;
+        }
+
+    // next
+        iterator = json_object_iter_next( this->jsonNodes, iterator );
+    }
+
+// unlock
 	return true;
 }
 

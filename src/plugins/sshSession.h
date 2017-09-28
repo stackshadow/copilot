@@ -30,9 +30,10 @@ class sshSession : public coPlugin {
 		struct ssh_server_callbacks_struct 		serverCallbacks;
 		struct ssh_channel_callbacks_struct		serverChannelCallbacks;
 
-	private:
+    private:
 		int					port = 8989;
 		etString*			host = NULL;
+//		etString*           peerName = NULL;
 
 		int					authState = SSH_AUTH_AGAIN;
 		ssh_bind 			sshServer;
@@ -79,7 +80,7 @@ class sshSession : public coPlugin {
 
 		bool				waitForClient( const char* bindAddr = "::", int bindPort = 8989 );
 		bool				keyExchange();
-		bool				pollUntilShell( ssh_event mainLoop );
+		bool				pollUntilShell( ssh_event mainLoop, unsigned int timeoutSeconds = 10 );
 		bool				pollEvents( ssh_event mainLoop );
 
 

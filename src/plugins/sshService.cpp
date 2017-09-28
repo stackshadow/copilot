@@ -28,9 +28,12 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "plugins/sshSession.h"
 
+#include "uuid.h"
+
 
 sshService::               			sshService() : coPlugin( "sshService", "", "cocom" ){
-	etListAlloc( this->sessions );
+// create json
+    this->sessionStates = json_object();
 
 // register plugin
 	coCore::ptr->plugins->append( this );
@@ -38,7 +41,7 @@ sshService::               			sshService() : coPlugin( "sshService", "", "cocom"
 
 
 sshService::               			~sshService(){
-
+    json_decref( this->sessionStates );
 }
 
 
@@ -47,10 +50,54 @@ sshService::               			~sshService(){
 coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
 // vars
-	const char*		msgCommand = message->command();
-	const char*		msgPayload = message->payload();
-	json_t*			jsonPayload;
-	json_error_t	jsonError;
+	const char*		            msgCommand = message->command();
+	const char*		            msgPayload = message->payload();
+	json_t*			            jsonPayload = NULL;
+	json_t*                     jsonTempValue;
+    const char*                 jsonTempString = NULL;
+	const char*                 hostName = NULL;
+	int                         hostPort = 0;
+    int                         serverEnabled = 0;
+	json_error_t	            jsonError;
+    coCoreConfig::nodeType      type = coCoreConfig::UNKNOWN;
+
+
+
+	if( strncmp(msgCommand,"serverConfigGet",10) == 0 ){
+
+    // lock
+        coCore::ptr->config->nodesIterate();
+
+    // build the respond-object
+        jsonPayload = json_object();
+
+    // read infos
+        if( coCore::ptr->config->nodeSelect(coCore::ptr->hostNameGet()) == true ){
+            coCore::ptr->config->nodeInfo( NULL, &type );
+            coCore::ptr->config->nodeConnInfo( &hostName, &hostPort );
+            json_object_set_new( jsonPayload, "enabled", json_integer(1) );
+            json_object_set_new( jsonPayload, "host", json_string(hostName) );
+            json_object_set_new( jsonPayload, "port", json_integer(hostPort) );
+        } else {
+            json_object_set_new( jsonPayload, "enabled", json_integer(0) );
+            json_object_set_new( jsonPayload, "host", json_string(coCore::ptr->hostNameGet()) );
+            json_object_set_new( jsonPayload, "port", json_integer(5432) );
+        }
+
+    // unlock
+        coCore::ptr->config->nodesIterateFinish();
+
+
+    // set the message
+        msgPayload = json_dumps( jsonPayload, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        message->replyCommand( "serverConfig" );
+        message->replyPayload( msgPayload );
+
+    // cleanup and return
+        free(jsonPayload);
+        json_decref(jsonPayload);
+        return coPlugin::REPLY;
+    }
 
 
 	if( strncmp(msgCommand,"serverSave",10) == 0 ){
@@ -61,15 +108,56 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 			return coPlugin::NO_REPLY;
 		}
 
+    // get host / port
+		json_t* jsonHostName = json_object_get( jsonPayload, "host" );
+		json_t* jsonHostPort = json_object_get( jsonPayload, "port" );
+        json_t* jsonHostEnabled = json_object_get( jsonPayload, "enabled" );
 
-		json_object_get( jsonPayload, "host" );
-		json_object_get( jsonPayload, "port" );
+        hostName = json_string_value( jsonHostName );
+		jsonTempString = json_string_value( jsonHostPort );
+        hostPort = atoi( jsonTempString );
+		jsonTempString = json_string_value( jsonHostEnabled );
+        serverEnabled = atoi( jsonTempString );
+
+    // lock
+        coCore::ptr->config->nodesIterate();
+
+    // read infos
+        coCore::ptr->config->nodeSelect(coCore::ptr->hostNameGet());
+        if( serverEnabled == 1 ){
+            type = coCoreConfig::SERVER;
+        } else {
+            type = coCoreConfig::UNKNOWN;
+        }
+        coCore::ptr->config->nodeInfo( NULL, &type, true );
+        coCore::ptr->config->nodeConnInfo( &hostName, &hostPort, true );
+        coCore::ptr->config->save();
+
+    // unlock
+        coCore::ptr->config->nodesIterateFinish();
 
 	// cleanup
 		json_decref(jsonPayload);
+		return coPlugin::NO_REPLY;
 	}
 
 
+	if( strncmp(msgCommand,"stateGet",8) == 0 ){
+
+    // jump json-string
+        const char* stateString = json_dumps( this->sessionStates, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+
+    // set the message
+        message->replyCommand( "state" );
+        message->replyPayload( stateString );
+
+        free((void*)stateString);
+        return coPlugin::REPLY;
+    }
+
+
+
+    return coPlugin::NO_REPLY;
 }
 
 
@@ -353,6 +441,77 @@ bool sshService:: 					verify_knownhost( ssh_session session ){
 
 
 
+// session-list
+json_t* sshService::                sessionGet( const char* id ){
+    lockPthread(this->sessionStateLock);
+
+// create new state
+    json_t* jsonSession = json_object_get( this->sessionStates, id );
+    if( jsonSession == NULL ){
+        jsonSession = json_object();
+        json_object_set_new( this->sessionStates, id, jsonSession );
+    }
+
+    unlockPthread(this->sessionStateLock);
+    return jsonSession;
+}
+
+
+bool sshService:: 					sessionHostSet( const char* id, const char* hostname ){
+    lockPthread(this->sessionStateLock);
+
+// vars
+    json_t* jsonSession = this->sessionGet(id);
+
+// create new state
+    json_object_set_new( jsonSession, "hostname", json_string(hostname) );
+
+    unlockPthread(this->sessionStateLock);
+    return true;
+}
+
+
+bool sshService:: 					sessionStateSet( const char* id, sessionState state ){
+    lockPthread(this->sessionStateLock);
+
+// vars
+    json_t* jsonSession = this->sessionGet(id);
+
+// create new state
+    json_object_set_new( jsonSession, "state", json_integer(state) );
+
+    unlockPthread(this->sessionStateLock);
+    return true;
+}
+
+
+bool sshService:: 					sessionRemove( const char* id ){
+    lockPthread(this->sessionStateLock);
+
+    json_object_del( this->sessionStates, id );
+
+   unlockPthread(this->sessionStateLock);
+    return true;
+}
+
+
+/*
+string getClientIp(ssh_session session) {
+
+    struct sockaddr_storage     tmp;
+    struct sockaddr_in*         sock;
+    unsigned int                len = 100;
+    char                        ip[100] = "\0";
+
+    getpeername( ssh_get_fd(session), (struct sockaddr*)&tmp, &len );
+    sock = (struct sockaddr_in *)&tmp;
+    inet_ntop(AF_INET, &sock->sin_addr, ip, len);
+
+    string ip_str = ip;
+
+    return ip_str;
+}
+*/
 
 bool sshService::					checkAndCreateServerKeys(){
 
@@ -406,9 +565,12 @@ void sshService::					serve(){
 void* sshService::					serveThread( void* void_service ){
 
 // vars
-	sshService* service = (sshService*)void_service;
-	sshSession* session = NULL;
-
+	sshService*     service = (sshService*)void_service;
+    const char*     serverHost = NULL;
+    int             serverPort = 0;
+	sshSession*     session = NULL;
+    uuid_t          UUID;
+    char            UUIDString[37];
 
 // wait for connection limit
 	while( service->curConnections >= service->maxConnections ){
@@ -419,25 +581,21 @@ void* sshService::					serveThread( void* void_service ){
 // create a new Session
 	session = new sshSession();
 
-// get the server infos
-	bool serverFound = false; coCoreConfig::nodeType serverType; const char* serverHost; int serverPort;
-	coCore::ptr->config->nodesIterate();
-	while( coCore::ptr->config->nodeNext() == true ){
-		coCore::ptr->config->nodeInfo(NULL, &serverType);
-		if( serverType == coCoreConfig::SERVER ){
-			coCore::ptr->config->nodeConnInfo( &serverHost, &serverPort );
-			serverFound = true;
-		}
-	}
-	coCore::ptr->config->nodesIterateFinish();
-// no server found
-	if( serverFound == false ){
+// create uuid
+    uuid_generate( UUID );
+    uuid_unparse( UUID, UUIDString );
 
+// get the server infos
+    if( coCore::ptr->config->nodeSelect(coCore::ptr->hostNameGet()) != true ){
+    // debugging message
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "No Server Configuration found, do nothing." );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 		return NULL;
 	}
+    coCore::ptr->config->nodeConnInfo( &serverHost, &serverPort );
 
 // wait for incoming connection
-	session->waitForClient( serverHost, serverPort );
+	if( session->waitForClient( serverHost, serverPort ) == false ) return NULL;
 
 // exchange keys and init crypto
 	if( session->keyExchange() == false ){
@@ -449,7 +607,10 @@ void* sshService::					serveThread( void* void_service ){
 	ssh_event mainloop = ssh_event_new();
 
 // poll all events
-	session->pollUntilShell( mainloop );
+	session->pollUntilShell( mainloop, 10 );
+
+// set state
+    service->sessionStateSet( UUIDString, sshService::in_connected );
 
 // now a shell is established, so we TRY to serve a new connection
 	pthread_t thread;
@@ -458,6 +619,9 @@ void* sshService::					serveThread( void* void_service ){
 
 // and we handle all other actions during the client close the connection
 	session->pollEvents( mainloop );
+
+// client closes the connection
+    service->sessionRemove( UUIDString );
 
 // sleanup
 	ssh_event_free( mainloop );
