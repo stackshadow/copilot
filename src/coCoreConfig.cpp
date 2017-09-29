@@ -224,6 +224,7 @@ bool  coCoreConfig::		nodeSelectByHostName( const char* hostName ){
 
     // get the host
         jsonString = json_object_get( node, "host" );
+        if( jsonString == NULL ) return false;
 
     // compare to parameter
         jsonStringChar = json_string_value(jsonString);

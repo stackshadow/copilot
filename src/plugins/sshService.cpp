@@ -94,7 +94,7 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
         message->replyPayload( msgPayload );
 
     // cleanup and return
-        free(jsonPayload);
+        free((void*)msgPayload);
         json_decref(jsonPayload);
         return coPlugin::REPLY;
     }
@@ -211,7 +211,7 @@ ask:
 		answer[answerLen] = '\0';
 
 	// save
-		coCore::ptr->config->nodeAppend("nodeServer");
+		coCore::ptr->config->nodeSelect(coCore::ptr->hostNameGet());
 		coCore::ptr->config->nodeInfo( NULL, &serverType, true );
 		coCore::ptr->config->nodeConnInfo( (const char**)&pAnswer, &serverPort, true );
 		coCore::ptr->config->nodesIterateFinish();
