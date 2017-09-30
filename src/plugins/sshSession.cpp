@@ -182,19 +182,7 @@ int sshSession::					cbAuthPubkey( ssh_session session, const char *user, struct
 	switch( signature_state ){
 
 		case SSH_PUBLICKEY_STATE_NONE:
-			if( coCore::setupMode == true ){
-
-                /** @todo Change this to a function which move the key to an "request_auth" folder, which can be later listed with something
-                like "copilotd auth list" and accepted by "copilotd auth accept" */
-				if( sshService::askForSaveClientKey(pubkey) == true ){
-					return SSH_AUTH_SUCCESS;
-				} else {
-					break;
-				}
-			}
-			if( sshService::cmpToAllLokalKeys(pubkey) == true ){
-				return SSH_AUTH_SUCCESS;
-			}
+            // we dont allow clients which only has an public key
 			break;
 
 		case SSH_PUBLICKEY_STATE_VALID:

@@ -35,6 +35,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #define sshClientKeyPath baseFilePath "sshd_client_keys/"
 #define sshServerKeyPath baseFilePath "sshd_server_keys/"
+#define sshKeyReqPath baseFilePath "sshd_req_keys/"
 
 
 class sshService : public coPlugin {
@@ -67,6 +68,7 @@ class sshService : public coPlugin {
 // helper
 		static bool 		cmpToAllLokalKeys( ssh_key clientKey );
 		static bool			askForSaveClientKey( ssh_key clientKey );
+        static bool         savePublicKeyToRequestFolder( ssh_key clientKey );
 		static bool			verify_knownhost( ssh_session session );
 
 // session-list

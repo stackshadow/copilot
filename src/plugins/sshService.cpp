@@ -295,6 +295,18 @@ nextKey:
 		keyEntry = readdir( keyDirectory );
 	}
 
+// message "no key found"
+    if( returnValue == false ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "No valid key found, move the key to signing request folder..." );
+        etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+
+
+
+    // copy the key
+        sshService::savePublicKeyToRequestFolder( clientKey );
+
+    }
+
 // clean and return
 	closedir( keyDirectory );
 	etStringFree( fullPath );
@@ -360,6 +372,53 @@ bool sshService::					askForSaveClientKey( ssh_key clientKey ){
 
 
 	return false;
+}
+
+
+bool sshService::					savePublicKeyToRequestFolder( ssh_key clientKey ){
+// vars
+	unsigned char* 		hash;
+	size_t				hlen;
+	char 				answer[512] = { '0' };
+
+// create path if needed
+    if( access( sshKeyReqPath, F_OK ) != 0 ){
+        system( "mkdir -p " sshKeyReqPath );
+    }
+
+// is the key public?
+	if( ssh_key_is_public(clientKey) != 1 ){
+		return false;
+	}
+
+    int test = ssh_key_is_private(clientKey);
+
+// get key-hash
+	if( ssh_get_publickey_hash( clientKey, SSH_PUBLICKEY_HASH_SHA1, &hash, &hlen ) != SSH_OK ){
+		return false;
+	}
+	char* str = ssh_get_hexa( hash, hlen );
+
+// we build the full path
+    etString* fullKeyPath; const char* keyPath;
+    etStringAllocLen( fullKeyPath, 128 );
+    etStringCharSet( fullKeyPath, sshKeyReqPath, -1 );
+    etStringCharAdd( fullKeyPath, (const char*)str );
+    etStringCharGet( fullKeyPath, keyPath );
+
+// check if the file already exist
+    if( access( keyPath, F_OK ) == 0 ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key %s already exist, do nothing !", keyPath );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return false;
+    }
+
+//
+    ssh_pki_export_pubkey_file( clientKey, keyPath );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key %s saved", keyPath );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+    return true;
 }
 
 
