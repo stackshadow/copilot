@@ -71,8 +71,19 @@ bool coPluginList::      	append( coPlugin* plugin ){
 
 
 bool coPluginList::       	remove( coPlugin* plugin ){
+    lockMyPthread();
 
+    if( this->pluginList == NULL ) return false;
 
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove Plugin: %s", plugin->name() );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+    etListDataRemove( this->pluginList, (void*)plugin, etID_TRUE );
+    this->pluginListIterator = NULL;
+
+    unlockMyPthread();
+	return true;
 }
 
 
