@@ -43,30 +43,16 @@ coreService::                   		~coreService(){
 
 #ifndef MQTT_ONLY_LOCAL
 void coreService:: 						appendKnownNodes( const char* hostName ){
+    if( hostName == NULL ) return;
 
-	json_t*			jsonObject = NULL;
-	json_error_t	jsonError;
-	json_t*			jsonNode = NULL;
-	json_t*			jsonNodes = NULL;
-
-// open the file
-    jsonObject = json_load_file( baseFilePath "known_nodes.json", JSON_PRESERVE_ORDER, &jsonError );
-    if( jsonObject == NULL ){
-        jsonObject = json_object();
-        json_object_set_new( jsonObject, "nodes", json_object() );
+    coCore::ptr->config->nodesIterate();
+    if( coCore::ptr->config->nodeSelectByHostName( hostName ) == false ){
+        coCore::ptr->config->nodeSelect( hostName );
+        coCoreConfig::nodeType hostType = coCoreConfig::FOREIGN;
+        coCore::ptr->config->nodeInfo( NULL, &hostType, true );
+        coCore::ptr->config->nodeConnInfo( &hostName, NULL, true );
     }
-	jsonNodes = json_object_get( jsonObject, "nodes" );
-
-// check if node exist
-	jsonNode = json_object_get( jsonNodes, hostName );
-	if( jsonNode == NULL ){
-		jsonNode = json_object();
-		json_object_set_new( jsonNodes, hostName, jsonNode );
-		json_dump_file( jsonObject, baseFilePath "known_nodes.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-	}
-
-// cleanup
-	json_decref( jsonObject );
+    coCore::ptr->config->nodesIterateFinish();
 }
 #endif
 
@@ -94,6 +80,7 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
             return coPlugin::REPLY;
         }
+
     }
 
 
@@ -103,10 +90,15 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
         return coPlugin::NO_REPLY;
     }
 
-#ifndef MQTT_ONLY_LOCAL
-// append hostname to known hosts
-	this->appendKnownNodes( msgHostName );
-#endif
+// pong
+    if( strncmp(msgCommand,"pong",4) == 0 ){
+
+    #ifndef MQTT_ONLY_LOCAL
+    // append hostname to known hosts
+        this->appendKnownNodes( msgHostName );
+    #endif
+
+    }
 
 // get version
     if( strncmp( (char*)msgCommand, "copilotdVersionGet", 10 ) == 0 ){

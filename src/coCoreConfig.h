@@ -82,7 +82,8 @@ class coCoreConfig {
 		typedef enum {
 			UNKNOWN = 0,
 			SERVER = 1,
-			CLIENT = 10
+			CLIENT = 10,
+            FOREIGN = 20,
 		} nodeType;
 
 // public values
