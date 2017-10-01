@@ -20,6 +20,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef authService_C
 #define authService_C
 
+
+
 #include "coCore.h"
 #include "plugins/coreService.h"
 #include "version.h"
@@ -47,15 +49,20 @@ void coreService:: 						appendKnownNodes( const char* hostName ){
 
     coCore::ptr->config->nodesIterate();
     if( coCore::ptr->config->nodeSelectByHostName( hostName ) == false ){
+
+    // append the host
         coCore::ptr->config->nodeSelect( hostName );
-        coCoreConfig::nodeType hostType = coCoreConfig::FOREIGN;
+        coCoreConfig::nodeType hostType = coCoreConfig::CLIENT_IN;
         coCore::ptr->config->nodeInfo( NULL, &hostType, true );
         coCore::ptr->config->nodeConnInfo( &hostName, NULL, true );
+        coCore::ptr->config->nodesIterateFinish();
+
+        coCore::ptr->config->save();
+        return;
     }
     coCore::ptr->config->nodesIterateFinish();
 }
 #endif
-
 
 
 coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
@@ -83,13 +90,6 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
     }
 
-
-// to "localhost" or to the nodename-host
-    if( strncmp(msgHostName,"localhost",9) != 0 &&
-	coCore::ptr->isHostName(msgHostName) == false ){
-        return coPlugin::NO_REPLY;
-    }
-
 // pong
     if( strncmp(msgCommand,"pong",4) == 0 ){
 
@@ -100,22 +100,25 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
     }
 
-// get version
-    if( strncmp( (char*)msgCommand, "copilotdVersionGet", 10 ) == 0 ){
+// to "localhost" or to the nodename-host
+    if( strncmp(msgHostName,"localhost",9) != 0 &&
+	coCore::ptr->isHostName(msgHostName) == false ){
+        return coPlugin::NO_REPLY;
+    }
 
-		message->replyCommand( "copilotdVersion" );
+
+
+// get version
+    if( strncmp( (char*)msgCommand, "versionGet", 10 ) == 0 ){
+
+		message->replyCommand( "version" );
 		message->replyPayload( copilotVersion );
 
         return coPlugin::REPLY;
     }
 
-// get services
-    if( strncmp( (char*)msgCommand, "getServices", 11 ) == 0 ){
-        return coPlugin::NO_REPLY;
-    }
-
 // get hosts
-    if( strncmp( (char*)msgCommand, "knownHostsGet", 10 ) == 0 ){
+    if( strncmp( (char*)msgCommand, "nodesGet", 8 ) == 0 ){
 
 	// vars
 		//json_t*			jsonArray = json_array();
@@ -125,7 +128,7 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 		coCore::ptr->config->nodesGet( &jsonObject );
 		jsonArrayChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
-		message->replyCommand( "knownHosts" );
+		message->replyCommand( "nodes" );
 		message->replyPayload( jsonArrayChar );
 
 	// free
