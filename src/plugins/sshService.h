@@ -33,10 +33,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <libssh/server.h>
 #include <libssh/callbacks.h>
 
-#define sshClientKeyPath baseFilePath "sshd_client_keys/"
 #define sshServerKeyPath baseFilePath "sshd_server_keys/"
 #define sshKeyReqPath baseFilePath "sshd_req_keys/"
-
+#define sshClientKeyPath baseFilePath "sshd_client_keys/"
 
 class sshService : public coPlugin {
 
@@ -53,7 +52,7 @@ class sshService : public coPlugin {
 		unsigned int		curConnections = 0;
 
 		pthread_t			threadWaitForNewClients;
-        json_t*             sessionStates;
+
 
 // public functions
 	public:
@@ -68,14 +67,17 @@ class sshService : public coPlugin {
 // helper
 		static bool 		cmpToAllLokalKeys( ssh_key clientKey );
 		static bool			askForSaveClientKey( ssh_key clientKey );
-        static bool         savePublicKeyToRequestFolder( ssh_key clientKey );
 		static bool			verify_knownhost( ssh_session session );
 
-// session-list
-        json_t*             sessionGet( const char* id );
-        bool                sessionHostSet( const char* id, const char* hostname );
-		bool				sessionStateSet( const char* id, sessionState state );
-        bool				sessionRemove( const char* id );
+
+// requested keys
+        static unsigned int reqKeysCount();
+        static bool         reqKeyAdd( ssh_key clientKey );
+        static bool         reqKeysGet( json_t* jsonObject );
+        static bool         reqKeysRemove( const char* fingerprint );
+        static bool         reqKeysAccept( const char* fingerprint );
+        static bool         acceptedKeysGet( json_t* jsonObject );
+        static bool         acceptedKeysRemove( const char* fingerprint );
 
 
 // server ( copilotd-devices )

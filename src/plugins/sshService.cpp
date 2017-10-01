@@ -29,11 +29,10 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "plugins/sshSession.h"
 
 #include "uuid.h"
+#include "limits.h"     // for UINT_MAX
 
 
 sshService::               			sshService() : coPlugin( "sshService", "", "cocom" ){
-// create json
-    this->sessionStates = json_object();
 
 // register plugin
 	coCore::ptr->plugins->append( this );
@@ -41,7 +40,7 @@ sshService::               			sshService() : coPlugin( "sshService", "", "cocom"
 
 
 sshService::               			~sshService(){
-    json_decref( this->sessionStates );
+
 }
 
 
@@ -64,6 +63,7 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
 
 	if( strncmp(msgCommand,"serverConfigGet",10) == 0 ){
+        serverConfigGet:
 
     // lock
         coCore::ptr->config->nodesIterate();
@@ -72,16 +72,18 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
         jsonPayload = json_object();
 
     // read infos
-        if( coCore::ptr->config->nodeSelect(coCore::ptr->hostNameGet()) == true ){
+        if( coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet()) == true ){
             coCore::ptr->config->nodeInfo( NULL, &type );
             coCore::ptr->config->nodeConnInfo( &hostName, &hostPort );
             json_object_set_new( jsonPayload, "enabled", json_integer(1) );
             json_object_set_new( jsonPayload, "host", json_string(hostName) );
             json_object_set_new( jsonPayload, "port", json_integer(hostPort) );
         } else {
+            coCore::ptr->config->nodeAppend( coCore::ptr->hostNameGet() );
             json_object_set_new( jsonPayload, "enabled", json_integer(0) );
             json_object_set_new( jsonPayload, "host", json_string(coCore::ptr->hostNameGet()) );
-            json_object_set_new( jsonPayload, "port", json_integer(5432) );
+            json_object_set_new( jsonPayload, "port", json_integer(4567) );
+            coCore::ptr->config->save();
         }
 
     // unlock
@@ -123,7 +125,7 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
         coCore::ptr->config->nodesIterate();
 
     // read infos
-        coCore::ptr->config->nodeSelect(coCore::ptr->hostNameGet());
+        coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet());
         if( serverEnabled == 1 ){
             type = coCoreConfig::SERVER;
         } else {
@@ -138,21 +140,78 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
 	// cleanup
 		json_decref(jsonPayload);
+        goto serverConfigGet;
 		return coPlugin::NO_REPLY;
 	}
 
 
-	if( strncmp(msgCommand,"stateGet",8) == 0 ){
+    if( strncmp(msgCommand,"requestKeysGet",15) == 0 ){
+        requestKeysGet:
+    // vars
+        json_t*         jsonKeys = json_object();
 
-    // jump json-string
-        const char* stateString = json_dumps( this->sessionStates, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+    // get the requested keys as json
+        sshService::reqKeysGet( jsonKeys );
 
     // set the message
-        message->replyCommand( "state" );
-        message->replyPayload( stateString );
+        msgPayload = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        message->replyCommand( "requestKeys" );
+        message->replyPayload( msgPayload );
 
-        free((void*)stateString);
+    // cleanup and return
+        free((void*)msgPayload);
+        json_decref(jsonKeys);
         return coPlugin::REPLY;
+    }
+
+
+	if( strncmp(msgCommand,"requestKeyAccept",9) == 0 ){
+
+	// parse json
+		sshService::reqKeysAccept( msgPayload );
+
+        goto requestKeysGet;
+        return coPlugin::NO_REPLY;
+    }
+
+
+	if( strncmp(msgCommand,"requestKeyRemove",11) == 0 ){
+
+	// parse json
+		sshService::reqKeysRemove( msgPayload );
+
+        goto requestKeysGet;
+        return coPlugin::NO_REPLY;
+    }
+
+
+    if( strncmp(msgCommand,"acceptedKeysGet",15) == 0 ){
+        acceptedKeysGet:
+    // vars
+        json_t*         jsonKeys = json_object();
+
+    // get the requested keys as json
+        sshService::acceptedKeysGet( jsonKeys );
+
+    // set the message
+        msgPayload = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        message->replyCommand( "acceptedKeys" );
+        message->replyPayload( msgPayload );
+
+    // cleanup and return
+        free((void*)msgPayload);
+        json_decref(jsonKeys);
+        return coPlugin::REPLY;
+    }
+
+
+	if( strncmp(msgCommand,"acceptedKeyRemove",11) == 0 ){
+
+	// parse json
+		sshService::acceptedKeysRemove( msgPayload );
+
+        goto acceptedKeysGet;
+        return coPlugin::NO_REPLY;
     }
 
 
@@ -300,10 +359,8 @@ nextKey:
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "No valid key found, move the key to signing request folder..." );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
-
-
-    // copy the key
-        sshService::savePublicKeyToRequestFolder( clientKey );
+    // add the key to requested keys
+        sshService::reqKeyAdd( clientKey );
 
     }
 
@@ -372,53 +429,6 @@ bool sshService::					askForSaveClientKey( ssh_key clientKey ){
 
 
 	return false;
-}
-
-
-bool sshService::					savePublicKeyToRequestFolder( ssh_key clientKey ){
-// vars
-	unsigned char* 		hash;
-	size_t				hlen;
-	char 				answer[512] = { '0' };
-
-// create path if needed
-    if( access( sshKeyReqPath, F_OK ) != 0 ){
-        system( "mkdir -p " sshKeyReqPath );
-    }
-
-// is the key public?
-	if( ssh_key_is_public(clientKey) != 1 ){
-		return false;
-	}
-
-    int test = ssh_key_is_private(clientKey);
-
-// get key-hash
-	if( ssh_get_publickey_hash( clientKey, SSH_PUBLICKEY_HASH_SHA1, &hash, &hlen ) != SSH_OK ){
-		return false;
-	}
-	char* str = ssh_get_hexa( hash, hlen );
-
-// we build the full path
-    etString* fullKeyPath; const char* keyPath;
-    etStringAllocLen( fullKeyPath, 128 );
-    etStringCharSet( fullKeyPath, sshKeyReqPath, -1 );
-    etStringCharAdd( fullKeyPath, (const char*)str );
-    etStringCharGet( fullKeyPath, keyPath );
-
-// check if the file already exist
-    if( access( keyPath, F_OK ) == 0 ){
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key %s already exist, do nothing !", keyPath );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-        return false;
-    }
-
-//
-    ssh_pki_export_pubkey_file( clientKey, keyPath );
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key %s saved", keyPath );
-    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-
-    return true;
 }
 
 
@@ -500,58 +510,246 @@ bool sshService:: 					verify_knownhost( ssh_session session ){
 
 
 
-// session-list
-json_t* sshService::                sessionGet( const char* id ){
-    lockPthread(this->sessionStateLock);
 
-// create new state
-    json_t* jsonSession = json_object_get( this->sessionStates, id );
-    if( jsonSession == NULL ){
-        jsonSession = json_object();
-        json_object_set_new( this->sessionStates, id, jsonSession );
+unsigned int sshService::           reqKeysCount(){
+
+// vars
+    DIR*			    keyDir = NULL;
+    dirent*			    keyDirEntry = NULL;
+    unsigned int        keyDirCounter = 0;
+
+// open directory
+    keyDir = opendir( sshKeyReqPath );
+    if( keyDir == NULL ){
+        etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
+        return UINT_MAX;
     }
 
-    unlockPthread(this->sessionStateLock);
-    return jsonSession;
+// read every key
+    keyDirEntry = readdir( keyDir );
+    while( keyDirEntry != NULL ){
+    // ignore "." and ".."
+        if( keyDirEntry->d_name[0] != '.' ){
+            keyDirCounter++;
+        }
+        keyDirEntry = readdir( keyDir );
+    }
+    closedir(keyDir);
+
+
+    return keyDirCounter;
+}
+
+/**
+@brief save public-key to requests-folder
+
+Copilotd save unknown public ssh-keys to an specific folder.
+This function export clientKey key to the requests folder
+
+@param clientKey The ssh-key
+@return \
+ - false if to many keys are inside the request-folder
+ - false if clientKey contains no public key
+ - false if hash functions fail
+ - false if key already exist
+ - true if key was successfuly saved
+*/
+bool sshService::					reqKeyAdd( ssh_key clientKey ){
+// vars
+	unsigned char* 		hash;
+	size_t				hlen;
+	char 				answer[512] = { '0' };
+
+// create path if needed
+    if( access( sshKeyReqPath, F_OK ) != 0 ){
+        system( "mkdir -p " sshKeyReqPath );
+    }
+
+
+// maximum amount of keys reched ?
+    if( sshService::reqKeysCount() > 10 ){
+        etDebugMessage( etID_LEVEL_ERR, "Maximum amount of requested keys are reached." );
+        return false;
+    }
+
+// is the key public?
+	if( ssh_key_is_public(clientKey) != 1 ){
+		return false;
+	}
+
+    int test = ssh_key_is_private(clientKey);
+
+// get key-hash
+	if( ssh_get_publickey_hash( clientKey, SSH_PUBLICKEY_HASH_SHA1, &hash, &hlen ) != SSH_OK ){
+		return false;
+	}
+	char* str = ssh_get_hexa( hash, hlen );
+
+// we build the full path
+    etString* fullKeyPath; const char* keyPath;
+    etStringAllocLen( fullKeyPath, 128 );
+    etStringCharSet( fullKeyPath, sshKeyReqPath, -1 );
+    etStringCharAdd( fullKeyPath, (const char*)str );
+    etStringCharGet( fullKeyPath, keyPath );
+
+// check if the file already exist
+    if( access( keyPath, F_OK ) == 0 ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key %s already exist, do nothing !", keyPath );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return false;
+    }
+
+//
+    ssh_pki_export_pubkey_file( clientKey, keyPath );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key %s saved", keyPath );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+// cleanup
+    etStringFree( fullKeyPath );
+    return true;
 }
 
 
-bool sshService:: 					sessionHostSet( const char* id, const char* hostname ){
-    lockPthread(this->sessionStateLock);
+bool sshService::					reqKeysGet( json_t* jsonObject ){
+    if( jsonObject == NULL ) return false;
 
 // vars
-    json_t* jsonSession = this->sessionGet(id);
+    DIR*			keyDir = NULL;
+    dirent*			keyDirEntry = NULL;
+    json_t*         jsonKey = NULL;
+    const char*     msgPayload = NULL;
 
-// create new state
-    json_object_set_new( jsonSession, "hostname", json_string(hostname) );
+// open directory
+    keyDir = opendir( sshKeyReqPath );
+    if( keyDir == NULL ){
+        etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
+        return coPlugin::NO_REPLY;
+    }
 
-    unlockPthread(this->sessionStateLock);
+// read every key
+    keyDirEntry = readdir( keyDir );
+    while( keyDirEntry != NULL ){
+
+    // ignore "." and ".."
+        if( keyDirEntry->d_name[0] == '.' ) goto nextKey;
+
+    //
+        jsonKey = json_object();
+        json_object_set_new( jsonObject, keyDirEntry->d_name, jsonKey );
+
+    nextKey:
+        keyDirEntry = readdir( keyDir );
+    }
+    closedir(keyDir);
+
     return true;
 }
 
 
-bool sshService:: 					sessionStateSet( const char* id, sessionState state ){
-    lockPthread(this->sessionStateLock);
+bool sshService::					reqKeysRemove( const char* fingerprint ){
+
+// we build the full path
+    etString* fullKeyPath; const char* keyPath;
+    etStringAllocLen( fullKeyPath, 128 );
+    etStringCharSet( fullKeyPath, sshKeyReqPath, -1 );
+    etStringCharAdd( fullKeyPath, fingerprint );
+    etStringCharGet( fullKeyPath, keyPath );
+
+// remove key
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove '%s'", keyPath );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    unlink( keyPath );
+
+// clean
+    etStringFree( fullKeyPath );
+    return true;
+}
+
+
+bool sshService::					reqKeysAccept( const char* fingerprint ){
 
 // vars
-    json_t* jsonSession = this->sessionGet(id);
+    etString*       sourceKeyPath = NULL;
+    etString*       targetKeyPath = NULL;
+    const char*     sourcePath = NULL;
+    const char*     targetPath = NULL;
 
-// create new state
-    json_object_set_new( jsonSession, "state", json_integer(state) );
+// source
+    etStringAllocLen( sourceKeyPath, 128 );
+    etStringCharSet( sourceKeyPath, sshKeyReqPath, -1 );
+    etStringCharAdd( sourceKeyPath, fingerprint );
+    etStringCharGet( sourceKeyPath, sourcePath );
 
-    unlockPthread(this->sessionStateLock);
+// target
+    etStringAllocLen( targetKeyPath, 128 );
+    etStringCharSet( targetKeyPath, sshClientKeyPath, -1 );
+    etStringCharAdd( targetKeyPath, fingerprint );
+    etStringCharGet( targetKeyPath, targetPath );
+
+// move
+    if( rename( sourcePath, targetPath ) == 0 ){
+        return true;
+    }
+
+    return false;
+}
+
+
+bool sshService::					acceptedKeysGet( json_t* jsonObject ){
+    if( jsonObject == NULL ) return false;
+
+// vars
+    DIR*			keyDir = NULL;
+    dirent*			keyDirEntry = NULL;
+    json_t*         jsonKey = NULL;
+    const char*     msgPayload = NULL;
+
+// open directory
+    keyDir = opendir( sshClientKeyPath );
+    if( keyDir == NULL ){
+        etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
+        return coPlugin::NO_REPLY;
+    }
+
+// read every key
+    keyDirEntry = readdir( keyDir );
+    while( keyDirEntry != NULL ){
+
+    // ignore "." and ".."
+        if( keyDirEntry->d_name[0] == '.' ) goto nextKey;
+
+    //
+        jsonKey = json_object();
+        json_object_set_new( jsonObject, keyDirEntry->d_name, jsonKey );
+
+    nextKey:
+        keyDirEntry = readdir( keyDir );
+    }
+    closedir(keyDir);
+
     return true;
 }
 
 
-bool sshService:: 					sessionRemove( const char* id ){
-    lockPthread(this->sessionStateLock);
+bool sshService::					acceptedKeysRemove( const char* fingerprint ){
 
-    json_object_del( this->sessionStates, id );
+// we build the full path
+    etString* fullKeyPath; const char* keyPath;
+    etStringAllocLen( fullKeyPath, 128 );
+    etStringCharSet( fullKeyPath, sshClientKeyPath, -1 );
+    etStringCharAdd( fullKeyPath, fingerprint );
+    etStringCharGet( fullKeyPath, keyPath );
 
-   unlockPthread(this->sessionStateLock);
+// remove key
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove '%s'", keyPath );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    unlink( keyPath );
+
+// clean
+    etStringFree( fullKeyPath );
     return true;
 }
+
 
 
 /*
@@ -645,13 +843,17 @@ void* sshService::					serveThread( void* void_service ){
     uuid_unparse( UUID, UUIDString );
 
 // get the server infos
-    if( coCore::ptr->config->nodeSelect(coCore::ptr->hostNameGet()) != true ){
+    coCore::ptr->config->nodesIterate();
+    if( coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet()) != true ){
     // debugging message
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "No Server Configuration found, do nothing." );
         etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+        coCore::ptr->config->nodesIterateFinish();
 		return NULL;
 	}
     coCore::ptr->config->nodeConnInfo( &serverHost, &serverPort );
+    coCore::ptr->config->nodesIterateFinish();
 
 // wait for incoming connection
 	if( session->waitForClient( serverHost, serverPort ) == false ) return NULL;
@@ -668,8 +870,12 @@ void* sshService::					serveThread( void* void_service ){
 // poll all events
 	session->pollUntilShell( mainloop, 10 );
 
-// set state
-    service->sessionStateSet( UUIDString, sshService::in_connected );
+// node state
+    coCoreConfig::nodeStates newState = coCoreConfig::CONNECTED;
+    coCore::ptr->config->nodesIterate();
+    coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet());
+    coCore::ptr->config->nodeState( &newState, true );
+    coCore::ptr->config->nodesIterateFinish();
 
 // now a shell is established, so we TRY to serve a new connection
 	pthread_t thread;
@@ -679,8 +885,6 @@ void* sshService::					serveThread( void* void_service ){
 // and we handle all other actions during the client close the connection
 	session->pollEvents( mainloop );
 
-// client closes the connection
-    service->sessionRemove( UUIDString );
 
 // sleanup
 	ssh_event_free( mainloop );
