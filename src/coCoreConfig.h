@@ -83,8 +83,14 @@ class coCoreConfig {
 			UNKNOWN = 0,
 			SERVER = 1,
 			CLIENT = 10,
-            FOREIGN = 20,
+            CLIENT_IN = 11,
 		} nodeType;
+
+        typedef enum {
+            UNKNOW = 0,
+            DISCONNECTED = 10,
+            CONNECTED = 15,
+        } nodeStates;
 
 // public values
 	private:
@@ -107,6 +113,7 @@ public:
 	// nodes
 		bool				nodesGet( json_t** jsonObject );
 		bool				nodesGetAsArray( json_t* jsonArray );
+        void                nodeStatesRemove();
 
 	// iterate nodes / get node-infos
 		bool				nodesIterate();
@@ -116,6 +123,7 @@ public:
 		bool				nodeNext();
 		bool				nodeInfo( const char** name, coCoreConfig::nodeType* type, bool set = false );
 		bool				nodeConnInfo( const char** host, int* port, bool set = false );
+        bool                nodeState( coCoreConfig::nodeStates* state, bool set = false );
 		bool				nodesIterateFinish();
 
     // user / password

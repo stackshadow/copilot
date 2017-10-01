@@ -122,6 +122,16 @@ bool coCoreConfig::			save( const char* jsonString ){
 		this->jsonConfig = jsonObject;
 	}
 
+// get the "nodes" object
+	this->jsonNodes = json_object_get( this->jsonConfig, "nodes" );
+	if( this->jsonNodes == NULL ){
+        this->jsonNodes = json_object();
+        json_object_set_new( this->jsonConfig, "nodes", this->jsonNodes );
+    }
+
+// remove states
+    this->nodeStatesRemove();
+
 // save the json to file
 	if( json_dump_file( this->jsonConfig, baseFilePath "core.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
 		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s%s\n", baseFilePath, "core.json" );
@@ -168,6 +178,37 @@ bool  coCoreConfig::		nodesGetAsArray( json_t* jsonArray ){
 }
 
 
+void coCoreConfig::			nodeStatesRemove(){
+	if( this->jsonNodes == NULL ) return;
+	lockMyPthread();
+
+// vars
+    void*           iterator = NULL;
+    json_t*         node = NULL;
+    json_t*         jsonString = NULL;
+    const char*     jsonStringChar = NULL;
+
+
+    iterator = json_object_iter( this->jsonNodes );
+    while( iterator != NULL ){
+
+    // get the node
+        node = json_object_iter_value(iterator);
+
+    // remove the state
+        json_object_del( node, "state" );
+
+    // next
+        iterator = json_object_iter_next( this->jsonNodes, iterator );
+    }
+
+
+// return
+	unlockMyPthread();
+	return;
+}
+
+
 
 
 
@@ -193,20 +234,17 @@ bool coCoreConfig::			nodeAppend( const char* name ){
 }
 
 
-bool  coCoreConfig::		nodeSelect( const char* name ){
+bool coCoreConfig::		    nodeSelect( const char* name ){
 	if( this->jsonNodes == NULL ) return false;
 
 	this->jsonNode = json_object_get( this->jsonNodes, name );
 	if( this->jsonNode != NULL ) return true;
 
-// node not found, create a new one
-    if( this->nodeAppend(name) != true ) return false;
-
-	return true;
+	return false;
 }
 
 
-bool  coCoreConfig::		nodeSelectByHostName( const char* hostName ){
+bool coCoreConfig::		    nodeSelectByHostName( const char* hostName ){
 	if( this->jsonNodes == NULL ) return false;
 
 // vars
@@ -238,7 +276,7 @@ bool  coCoreConfig::		nodeSelectByHostName( const char* hostName ){
     }
 
 // unlock
-	return true;
+	return false;
 }
 
 
@@ -267,6 +305,7 @@ bool coCoreConfig::			nodeNext(){
 
 
 bool coCoreConfig::			nodeInfo( const char** name, coCoreConfig::nodeType* type, bool set ){
+    if( this->jsonNode == NULL ) return false;
 
 // vars
 	json_t*		jsonVar = NULL;
@@ -274,7 +313,9 @@ bool coCoreConfig::			nodeInfo( const char** name, coCoreConfig::nodeType* type,
 // name
 	if( name != NULL ){
 		if( set == false ){
-			*name = json_object_iter_key( this->jsonNodesIterator );
+            if( this->jsonNodesIterator != NULL ){
+                *name = json_object_iter_key( this->jsonNodesIterator );
+            }
 		}
 	}
 
@@ -344,6 +385,34 @@ bool coCoreConfig::			nodeConnInfo( const char** host, int* port, bool set ){
 
 // return
 	return true;
+}
+
+
+bool  coCoreConfig::	    nodeState( coCoreConfig::nodeStates* state, bool set ){
+    if( this->jsonNodesIterator == NULL ) return false;
+    if( this->jsonNode == NULL ) return false;
+
+// vars
+	json_t*		                jsonVar = NULL;
+    coCoreConfig::nodeStates    jsonState = coCoreConfig::UNKNOW;
+
+    if( state != NULL ){
+        jsonVar = json_object_get( this->jsonNode, "state" );
+
+        if( set == true ){
+            jsonVar = json_integer( (json_int_t)state );
+            json_object_set_new( this->jsonNode, "state", jsonVar );
+        }
+        if( set == false ){
+            if( jsonVar == NULL ) return false;
+            if( jsonVar != NULL ){
+                *state = (coCoreConfig::nodeStates)json_integer_value(jsonVar);
+            }
+        }
+
+    }
+
+    return true;
 }
 
 
