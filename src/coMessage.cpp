@@ -38,6 +38,18 @@ coMessage::					~coMessage(){
 
 }
 
+
+
+void* coMessage::           source( void* sourcePlugin ){
+
+    if( sourcePlugin != NULL ){
+        this->sourcePlugin = sourcePlugin;
+    }
+
+    return this->sourcePlugin;
+}
+
+
 const char* coMessage::		setValue( etString* string, const char* newValue ){
 
 	if( newValue == NULL ){

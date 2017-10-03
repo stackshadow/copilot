@@ -153,32 +153,36 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
 	coMessage* tempMessage = new coMessage();
 	tempMessage->fromJson( jsonObject );
 
-    const char*			cmd = tempMessage->command();
-	const char*			payload = tempMessage->payload();
+    const char*			msgHost = tempMessage->hostName();
+    const char*			msgGroup = tempMessage->group();
+    const char*			msgCommad = tempMessage->command();
+	const char*			msgPayload = tempMessage->payload();
 
 // websocket only message
-    if( strncmp((char*)cmd, "hostNameGet", 11) == 0 ){
+    if( strncmp((char*)msgCommad, "hostNameGet", 11) == 0 ){
 
-	// vars
+    // json
         json_t* jsonAnswerObject = json_object();
 
 	// get the hostname
-		coCore::ptr->hostNameGet( &payload, NULL );
+		coCore::ptr->hostNameGet( &msgPayload, NULL );
 
-	// set reply
-		tempMessage->replyCommand( "hostName" );
-		tempMessage->replyPayload( payload );
+    // set values
+        tempMessage->command( "hostName" );
+        tempMessage->payload( msgPayload );
 
     // reply
-		tempMessage->toJson( jsonAnswerObject, true );
+		tempMessage->toJson( jsonAnswerObject, false );
         char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
         this->wsReply( jsonDump );
+
+    // clean and return
         free( jsonDump );
         json_decref(jsonAnswerObject);
         return;
     }
 
-    if( strncmp((char*)cmd, "authMethodeGet", 11) == 0 ){
+    if( strncmp((char*)msgCommad, "authMethodeGet", 11) == 0 ){
 
 	// vars
         json_t* jsonAnswerObject = json_object();
@@ -205,9 +209,9 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
     }
 
 // websocket must do auth
-    if( strncmp( (char*)cmd, "login", 5 ) == 0 ){
+    if( strncmp( (char*)msgCommad, "login", 5 ) == 0 ){
 
-        json_t* jsonCredentials = json_loads( payload, JSON_PRESERVE_ORDER, &jsonError );
+        json_t* jsonCredentials = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
         if( jsonCredentials == NULL ) return;
 		json_t*			jsonString = NULL;
 		const char* 	userName = NULL;
@@ -257,8 +261,16 @@ checkAuth:
 
 
 // broadcast
-    coCore::ptr->plugins->broadcast( this, tempMessage );
+    //coCore::ptr->plugins->broadcast( this, tempMessage );
 
+    coCore::ptr->plugins->messageAdd(   this,
+                                        tempMessage->hostName(),
+                                        tempMessage->group(),
+                                        tempMessage->command(),
+                                        tempMessage->payload() );
+
+cleanup:
+    delete tempMessage;
 }
 
 

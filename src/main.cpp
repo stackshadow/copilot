@@ -47,7 +47,8 @@ static struct option options[] = {
     { "help",       no_argument,        NULL, 'h' },
     { "debug",      no_argument,        NULL, 'd' },
     { "hostname",   required_argument,  NULL, 'n' },
-	{ "setup",   no_argument,  NULL, 's' },
+	{ "setup",      no_argument,        NULL, 's' },
+    { "connect",    required_argument,  NULL, 'c' },
     { NULL, 0, 0, 0 }
 };
 
@@ -64,7 +65,7 @@ int main( int argc, char *argv[] ){
 
 
     etInit(argc,(const char**)argv);
-    etDebugLevelSet( etID_LEVEL_DETAIL_APP );
+    etDebugLevelSet( etID_LEVEL_WARNING );
 //    QCoreApplication a(argc, argv);
 
 
@@ -72,7 +73,12 @@ int main( int argc, char *argv[] ){
     coCore*         core = new coCore();
 
 // parse options
-    int optionSelected = 0;
+    int             optionSelected = 0;
+    bool            connectToHost = false;
+    const char*     connectToHostName = NULL;
+    const char*     connectToPortString = NULL;
+    int             connectToPort = 0;
+
     while( optionSelected >= 0 ) {
         optionSelected = getopt_long(argc, argv, "", options, NULL);
         if( optionSelected < 0 )
@@ -92,11 +98,27 @@ int main( int argc, char *argv[] ){
 				fprintf( stdout, "--debug: Enable debug messages\n" );
                 fprintf( stdout, "--hostname <hostname>: Set the hostname ( not detect it automatically )\n" );
                 fprintf( stdout, "--setup: Run setup of all plugins. \n" );
+                fprintf( stdout, "--connect <hostname:port>: Connect to an copilotd-server \n" );
                 exit(1);
 
             case 'n':
                 printf ("Set hostname to '%s'\n", optarg);
                 core->setHostName( optarg );
+                break;
+
+            case 'c':
+                printf ("Try to connect to '%s'\n", optarg);
+
+                connectToHostName = strtok( optarg, ":" );
+                connectToPortString = strtok(NULL, ":");
+
+                if( connectToHostName == NULL || connectToPortString == NULL ){
+                    fprintf( stderr, "Wrong command line passed" );
+                    exit(-1);
+                }
+                connectToPort = atoi(connectToPortString);
+                connectToHost = true;
+
                 break;
 
 			case 's':
@@ -118,6 +140,10 @@ int main( int argc, char *argv[] ){
 	ssh_threads_set_callbacks( ssh_threads_get_pthread() );
 	ssh_init();
 	sshService* newSshService = new sshService();
+
+    if( connectToHost == true ){
+        newSshService->connect( connectToHostName, connectToPort );
+    }
 #endif
 
 //	while(1) sleep(1);

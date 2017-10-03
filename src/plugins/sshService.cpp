@@ -34,6 +34,20 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 sshService::               			sshService() : coPlugin( "sshService", "", "cocom" ){
 
+// create path if needed
+	if( access( sshServerKeyPath, F_OK ) != 0 ){
+		system( "mkdir -p " sshServerKeyPath );
+	}
+	if( access( sshKeyReqPath, F_OK ) != 0 ){
+		system( "mkdir -p " sshKeyReqPath );
+	}
+	if( access( sshAcceptedKeyPath, F_OK ) != 0 ){
+		system( "mkdir -p " sshAcceptedKeyPath );
+	}
+	if( access( sshClientKeyPath, F_OK ) != 0 ){
+		system( "mkdir -p " sshClientKeyPath );
+	}
+
 // register plugin
 	coCore::ptr->plugins->append( this );
 }
@@ -49,6 +63,7 @@ sshService::               			~sshService(){
 coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
 // vars
+    const char*		            msgGroup = message->group();
 	const char*		            msgCommand = message->command();
 	const char*		            msgPayload = message->payload();
 	json_t*			            jsonPayload = NULL;
@@ -92,8 +107,11 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
     // set the message
         msgPayload = json_dumps( jsonPayload, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-        message->replyCommand( "serverConfig" );
-        message->replyPayload( msgPayload );
+
+    // add the message to list
+        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->hostNameGet(), msgGroup, "serverConfig", msgPayload );
+
 
     // cleanup and return
         free((void*)msgPayload);
@@ -155,8 +173,11 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
     // set the message
         msgPayload = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-        message->replyCommand( "requestKeys" );
-        message->replyPayload( msgPayload );
+
+    // add the message to list
+        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->hostNameGet(), msgGroup, "requestKeys", msgPayload );
+
 
     // cleanup and return
         free((void*)msgPayload);
@@ -195,8 +216,10 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
     // set the message
         msgPayload = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-        message->replyCommand( "acceptedKeys" );
-        message->replyPayload( msgPayload );
+
+    // add the message to list
+        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->hostNameGet(), msgGroup, "acceptedKeys", msgPayload );
 
     // cleanup and return
         free((void*)msgPayload);
@@ -313,7 +336,7 @@ bool sshService:: 					cmpToAllLokalKeys( ssh_key clientKey ){
 	etStringAllocLen( fullPath, 128 );
 
 // open directory
-	keyDirectory = opendir( sshClientKeyPath );
+	keyDirectory = opendir( sshAcceptedKeyPath );
 	if( keyDirectory == NULL ){
 		etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
 		return returnValue;
@@ -327,7 +350,7 @@ bool sshService:: 					cmpToAllLokalKeys( ssh_key clientKey ){
 		if( keyEntry->d_name[0] == '.' ) goto nextKey;
 
 	// build full path
-		etStringCharSet( fullPath, sshClientKeyPath, -1 );
+		etStringCharSet( fullPath, sshAcceptedKeyPath, -1 );
 		etStringCharAdd( fullPath, keyEntry->d_name );
 		etStringCharGet( fullPath, fullKeyFilename );
 
@@ -368,67 +391,6 @@ nextKey:
 	closedir( keyDirectory );
 	etStringFree( fullPath );
 	return returnValue;
-}
-
-
-bool sshService::					askForSaveClientKey( ssh_key clientKey ){
-
-// vars
-	unsigned char* 		hash;
-	size_t				hlen;
-	char 				answer[512] = { '0' };
-
-// is the key public?
-	if( ssh_key_is_public(clientKey) != 1 ){
-		return false;
-	}
-
-
-// get key-hash
-	if( ssh_get_publickey_hash( clientKey, SSH_PUBLICKEY_HASH_SHA1, &hash, &hlen ) != SSH_OK ){
-		return false;
-	}
-
-	char* str = ssh_get_hexa( hash, hlen );
-
-	fprintf( stdout, "Accept Key? %s \n", str );
-	fflush( stdout );
-	read( STDIN_FILENO, answer, 512 );
-
-
-	if( answer[0] == 'y' ){
-
-	keyName:
-		fprintf( stdout, "Enter a key name:" );
-		fflush( stdout );
-		read( STDIN_FILENO, answer, 512 );
-		fprintf( stdout, "\n" );
-		if( strlen(answer) <= 0 ) goto keyName;
-		if( answer[0] == '.' ) goto keyName;
-		if( answer[0] == '/' ) goto keyName;
-
-
-	// remove 0
-		int answerLen = strlen(answer);
-		if( answerLen > 0 ) answerLen--;
-		answer[answerLen] = '\0';
-
-	// we build the full path
-		etString* fullKeyPath; const char* keyPath;
-		etStringAllocLen( fullKeyPath, 128 );
-		etStringCharSet( fullKeyPath, sshClientKeyPath, -1 );
-		etStringCharAdd( fullKeyPath, answer );
-		etStringCharGet( fullKeyPath, keyPath );
-
-
-		ssh_pki_export_pubkey_file( clientKey, keyPath );
-		return true;
-	}
-
-
-
-
-	return false;
 }
 
 
@@ -519,7 +481,7 @@ unsigned int sshService::           reqKeysCount(){
     unsigned int        keyDirCounter = 0;
 
 // open directory
-    keyDir = opendir( sshKeyReqPath );
+    keyDir = opendir( sshAcceptedKeyPath );
     if( keyDir == NULL ){
         etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
         return UINT_MAX;
@@ -682,7 +644,7 @@ bool sshService::					reqKeysAccept( const char* fingerprint ){
 
 // target
     etStringAllocLen( targetKeyPath, 128 );
-    etStringCharSet( targetKeyPath, sshClientKeyPath, -1 );
+    etStringCharSet( targetKeyPath, sshAcceptedKeyPath, -1 );
     etStringCharAdd( targetKeyPath, fingerprint );
     etStringCharGet( targetKeyPath, targetPath );
 
@@ -705,7 +667,7 @@ bool sshService::					acceptedKeysGet( json_t* jsonObject ){
     const char*     msgPayload = NULL;
 
 // open directory
-    keyDir = opendir( sshClientKeyPath );
+    keyDir = opendir( sshAcceptedKeyPath );
     if( keyDir == NULL ){
         etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
         return coPlugin::NO_REPLY;
@@ -736,7 +698,7 @@ bool sshService::					acceptedKeysRemove( const char* fingerprint ){
 // we build the full path
     etString* fullKeyPath; const char* keyPath;
     etStringAllocLen( fullKeyPath, 128 );
-    etStringCharSet( fullKeyPath, sshClientKeyPath, -1 );
+    etStringCharSet( fullKeyPath, sshAcceptedKeyPath, -1 );
     etStringCharAdd( fullKeyPath, fingerprint );
     etStringCharGet( fullKeyPath, keyPath );
 
@@ -778,13 +740,7 @@ bool sshService::					checkAndCreateServerKeys(){
 	struct 		stat s;
 	int 		err;
 
-// create path if needed
-	if( access( sshClientKeyPath, F_OK ) != 0 ){
-		system( "mkdir -p " sshClientKeyPath );
-	}
-	if( access( sshServerKeyPath, F_OK ) != 0 ){
-		system( "mkdir -p " sshServerKeyPath );
-	}
+
 
 // create RSA
 	if( access( sshServerKeyPath "rsa", F_OK ) != 0 ) {
@@ -807,7 +763,7 @@ bool sshService::					checkAndCreateServerKeys(){
 
 void sshService::					serve(){
 
-	if( this->checkAndCreateServerKeys() == false ){
+	if( sshService::checkAndCreateServerKeys() == false ){
 		return;
 	}
 
@@ -895,6 +851,19 @@ void* sshService::					serveThread( void* void_service ){
 
 
 
+void sshService::					connect( const char* hostname, int port ){
+	// create new session
+		sshSession* session = NULL;
+		session = new sshSession();
+		session->setConnection( port, hostname );
+
+	// start the thread which wait for clients
+		pthread_t thread;
+		pthread_create( &thread, NULL, sshService::connectToClientThread, session );
+		pthread_detach( thread );
+}
+
+
 void sshService::					connectAll(){
 
 // vars
@@ -919,15 +888,8 @@ void sshService::					connectAll(){
 			continue;
 		}
 
-	// create new session
-		sshSession* session = NULL;
-		session = new sshSession();
-		session->setConnection( clientPort, clientHost );
-
-	// start the thread which wait for clients
-		pthread_t thread;
-		pthread_create( &thread, NULL, sshService::connectToClientThread, session );
-		pthread_detach( thread );
+    // connect to it
+        this->connect( clientHost, clientPort );
 
 	}
 

@@ -35,6 +35,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #define sshServerKeyPath baseFilePath "sshd_server_keys/"
 #define sshKeyReqPath baseFilePath "sshd_req_keys/"
+#define sshAcceptedKeyPath baseFilePath "sshd_accepted_keys/"
 #define sshClientKeyPath baseFilePath "sshd_client_keys/"
 
 class sshService : public coPlugin {
@@ -81,15 +82,14 @@ class sshService : public coPlugin {
 
 
 // server ( copilotd-devices )
-		bool				checkAndCreateServerKeys();
+		static bool			checkAndCreateServerKeys();
 		void				serve();
 		static void*		serveThread( void* void_service );
 
 // client ( we connect to servers )
+        void                connect( const char* hostname, int port );
 		void				connectAll();
 		static void*		connectToClientThread( void* void_service );
-		void				appendClient( const char* ipv6 );
-		void				appendClientv4( const char* ipv4 );
 
 
 };

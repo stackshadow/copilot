@@ -82,8 +82,10 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 			const char* tempHostName = NULL;
 			coCore::ptr->hostNameGet( &tempHostName, NULL );
 
-			message->hostName( tempHostName );
-			message->replyCommand( "pong" );
+        // add the message to list
+            coCore::ptr->plugins->messageAdd( this,
+            coCore::ptr->hostNameGet(), msgGroup, "pong", "" );
+
 
             return coPlugin::REPLY;
         }
@@ -111,8 +113,9 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 // get version
     if( strncmp( (char*)msgCommand, "versionGet", 10 ) == 0 ){
 
-		message->replyCommand( "version" );
-		message->replyPayload( copilotVersion );
+    // add the message to list
+        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->hostNameGet(), msgGroup, "version", copilotVersion );
 
         return coPlugin::REPLY;
     }
@@ -128,8 +131,9 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 		coCore::ptr->config->nodesGet( &jsonObject );
 		jsonArrayChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
-		message->replyCommand( "nodes" );
-		message->replyPayload( jsonArrayChar );
+    // add the message to list
+        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->hostNameGet(), msgGroup, "nodes", jsonArrayChar );
 
 	// free
 		free(jsonArrayChar);

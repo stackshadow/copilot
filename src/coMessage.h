@@ -29,6 +29,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 class coMessage {
 
 public:
+    void*           sourcePlugin;
+
 	etString*		reqID_t;
 	etString*		hostName_t;
 	etString*		group_t;
@@ -45,6 +47,7 @@ public:
 	~coMessage();
 
 // base
+    void*           source( void* sourcePlugin = NULL );
 	const char*		reqID( const char *newRequestID = NULL ){ return this->setValue(this->reqID_t, newRequestID); };
 	const char*		hostName( const char* newHostName = NULL ){ return this->setValue(this->hostName_t, newHostName); };
 	const char*		group( const char* newGroup = NULL ){ return this->setValue(this->group_t, newGroup); };

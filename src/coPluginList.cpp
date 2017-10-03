@@ -29,6 +29,15 @@ coPluginList::				coPluginList(){
     this->threadLock = 0;
     etListAlloc( this->pluginList );
     this->pluginListIterator = NULL;
+
+// fifo
+    this->messageFiFoLock = 0;
+    int index = 0;
+    for( index = 0; index < messageFiFoMax; index++ ){
+        this->messageFiFoUsed[index] = false;
+        this->messageFiFo[index] = new coMessage;
+    }
+
 }
 
 
@@ -118,6 +127,190 @@ bool coPluginList::         iterateFinish(){
 
 
 
+bool coPluginList::         messageAdd( coPlugin*   sourcePlugin,
+                                        const char* hostName,
+                                        const char* group,
+                                        const char* command,
+                                        const char* payload ){
+
+
+// vars
+    int             indexWriteNext = this->messageFiFoIndexWritten+1;
+    coMessage*      message = NULL;
+
+// Lock
+    lockPthread( this->messageFiFoLock );
+
+// end of the fifo
+    if( indexWriteNext >= messageFiFoMax ){
+        indexWriteNext = 0;
+    }
+
+// check if the next element is ready for use
+    if( this->messageFiFoUsed[indexWriteNext] == true ){
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO: full" );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+    // UnLock
+        unlockPthread( this->messageFiFoLock );
+        return false;
+    }
+
+// set message
+    message = this->messageFiFo[indexWriteNext];
+    message->source( sourcePlugin );
+    message->hostName( hostName );
+    message->group( group );
+    message->command( command );
+    message->payload( payload );
+    this->messageFiFoUsed[indexWriteNext] = true;
+
+// set index
+    this->messageFiFoIndexWritten = indexWriteNext;
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: append message '%s'", indexWriteNext, command );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+// UnLock
+    unlockPthread( this->messageFiFoLock );
+    return true;
+}
+
+/**
+@brief Release the actual message and move the read index to the next message
+@return always true
+*/
+bool coPluginList::         messageRelease(){
+
+// vars
+    int             indexReadNext = this->messageFiFoIndexRead+1;
+    coMessage*      message = NULL;
+
+// Lock
+    lockPthread( this->messageFiFoLock );
+
+// release actual mesage
+    this->messageFiFoUsed[this->messageFiFoIndexRead] = false;
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: release message", this->messageFiFoIndexRead );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+// end of the fifo
+    if( indexReadNext >= messageFiFoMax ){
+        indexReadNext = 0;
+    }
+
+// save the indexs
+    this->messageFiFoIndexRead = indexReadNext;
+
+
+// UnLock
+    unlockPthread( this->messageFiFoLock );
+    return true;
+}
+
+
+bool coPluginList::         messageGet( coMessage** p_message ){
+
+// vars
+    coMessage*      message = NULL;
+
+// Lock
+    lockPthread( this->messageFiFoLock );
+
+//
+    if( this->messageFiFoUsed[this->messageFiFoIndexRead] == false ){
+    // UnLock
+        unlockPthread( this->messageFiFoLock );
+        return false;
+    }
+
+    message = this->messageFiFo[this->messageFiFoIndexRead];
+    *p_message = message;
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: get", this->messageFiFoIndexRead );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+
+    unlockPthread( this->messageFiFoLock );
+    return true;
+}
+
+
+
+
+void coPluginList::         boradcastThreadStart(){
+
+// start the thread which wait for clients
+    pthread_t thread;
+    pthread_create( &thread, NULL, coPluginList::broadcastThread, this );
+    pthread_detach( thread );
+}
+
+/**
+ * @brief Handle all open messages
+ * This function handles all open broadcast messages
+ * @param userdata void-pointer to an coPluginList pointer
+ */
+void* coPluginList::        broadcastThread( void* userdata ){
+
+// vars
+    coPluginList*       pluginList = (coPluginList*)userdata;
+    coMessage*          message = NULL;
+	coPlugin*		    tempPlugin;
+	const char*		    msgHostName = NULL;
+	const char*		    msgGroup = NULL;
+	const char*		    msgCommand = NULL;
+
+    while(1){
+
+        if( pluginList->messageGet( &message ) == true ){
+            msgHostName = message->hostName();
+            msgGroup = message->group();
+            msgCommand = message->command();
+
+        // iterate
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s/%s/%s", msgHostName, msgGroup, msgCommand );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+
+        // iterate through the list
+            pluginList->iterate();
+            while( pluginList->next(&tempPlugin) == true ){
+
+            // is null ?
+                if( tempPlugin == NULL ) continue;
+
+            // we dont ask the source
+                if( tempPlugin == message->source() ) continue;
+
+            // check if plugin accepts the hostname/group
+                if( tempPlugin->filterCheck( msgHostName, msgGroup ) == false ) continue;
+
+            // call plugin-function
+                tempPlugin->onBroadcastMessage( message );
+
+                usleep( 1000L );
+            }
+            pluginList->iterateFinish();
+            pluginList->messageRelease();
+
+        } else {
+            usleep( 50000L );
+        }
+
+    }
+
+}
+
+
+
+/*
+
 void coPluginList::         broadcast( coPlugin* source, coMessage* message ){
 // from here the plugins start
     if( source == NULL ) return;
@@ -182,7 +375,7 @@ void coPluginList::         broadcast( coPlugin* source, coMessage* message ){
     this->iterateFinish();
 
 }
-
+*/
 
 void coPluginList::         setupAll(){
 // from here the plugins start
@@ -208,6 +401,7 @@ void coPluginList::         setupAll(){
 
 
 void coPluginList::         executeAll(){
+
 // from here the plugins start
 	if( coCore::setupMode == true ) return;
 

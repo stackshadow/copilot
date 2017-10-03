@@ -208,9 +208,12 @@ ssh_channel sshSession::			cbReqChannelOpen(ssh_session session, void *userdata)
 
 	ssh_channel newChannel = ssh_channel_new( session );
 
-
 // set callback for server-channel
 	ssh_set_channel_callbacks( newChannel, &psession->serverChannelCallbacks );
+
+// debugging message
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "New channel created" );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 	return newChannel;
 }
@@ -221,9 +224,15 @@ int sshSession::					cbReqService( ssh_session session, const char *service, voi
 	sshSession* psession = (sshSession*)userdata;
 
 	if( strncmp("ssh-userauth",service,12) == 0 ){
+    // debugging message
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Requested service ssh-userauth accepted" );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 		return 0;
 	}
 
+// debugging
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Requested service '%S' not accepted", service );
+    etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 	return -1;
 }
 
@@ -249,7 +258,9 @@ int sshSession::					cbServerShellRequest( ssh_session session, ssh_channel chan
     struct sockaddr_in*         sock;
     unsigned int                len = 100;
     char                        ip[100] = "\0";
+    char                        node[NI_MAXHOST];
     char*                       ipName = NULL;
+    char*                       nodeHostName = NULL;
 
 // get peer
     getpeername( ssh_get_fd(session), (struct sockaddr*)&tmp, &len );
@@ -258,16 +269,20 @@ int sshSession::					cbServerShellRequest( ssh_session session, ssh_channel chan
 
 
 // try to resolve the hostname
-    char node[NI_MAXHOST];
     int res = getnameinfo((struct sockaddr*)sock, sizeof(*sock), node, sizeof(node), NULL, 0, 0);
     if( res == 0 ){
-        etStringCharSet( psession->host, node, NI_MAXHOST );
+        nodeHostName = node;
     } else {
     // could not get hostname, get the ip
         inet_ntop(AF_INET, &sock->sin_addr, ip, len);
-        ipName = ip;
-        etStringCharSet( psession->host, ipName, 100 );
+        nodeHostName = ip;
     }
+    etStringCharSet( psession->host, nodeHostName, NI_MAXHOST );
+
+// debugging message
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Accept requested shell for %s", nodeHostName );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
 
 // save new shell
 	psession->channelShell = channel;
@@ -298,13 +313,7 @@ int sshSession:: 					cbServerChannelData(	ssh_session 	session,
 		snprintf( etDebugTempMessage, etDebugTempMessageLen, "JSON ERROR: %s \n", jsonError.text );
 		etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
-		psession->tempMessage.hostName( "" );
-		psession->tempMessage.group( "ssh" );
-		psession->tempMessage.replyCommand( "error" );
-		psession->tempMessage.replyPayload( jsonError.text );
-
-	// send it back
-		psession->send( &psession->tempMessage, channel, true );
+        coCore::ptr->plugins->messageAdd( psession, "", "ssh", "error", jsonError.text );
 
 		return len;
 	}
@@ -313,21 +322,23 @@ int sshSession:: 					cbServerChannelData(	ssh_session 	session,
 	if( psession->tempMessage.fromJson( jsonMessage ) == false ){
 		json_decref( jsonMessage );
 
-		psession->tempMessage.hostName( "" );
-		psession->tempMessage.group( "ssh" );
-		psession->tempMessage.replyCommand( "error" );
-		psession->tempMessage.replyPayload( "Error on parsing..." );
-
-	// send it back
-		psession->send( &psession->tempMessage, channel, true );
+        coCore::ptr->plugins->messageAdd( psession, "", "ssh", "error", "Error parsing json..." );
 
 		return len;
 	}
 
 // broadcast it to all plugins
-	coCore::ptr->plugins->broadcast( psession, &psession->tempMessage );
+// BUG: first we need to return then we can send an broadcast message,
+// this is now the flow:
+// read from channel -> broadcast -> some plugin answer -> write to channel ..... hang
+	// coCore::ptr->plugins->broadcast( psession, &psession->tempMessage );
 
 
+    coCore::ptr->plugins->messageAdd(   psession,
+                                        psession->tempMessage.hostName(),
+                                        psession->tempMessage.group(),
+                                        psession->tempMessage.command(),
+                                        psession->tempMessage.payload() );
 	return len;
 }
 
@@ -479,16 +490,31 @@ bool sshSession::					connectToClient(){
 	ssh_options_set( this->session, SSH_OPTIONS_LOG_VERBOSITY, &verbository );
 	 */
 
+// on first start, we dont have an delay
+    goto nodelay;
+
+trydelayed:
+    sleep(10);
+nodelay:
+
 // vars
 	const char*		hostNameChar = NULL;
+	etString*		privateKeyFile = NULL;
+	const char*		privateKeyFileChar = NULL;
+	ssh_key			privateKey = NULL;
+	int 			authResult = -1;
+    ssh_event       mainloop;
+  char buffer[256];
+  int nbytes, nwritten;
+
+// connect to server
 	etStringCharGet( this->host, hostNameChar );
-
-
 	ssh_options_set( this->session, SSH_OPTIONS_HOST, hostNameChar );
 	ssh_options_set( this->session, SSH_OPTIONS_PORT, &this->port );
 	if( ssh_connect( this->session ) != SSH_OK ){
 		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Error connecting to %s Port %i: %s\n", host, port, ssh_get_error(this->session) );
 		etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        goto close;
 	}
 
 // Verify the server's identity
@@ -496,16 +522,26 @@ bool sshSession::					connectToClient(){
 		return false;
 	}
 
-// we need a temprary string
-	etString*		privateKeyFile = NULL;
-	const char*		privateKeyFileChar = NULL;
-	ssh_key			privateKey = NULL;
-	int 			authResult = -1;
 
+// build the full key-path
 	etStringAllocLen( privateKeyFile, 64 );
 	etStringCharSet( privateKeyFile, sshClientKeyPath, -1 );
 	etStringCharAdd( privateKeyFile, hostNameChar );
 	etStringCharGet( privateKeyFile, privateKeyFileChar );
+
+// create key if missing
+	if( access( privateKeyFileChar, F_OK ) != 0 ) {
+        etStringCharSet( privateKeyFile, "ssh-keygen -t ed25519 -q -N \"\" -b 521 -f ", -1);
+        etStringCharAdd( privateKeyFile, sshClientKeyPath );
+        etStringCharAdd( privateKeyFile, hostNameChar );
+        etStringCharGet( privateKeyFile, privateKeyFileChar );
+		system( privateKeyFileChar );
+
+        etStringCharSet( privateKeyFile, sshClientKeyPath, -1 );
+        etStringCharAdd( privateKeyFile, hostNameChar );
+        etStringCharGet( privateKeyFile, privateKeyFileChar );
+	}
+
 	if( ssh_pki_import_privkey_file( privateKeyFileChar, NULL, NULL, NULL, &privateKey ) != SSH_OK ){
 		snprintf( etDebugTempMessage, etDebugTempMessageLen,
 		"Error with key %s : %s\n", privateKeyFileChar, ssh_get_error(this->session) );
@@ -514,30 +550,61 @@ bool sshSession::					connectToClient(){
 	}
 
 
-
+// try to authenticate
 	authResult = ssh_userauth_publickey( this->session, NULL, privateKey );
+    if( authResult != 0 ) goto close;
 
-
+// create channel memory
 	this->channelShell = ssh_channel_new(this->session);
 	if( this->channelShell == NULL ){
 		return false;
 	}
 
+// request a new channel
 	if( ssh_channel_open_session( this->channelShell ) != SSH_OK ){
 		ssh_channel_free(this->channelShell);
 		this->channelShell = NULL;
 		return false;
 	}
 
+
+
+// request shell
 	if( ssh_channel_request_shell( this->channelShell ) ){
 		return false;
 	}
 
+
+
+// Test: Send a ping
+    this->tempMessage.hostName( "all" );
+    this->tempMessage.group( "co" );
+    this->tempMessage.command( "ping" );
+    this->tempMessage.payload( "");
+
+    this->send( &this->tempMessage, this->channelShell, false );
+
+
+
+// loop
+    while( ssh_is_connected(this->session) == 1 &&
+           ssh_channel_is_open(this->channelShell) != 0 &&
+           ssh_channel_is_eof(this->channelShell) == 0 ){
+            nbytes = ssh_channel_read_nonblocking( this->channelShell, buffer, sizeof(buffer), 0);
+            sleep(1);
+    }
+
+close:
 	ssh_channel_close( this->channelShell );
 	ssh_channel_send_eof( this->channelShell );
 	ssh_channel_free( this->channelShell );
 	this->channelShell = NULL;
+    ssh_disconnect( this->session );
 
+    ssh_free( this->session );
+    this->session = ssh_new();
+
+    goto trydelayed;
 }
 
 
