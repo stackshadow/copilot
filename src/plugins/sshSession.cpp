@@ -52,6 +52,7 @@ sshSession::						~sshSession(){
 
 // close the channel
 	if( ssh_channel_is_open( this->channelShell ) != 0 ){
+        ssh_channel_send_eof( this->channelShell );
 		ssh_channel_close( this->channelShell );
 	}
 
@@ -64,6 +65,10 @@ sshSession::						~sshSession(){
 	this->port = 0;
 	etStringFree( this->host );
 //	etStringFree( this->peerName );
+
+// free bind if present
+    if( this->sshServer != NULL )
+	ssh_bind_free( this->sshServer );
 
 // deregister plugin
 	coCore::ptr->plugins->remove( this );
@@ -78,13 +83,11 @@ coPlugin::t_state	sshSession::	onBroadcastMessage( coMessage* message ){
 	if( this->isActive() == false ) return coPlugin::NO_REPLY;
 
 // vars
-	const char*		messageHostName = message->hostName();
+    const char*     msgSource = message->hostNameSource();
 	json_t*			jsonMessageObject = json_object();
 	char*			jsonString = NULL;
 
-// we only accept message for other hosts
-	if( strncmp("localhost",messageHostName,9) == 0 ) return coPlugin::NO_REPLY;
-	if( coCore::ptr->isHostName(messageHostName) == true ) return coPlugin::NO_REPLY;
+/// @todo limit outgoing messages ?
 
 // send out the message
 	this->send( message, this->channelShell, false );
@@ -126,12 +129,23 @@ bool sshSession:: 					isActive(){
 bool sshSession:: 					send( coMessage* message, ssh_channel sshChannel, bool useReply ){
 
 // vars
+    const char*     myHostName = coCore::ptr->hostNameGet();
+    const char*     msgTarget = message->hostNameTarget();
 	json_error_t	jsonError;
 	json_t*			jsonMessage = NULL;
-	char*			jsonChar;
+	char*			jsonString = NULL;
+    size_t          jsonStringSize = 0;
+    char*           messageString = NULL;
+    size_t          messageStringSize = 0;
+    int             uintSize = sizeof(unsigned int);
 
 // check if channel is open
 	if( ssh_channel_is_open( sshChannel ) == 0 ) return false;
+
+// if there is a message for myHost we dont need to send it out to the world
+    if( strncmp(msgTarget,myHostName,strlen(myHostName)) == 0 ){
+        return false;
+    }
 
 // create json from message
 	jsonMessage = json_object();
@@ -139,24 +153,45 @@ bool sshSession:: 					send( coMessage* message, ssh_channel sshChannel, bool us
 		return false;
 	}
 
+
 // dump / send json
-	jsonChar = json_dumps( jsonMessage, JSON_PRESERVE_ORDER | JSON_COMPACT );
-	if( jsonChar != NULL ){
+	jsonString = json_dumps( jsonMessage, JSON_PRESERVE_ORDER | JSON_COMPACT );
+	if( jsonString != NULL ){
 
 	// debugging message
-		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Send %s", jsonChar );
+		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Send %s", jsonString );
 		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
+    // allocate bigger message and add seperator ( '\n' )
+        jsonStringSize = strlen(jsonString) * sizeof(char);
+        messageStringSize = jsonStringSize + (2*sizeof(char));
+        messageString = (char*)malloc(messageStringSize);
+        memset( messageString, 0, messageStringSize );
+        memcpy( messageString, jsonString, jsonStringSize );
+        messageString[jsonStringSize] = '\n';
+
+        char bigchar[1024];
+        memcpy( bigchar, messageString, messageStringSize );
+
 	// write to ssh-channel
-		ssh_channel_write( sshChannel, jsonChar, strlen(jsonChar) );
+		int writtenBytes = ssh_channel_write( sshChannel, messageString, messageStringSize );
+        if( writtenBytes < 0 ){
+        // debugging message
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "SSH Error %s", ssh_get_error(this->sshServer) );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            goto onfail;
+        }
+
 
 	// cleanup
-		free(jsonChar);
+        free(jsonString);
 		json_decref(jsonMessage);
 		return true;
 	}
 
 // free
+onfail:
+    if( jsonString != NULL ) free(jsonString);
 	json_decref(jsonMessage);
 	return false;
 }
@@ -305,15 +340,21 @@ int sshSession:: 					cbServerChannelData(	ssh_session 	session,
 // vars
 	json_error_t	jsonError;
 	json_t*			jsonMessage = NULL;
+    const char*     myHostName = coCore::ptr->hostNameGet();
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s \n", data );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 
 // try to parse the data into json
 	jsonMessage = json_loads( (const char*)data, JSON_PRESERVE_ORDER, &jsonError );
 	if( jsonMessage == NULL || jsonError.line >= 0 ){
+
 		snprintf( etDebugTempMessage, etDebugTempMessageLen, "JSON ERROR: %s \n", jsonError.text );
 		etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
-        coCore::ptr->plugins->messageAdd( psession, "", "ssh", "error", jsonError.text );
+        //coCore::ptr->plugins->messageAdd( psession, "", "ssh", "error", jsonError.text );
 
 		return len;
 	}
@@ -322,10 +363,15 @@ int sshSession:: 					cbServerChannelData(	ssh_session 	session,
 	if( psession->tempMessage.fromJson( jsonMessage ) == false ){
 		json_decref( jsonMessage );
 
-        coCore::ptr->plugins->messageAdd( psession, "", "ssh", "error", "Error parsing json..." );
+		snprintf( etDebugTempMessage, etDebugTempMessageLen, "JSON ERROR \n" );
+		etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+//        coCore::ptr->plugins->messageAdd( psession, "", "ssh", "error", "Error parsing json..." );
 
 		return len;
 	}
+    json_decref(jsonMessage);
+
 
 // broadcast it to all plugins
 // BUG: first we need to return then we can send an broadcast message,
@@ -334,8 +380,10 @@ int sshSession:: 					cbServerChannelData(	ssh_session 	session,
 	// coCore::ptr->plugins->broadcast( psession, &psession->tempMessage );
 
 
+
     coCore::ptr->plugins->messageAdd(   psession,
-                                        psession->tempMessage.hostName(),
+                                        psession->tempMessage.hostNameSource(),
+                                        psession->tempMessage.hostNameTarget(),
                                         psession->tempMessage.group(),
                                         psession->tempMessage.command(),
                                         psession->tempMessage.payload() );
@@ -412,7 +460,7 @@ bool sshSession::					waitForClient( const char* bindAddr, int bindPort ){
 	ssh_bind_accept( this->sshServer, this->session );
 
 // there is a new client, we remove the listener
-	ssh_bind_free( this->sshServer );
+	ssh_bind_free( this->sshServer ); this->sshServer = NULL;
 
 	return true;
 }
@@ -504,8 +552,10 @@ nodelay:
 	ssh_key			privateKey = NULL;
 	int 			authResult = -1;
     ssh_event       mainloop;
-  char buffer[256];
-  int nbytes, nwritten;
+    char            buffer[2048];
+    int             bufferReadedBytes;
+    const char*     message = NULL;
+
 
 // connect to server
 	etStringCharGet( this->host, hostNameChar );
@@ -554,6 +604,9 @@ nodelay:
 	authResult = ssh_userauth_publickey( this->session, NULL, privateKey );
     if( authResult != 0 ) goto close;
 
+// set authenticated
+    this->authState = SSH_AUTH_SUCCESS;
+
 // create channel memory
 	this->channelShell = ssh_channel_new(this->session);
 	if( this->channelShell == NULL ){
@@ -577,21 +630,40 @@ nodelay:
 
 
 // Test: Send a ping
+/*
     this->tempMessage.hostName( "all" );
     this->tempMessage.group( "co" );
     this->tempMessage.command( "ping" );
     this->tempMessage.payload( "");
 
     this->send( &this->tempMessage, this->channelShell, false );
-
+*/
 
 
 // loop
-    while( ssh_is_connected(this->session) == 1 &&
-           ssh_channel_is_open(this->channelShell) != 0 &&
-           ssh_channel_is_eof(this->channelShell) == 0 ){
-            nbytes = ssh_channel_read_nonblocking( this->channelShell, buffer, sizeof(buffer), 0);
-            sleep(1);
+    memset( buffer, 0, sizeof(buffer) ); // clear buffer
+    while( ssh_is_connected(this->session) == 1 && ssh_channel_is_open(this->channelShell) != 0 ){
+
+        // eof is reached
+            if( ssh_channel_is_eof(this->channelShell) != 0 ) break;
+
+
+            bufferReadedBytes = ssh_channel_read_timeout( this->channelShell, buffer, sizeof(buffer), 0, 3000 );
+            if( bufferReadedBytes > 0 ){
+
+                message = strtok( buffer, "\n" );
+                while( message != NULL ){
+                    sshSession::cbServerChannelData( this->session, this->channelShell, buffer, bufferReadedBytes, 0, this );
+                    message = strtok( NULL, "\n" );
+                }
+
+
+            // clear buffer
+                memset( buffer, 0, sizeof(buffer) );
+            }
+
+
+            //sleep(1);
     }
 
 close:

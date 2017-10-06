@@ -30,16 +30,22 @@ class sshSession : public coPlugin {
 		struct ssh_server_callbacks_struct 		serverCallbacks;
 		struct ssh_channel_callbacks_struct		serverChannelCallbacks;
 
+        struct sshMessage {
+            unsigned int    size;
+            char            message;
+        };
+
     private:
 		int					port = 8989;
 		etString*			host = NULL;
 //		etString*           peerName = NULL;
 
 		int					authState = SSH_AUTH_AGAIN;
-		ssh_bind 			sshServer;
+		ssh_bind 			sshServer = NULL;
 		ssh_session 		session;
 		ssh_event			sessionLoop;
 		ssh_channel			channelShell;
+        int                 channelWrittenBytes = 0;
 		coMessage			tempMessage;
 
 	public:

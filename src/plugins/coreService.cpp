@@ -68,13 +68,15 @@ void coreService:: 						appendKnownNodes( const char* hostName ){
 coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
 // vars
-	const char*			msgHostName = message->hostName();
+    const char*         myHostName = coCore::ptr->hostNameGet();
+	const char*			msgSource = message->hostNameSource();
+    const char*			msgTarget = message->hostNameTarget();
 	const char*			msgGroup = message->group();
 	const char*			msgCommand = message->command();
 	const char*			msgPayload = message->payload();
 
 // to all hosts
-    if( strncmp( (char*)msgHostName, "all", 3 ) == 0 ){
+    if( strncmp( (char*)msgTarget, "all", 3 ) == 0 ){
 
     // ping
         if( strncmp(msgCommand,"ping",4) == 0 ){
@@ -84,7 +86,8 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
         // add the message to list
             coCore::ptr->plugins->messageAdd( this,
-            coCore::ptr->hostNameGet(), msgGroup, "pong", "" );
+            myHostName, msgSource,
+            msgGroup, "pong", "" );
 
 
             return coPlugin::REPLY;
@@ -97,14 +100,14 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
     #ifndef MQTT_ONLY_LOCAL
     // append hostname to known hosts
-        this->appendKnownNodes( msgHostName );
+        this->appendKnownNodes( msgSource );
     #endif
 
     }
 
 // to "localhost" or to the nodename-host
-    if( strncmp(msgHostName,"localhost",9) != 0 &&
-	coCore::ptr->isHostName(msgHostName) == false ){
+    if( strncmp(msgTarget,"localhost",9) != 0 &&
+	coCore::ptr->isHostName(msgTarget) == false ){
         return coPlugin::NO_REPLY;
     }
 
@@ -115,7 +118,8 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
     // add the message to list
         coCore::ptr->plugins->messageAdd( this,
-        coCore::ptr->hostNameGet(), msgGroup, "version", copilotVersion );
+        myHostName, msgSource,
+        msgGroup, "version", copilotVersion );
 
         return coPlugin::REPLY;
     }
@@ -133,7 +137,8 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
     // add the message to list
         coCore::ptr->plugins->messageAdd( this,
-        coCore::ptr->hostNameGet(), msgGroup, "nodes", jsonArrayChar );
+        myHostName, msgSource,
+        msgGroup, "nodes", jsonArrayChar );
 
 	// free
 		free(jsonArrayChar);

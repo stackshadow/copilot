@@ -43,7 +43,6 @@ coCore::                    coCore(){
 
 // create plugin list
 	this->plugins = new coPluginList();
-    this->plugins->boradcastThreadStart();
 
 // create temp-message
     coCore::message = new coMessage();
@@ -72,7 +71,6 @@ coCore::                    coCore(){
 coCore::                    ~coCore(){
     delete this->config;
     delete this->plugins;
-    delete this->plugins;
 	delete this->message;
     etStringFree( this->hostName );
 
@@ -87,6 +85,11 @@ coCore::                    ~coCore(){
 void coCore::               setHostName( const char *hostname ){
 	etStringCharSet( this->hostName, hostname, -1 );
 	this->hostNodeNameLen = this->hostName->lengthActual;
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Set hostname to %s", hostname );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
 }
 
 

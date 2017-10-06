@@ -32,7 +32,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "limits.h"     // for UINT_MAX
 
 
-sshService::               			sshService() : coPlugin( "sshService", "", "cocom" ){
+sshService::               			sshService() : coPlugin( "sshService", coCore::ptr->hostNameGet(), "cocom" ){
 
 // create path if needed
 	if( access( sshServerKeyPath, F_OK ) != 0 ){
@@ -63,6 +63,7 @@ sshService::               			~sshService(){
 coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
 // vars
+    const char*                 msgSource = message->hostNameSource();
     const char*		            msgGroup = message->group();
 	const char*		            msgCommand = message->command();
 	const char*		            msgPayload = message->payload();
@@ -108,9 +109,10 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
     // set the message
         msgPayload = json_dumps( jsonPayload, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
-    // add the message to list
+    // message send back so source
         coCore::ptr->plugins->messageAdd( this,
-        coCore::ptr->hostNameGet(), msgGroup, "serverConfig", msgPayload );
+        coCore::ptr->hostNameGet(), msgSource,
+        msgGroup, "serverConfig", msgPayload );
 
 
     // cleanup and return
@@ -163,7 +165,7 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 	}
 
 
-    if( strncmp(msgCommand,"requestKeysGet",15) == 0 ){
+    if( strncmp(msgCommand,"requestKeysGet",14) == 0 ){
         requestKeysGet:
     // vars
         json_t*         jsonKeys = json_object();
@@ -176,7 +178,8 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
     // add the message to list
         coCore::ptr->plugins->messageAdd( this,
-        coCore::ptr->hostNameGet(), msgGroup, "requestKeys", msgPayload );
+        coCore::ptr->hostNameGet(), msgSource,
+        msgGroup, "requestKeys", msgPayload );
 
 
     // cleanup and return
@@ -186,7 +189,7 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-	if( strncmp(msgCommand,"requestKeyAccept",9) == 0 ){
+	if( strncmp(msgCommand,"requestKeyAccept",16) == 0 ){
 
 	// parse json
 		sshService::reqKeysAccept( msgPayload );
@@ -196,7 +199,7 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-	if( strncmp(msgCommand,"requestKeyRemove",11) == 0 ){
+	if( strncmp(msgCommand,"requestKeyRemove",16) == 0 ){
 
 	// parse json
 		sshService::reqKeysRemove( msgPayload );
@@ -219,7 +222,8 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
     // add the message to list
         coCore::ptr->plugins->messageAdd( this,
-        coCore::ptr->hostNameGet(), msgGroup, "acceptedKeys", msgPayload );
+        coCore::ptr->hostNameGet(), msgSource,
+        msgGroup, "acceptedKeys", msgPayload );
 
     // cleanup and return
         free((void*)msgPayload);
@@ -228,7 +232,7 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-	if( strncmp(msgCommand,"acceptedKeyRemove",11) == 0 ){
+	if( strncmp(msgCommand,"acceptedKeyRemove",17) == 0 ){
 
 	// parse json
 		sshService::acceptedKeysRemove( msgPayload );
@@ -520,7 +524,6 @@ bool sshService::					reqKeyAdd( ssh_key clientKey ){
 // vars
 	unsigned char* 		hash;
 	size_t				hlen;
-	char 				answer[512] = { '0' };
 
 // create path if needed
     if( access( sshKeyReqPath, F_OK ) != 0 ){
@@ -558,6 +561,7 @@ bool sshService::					reqKeyAdd( ssh_key clientKey ){
     if( access( keyPath, F_OK ) == 0 ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key %s already exist, do nothing !", keyPath );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        etStringFree( fullKeyPath );
         return false;
     }
 
@@ -650,9 +654,13 @@ bool sshService::					reqKeysAccept( const char* fingerprint ){
 
 // move
     if( rename( sourcePath, targetPath ) == 0 ){
+        etStringFree( sourceKeyPath );
+        etStringFree( targetKeyPath );
         return true;
     }
 
+    etStringFree( sourceKeyPath );
+    etStringFree( targetKeyPath );
     return false;
 }
 
@@ -806,6 +814,7 @@ void* sshService::					serveThread( void* void_service ){
         etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
         coCore::ptr->config->nodesIterateFinish();
+        delete session;
 		return NULL;
 	}
     coCore::ptr->config->nodeConnInfo( &serverHost, &serverPort );
@@ -817,6 +826,7 @@ void* sshService::					serveThread( void* void_service ){
 // exchange keys and init crypto
 	if( session->keyExchange() == false ){
 		service->curConnections--;
+        delete session;
 		return NULL;
 	}
 
