@@ -54,6 +54,8 @@ class coPluginList {
         int                 messageFiFoIndexWritten = -1;
         int                 messageFiFoIndexRead = 0;
 
+        int                broadcastThreadRun = 0;
+
 	public:
 		coPluginList();
 		~coPluginList();
@@ -69,7 +71,8 @@ class coPluginList {
 
     // message fifo
         bool                messageAdd( coPlugin*   sourcePlugin,
-                                        const char* hostName,
+                                        const char* hostNameSource,
+                                        const char* hostNameTarget,
                                         const char* group,
                                         const char* command,
                                         const char* payload );

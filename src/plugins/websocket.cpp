@@ -35,6 +35,7 @@ websocket::							websocket( int wsPort ) : coPlugin( "websocketClient", "", "" 
         return;
     }
 
+    this->wsThreadRun = 1;
     pthread_create( &this->thread, NULL, &websocket::wsThread, this );
     pthread_detach( this->thread );
 
@@ -44,6 +45,17 @@ websocket::							websocket( int wsPort ) : coPlugin( "websocketClient", "", "" 
 }
 websocket::							~websocket(){
 
+// stop thread
+    this->wsThreadRun = -1;
+    while( this->wsThreadRun != 0 ){
+        usleep( 500000 );
+    }
+
+// release context
+    lws_context_destroy( this->wsContext );
+
+    etStringFree( this->actualClientReply );
+
 }
 
 
@@ -51,11 +63,12 @@ void* websocket::           		wsThread( void* data ){
 
     websocket* wsInstance = (websocket*)data;
 
-    while(1){
-        lws_service( wsInstance->wsContext, 50000 );
+    while(wsInstance->wsThreadRun == 1){
+        lws_service( wsInstance->wsContext, 500 );
     }
 
-    pthread_exit(NULL);
+    wsInstance->wsThreadRun = 0;
+    return NULL;
 }
 
 int websocket::             		wsCallbackHttp(     struct lws *wsi, enum lws_callback_reasons reason,
@@ -153,7 +166,9 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
 	coMessage* tempMessage = new coMessage();
 	tempMessage->fromJson( jsonObject );
 
-    const char*			msgHost = tempMessage->hostName();
+    const char*         myHostName = coCore::ptr->hostNameGet();
+    const char*			msgSource = myHostName;
+    const char*			msgTarget = tempMessage->hostNameTarget();
     const char*			msgGroup = tempMessage->group();
     const char*			msgCommad = tempMessage->command();
 	const char*			msgPayload = tempMessage->payload();
@@ -264,7 +279,7 @@ checkAuth:
     //coCore::ptr->plugins->broadcast( this, tempMessage );
 
     coCore::ptr->plugins->messageAdd(   this,
-                                        tempMessage->hostName(),
+                                        msgSource, msgTarget,
                                         tempMessage->group(),
                                         tempMessage->command(),
                                         tempMessage->payload() );

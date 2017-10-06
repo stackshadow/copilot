@@ -68,6 +68,7 @@ private:
 
     struct lws_context*         wsContext;
     pthread_t                   thread;
+    int                         wsThreadRun = 0;
 
 
     struct clientSessionData*   actualClientSession = NULL;

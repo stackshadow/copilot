@@ -38,6 +38,9 @@ coPluginList::				coPluginList(){
         this->messageFiFo[index] = new coMessage;
     }
 
+// start thread
+    this->boradcastThreadStart();
+
 }
 
 
@@ -52,9 +55,25 @@ coPluginList::				~coPluginList(){
         delete source;
     }
     this->iterateFinish();
-
 // remove the list
     etListFree( this->pluginList );
+
+// stop thread
+    this->broadcastThreadRun = -1;
+    while( broadcastThreadRun != 0 ){
+        usleep( 500000 );
+    }
+
+
+// remove all fifo-stuff
+    coMessage* message = NULL;
+    int index = 0;
+    for( index = 0; index < messageFiFoMax; index++ ){
+        message = this->messageFiFo[index];
+        delete message;
+    }
+
+
 
 }
 
@@ -128,7 +147,8 @@ bool coPluginList::         iterateFinish(){
 
 
 bool coPluginList::         messageAdd( coPlugin*   sourcePlugin,
-                                        const char* hostName,
+                                        const char* hostNameSource,
+                                        const char* hostNameTarget,
                                         const char* group,
                                         const char* command,
                                         const char* payload ){
@@ -160,7 +180,8 @@ bool coPluginList::         messageAdd( coPlugin*   sourcePlugin,
 // set message
     message = this->messageFiFo[indexWriteNext];
     message->source( sourcePlugin );
-    message->hostName( hostName );
+    message->hostNameSource( hostNameSource );
+    message->hostNameTarget( hostNameTarget );
     message->group( group );
     message->command( command );
     message->payload( payload );
@@ -245,6 +266,9 @@ bool coPluginList::         messageGet( coMessage** p_message ){
 
 void coPluginList::         boradcastThreadStart(){
 
+// set thread to running
+    this->broadcastThreadRun = 1;
+
 // start the thread which wait for clients
     pthread_t thread;
     pthread_create( &thread, NULL, coPluginList::broadcastThread, this );
@@ -262,19 +286,21 @@ void* coPluginList::        broadcastThread( void* userdata ){
     coPluginList*       pluginList = (coPluginList*)userdata;
     coMessage*          message = NULL;
 	coPlugin*		    tempPlugin;
-	const char*		    msgHostName = NULL;
+    const char*         msgHostNameSource = NULL;
+	const char*		    msgHostNameTarget = NULL;
 	const char*		    msgGroup = NULL;
 	const char*		    msgCommand = NULL;
 
-    while(1){
+    while( pluginList->broadcastThreadRun == 1 ){
 
         if( pluginList->messageGet( &message ) == true ){
-            msgHostName = message->hostName();
+            msgHostNameSource = message->hostNameSource();
+            msgHostNameTarget = message->hostNameTarget();
             msgGroup = message->group();
             msgCommand = message->command();
 
         // iterate
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s/%s/%s", msgHostName, msgGroup, msgCommand );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "MSG FROM %s TO %s/%s/%s", msgHostNameSource, msgHostNameTarget, msgGroup, msgCommand );
             etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 
@@ -289,7 +315,7 @@ void* coPluginList::        broadcastThread( void* userdata ){
                 if( tempPlugin == message->source() ) continue;
 
             // check if plugin accepts the hostname/group
-                if( tempPlugin->filterCheck( msgHostName, msgGroup ) == false ) continue;
+                if( tempPlugin->filterCheck( msgHostNameTarget, msgGroup ) == false ) continue;
 
             // call plugin-function
                 tempPlugin->onBroadcastMessage( message );
@@ -305,6 +331,9 @@ void* coPluginList::        broadcastThread( void* userdata ){
 
     }
 
+// set to 0
+    pluginList->broadcastThreadRun = 0;
+    return NULL;
 }
 
 
