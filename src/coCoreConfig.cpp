@@ -31,7 +31,9 @@ coCoreConfig::				coCoreConfig(){
 
 
 coCoreConfig::				~coCoreConfig(){
-
+    if( this->jsonConfig != NULL ){
+        json_decref( this->jsonConfig );
+    }
 }
 
 
@@ -66,13 +68,6 @@ bool coCoreConfig::			load(){
 	this->jsonNodes = json_object_get( this->jsonConfig, "nodes" );
 	if( this->jsonNodes == NULL ){
 		this->jsonNodes = json_object();
-
-		jsonValue = json_object();
-		json_object_set_new( jsonValue, "host", json_string("") );
-		json_object_set_new( jsonValue, "port", json_integer(0) );
-		json_object_set_new( jsonValue, "type", json_integer(coCoreConfig::UNKNOWN) );
-
-		json_object_set_new( this->jsonNodes, "dummyNode", jsonValue );
 		json_object_set_new( this->jsonConfig, "nodes", this->jsonNodes );
 		saveToFile = true;
 	}

@@ -3,24 +3,34 @@
   <Project Name="copilotd" Path="copilotd.project" Active="Yes"/>
   <Project Name="copilotc-web" Path="../../../copilotc-web/ide/codelite/copilotc-web.project" Active="No"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug" Selected="yes">
-      <Environment/>
-      <Project Name="copilotd" ConfigName="Debug"/>
-      <Project Name="copilotc-web" ConfigName="Debug"/>
-    </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Release" Selected="yes">
+    <WorkspaceConfiguration Name="Release" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Release"/>
       <Project Name="copilotc-web" ConfigName="Release"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Client" Selected="yes">
+    <WorkspaceConfiguration Name="Client" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Client"/>
       <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Setup" Selected="yes">
+    <WorkspaceConfiguration Name="Setup" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Setup"/>
+      <Project Name="copilotc-web" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Docu" Selected="no">
+      <Environment/>
+      <Project Name="copilotd" ConfigName="Docu"/>
+      <Project Name="copilotc-web" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Debug Server" Selected="yes">
+      <Environment/>
+      <Project Name="copilotd" ConfigName="Debug Server"/>
+      <Project Name="copilotc-web" ConfigName="Debug"/>
+    </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Debug Client" Selected="no">
+      <Environment/>
+      <Project Name="copilotd" ConfigName="Debug Client"/>
       <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
   </BuildMatrix>

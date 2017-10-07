@@ -49,6 +49,9 @@ static struct option options[] = {
     { "hostname",   required_argument,  NULL, 'n' },
 	{ "setup",      no_argument,        NULL, 's' },
     { "connect",    required_argument,  NULL, 'c' },
+    #ifndef DISABLE_WEBSOCKET
+    { "websocket",  no_argument,        NULL, 'w' },
+    #endif
     { NULL, 0, 0, 0 }
 };
 
@@ -78,6 +81,7 @@ int main( int argc, char *argv[] ){
     const char*     connectToHostName = NULL;
     const char*     connectToPortString = NULL;
     int             connectToPort = 0;
+    bool            startWebSocket = false;
 
     while( optionSelected >= 0 ) {
         optionSelected = getopt_long(argc, argv, "", options, NULL);
@@ -99,6 +103,9 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, "--hostname <hostname>: Set the hostname ( not detect it automatically )\n" );
                 fprintf( stdout, "--setup: Run setup of all plugins. \n" );
                 fprintf( stdout, "--connect <hostname:port>: Connect to an copilotd-server \n" );
+                #ifndef DISABLE_WEBSOCKET
+                fprintf( stdout, "--websocket: start websocket-server \n" );
+                #endif
                 exit(1);
 
             case 'n':
@@ -120,6 +127,13 @@ int main( int argc, char *argv[] ){
                 connectToHost = true;
 
                 break;
+
+            #ifndef DISABLE_WEBSOCKET
+            case 'w':
+                printf ("Start Websocket server\n" );
+                startWebSocket = true;
+                break;
+            #endif
 
 			case 's':
 				coCore::setupMode = true;
@@ -146,33 +160,12 @@ int main( int argc, char *argv[] ){
     }
 #endif
 
-//	while(1) sleep(1);
 
-
-/*
-// sysState
-	sysState*		newSysState = new sysState();
-
-//
-	lxcService*		newLxcService = new lxcService();
-
-#ifndef DISABLE_MQTT
-    mqttService*    mqqtPlugin = new mqttService();
-#endif
-
-
-
-#ifndef DISABLE_NFT
-    nftService*     newNftService = new nftService();
-#endif
-
-#ifndef DISABLE_LDAP
-    ldapService*    newLdapService = new ldapService();
-#endif
-*/
-
+// websocket-service
 #ifndef DISABLE_WEBSOCKET
-    websocket*      wsPlugin = new websocket( 3000 );
+    if( startWebSocket == true ){
+        websocket*      wsPlugin = new websocket( 3000 );
+    }
 #endif
 
 
@@ -183,32 +176,12 @@ int main( int argc, char *argv[] ){
 // execute all plugins
 	core->plugins->executeAll();
 
-
+// because the most plugins run own threads we need a "busy" thread
     core->mainLoop();
 
 // cleanup
     delete core;
 
-/*
-	delete newSysState;
-	delete newLxcService;
-
-#ifndef DISABLE_MQTT
-//	delete mqqtPlugin;
-#endif
-
-#ifndef DISABLE_WEBSOCKET
-	delete wsPlugin;
-#endif
-
-#ifndef DISABLE_NFT
-	delete newNftService;
-#endif
-
-#ifndef DISABLE_LDAP
-	delete newLdapService;
-#endif
-*/
 
 
 
