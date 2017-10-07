@@ -32,7 +32,8 @@ public:
     void*           sourcePlugin;
 
 	etString*		reqID_t;
-	etString*		hostName_t;
+    etString*		hostNameTarget_t;
+	etString*		hostNameSource_t;
 	etString*		group_t;
 	etString*		command_t;
 	etString*		payload_t;
@@ -49,7 +50,8 @@ public:
 // base
     void*           source( void* sourcePlugin = NULL );
 	const char*		reqID( const char *newRequestID = NULL ){ return this->setValue(this->reqID_t, newRequestID); };
-	const char*		hostName( const char* newHostName = NULL ){ return this->setValue(this->hostName_t, newHostName); };
+	const char*		hostNameTarget( const char* newHostName = NULL ){ return this->setValue(this->hostNameTarget_t, newHostName); };
+    const char*		hostNameSource( const char* newHostName = NULL ){ return this->setValue(this->hostNameSource_t, newHostName); };
 	const char*		group( const char* newGroup = NULL ){ return this->setValue(this->group_t, newGroup); };
 	const char*		command( const char* newCommand = NULL ){ return this->setValue(this->command_t, newCommand); };
 	const char*		payload( const char* newPayload = NULL ){ return this->setValue(this->payload_t, newPayload); };

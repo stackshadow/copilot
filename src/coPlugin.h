@@ -49,14 +49,14 @@ protected:
     etString*           pluginName;
     etString*           pluginInfo;
 private:
-	etString*			filterHostName;
-	etString*			filterGroup;
+	etString*			targetNode;
+	etString*			targetGroup;
 
 public:
 
 
 public:
-    coPlugin( const char* name, const char* listenHostName, const char* listenGroup );
+    coPlugin( const char* name, const char* onlyTargetNodeName, const char* listenGroup );
     ~coPlugin();
 
 public:

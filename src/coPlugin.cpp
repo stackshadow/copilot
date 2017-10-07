@@ -24,26 +24,29 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coPlugin.h"
 
 
-coPlugin::                          coPlugin( const char* name, const char* listenHostName, const char* listenGroup ){
+coPlugin::                          coPlugin( const char* name, const char* onlyTargetNodeName, const char* listenGroup ){
 
 // alloc
     etStringAllocLen( this->pluginName, 128 );
     etStringAllocLen( this->pluginInfo, 128 );
 
 // alloc private stuff
-    etStringAllocLen( this->filterHostName, 128 );
-    etStringAllocLen( this->filterGroup, 128 );
+    etStringAllocLen( this->targetNode, 128 );
+    etStringAllocLen( this->targetGroup, 128 );
 
 // save
     etStringCharSet( this->pluginName, name, -1 );
-	etStringCharSet( this->filterHostName, listenHostName, -1 );
-	etStringCharSet( this->filterGroup, listenGroup, -1 );
+	etStringCharSet( this->targetNode, onlyTargetNodeName, -1 );
+	etStringCharSet( this->targetGroup, listenGroup, -1 );
 }
 
 
 coPlugin::                          ~coPlugin(){
     etStringFree( this->pluginName );
     etStringFree( this->pluginInfo );
+
+    etStringFree( this->targetNode );
+    etStringFree( this->targetGroup );
 }
 
 
@@ -83,8 +86,8 @@ bool coPlugin::						filterCheck( const char* hostName, const char* group ){
 	if( hostName == NULL ) return false;
 	if( group == NULL ) return false;
 
-
-	etStringCharGet( this->filterHostName, tempCharArray );
+// compare node
+	etStringCharGet( this->targetNode, tempCharArray );
 	tempLen = strlen(tempCharArray);
 	tempCmpResult = strncmp( hostName, tempCharArray, tempLen );
 	if( tempCmpResult != 0 && tempLen > 0 ){
@@ -92,7 +95,7 @@ bool coPlugin::						filterCheck( const char* hostName, const char* group ){
 	}
 
 // group
-	etStringCharGet( this->filterGroup, tempCharArray );
+	etStringCharGet( this->targetGroup, tempCharArray );
 	tempLen = strlen(tempCharArray);
 	tempCmpResult = strncmp( group, tempCharArray, tempLen );
 	if( tempCmpResult != 0 && tempLen > 0 ){

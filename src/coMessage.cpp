@@ -11,7 +11,8 @@ coMessage::					coMessage(){
 
 	etStringAllocLen( this->reqID_t, 128 );
 
-	etStringAllocLen( this->hostName_t, 128 );
+	etStringAllocLen( this->hostNameSource_t, 128 );
+    etStringAllocLen( this->hostNameTarget_t, 128 );
 	etStringAllocLen( this->group_t, 128 );
 	etStringAllocLen( this->command_t, 128 );
 	etStringAllocLen( this->payload_t, 1024 );
@@ -26,7 +27,8 @@ coMessage::					~coMessage(){
 
 	etStringFree( this->reqID_t );
 
-	etStringFree( this->hostName_t );
+	etStringFree( this->hostNameSource_t );
+    etStringFree( this->hostNameTarget_t );
 	etStringFree( this->group_t );
 	etStringFree( this->command_t );
 	etStringFree( this->payload_t );
@@ -80,7 +82,7 @@ const char*	coMessage::		topic( const char* newTopic, bool isReply ){
 
 		etStringCharSet( this->temp, "nodes/", 6 );
 
-		etStringCharGet( this->hostName_t, tempChar );
+		etStringCharGet( this->hostNameTarget_t, tempChar );
 		etStringCharAdd( this->temp, tempChar );
 
 		etStringCharAdd( this->temp, "/" );
@@ -116,7 +118,7 @@ const char*	coMessage::		topic( const char* newTopic, bool isReply ){
     if( cmd == NULL ) return NULL;
 
 // set
-	if( this->hostName( hostName ) == NULL ) return NULL;
+	if( this->hostNameTarget( hostName ) == NULL ) return NULL;
 	if( this->group( group ) == NULL ) return NULL;
 	if( isReply == false ){
 		if( this->command( cmd ) == NULL ) return NULL;
@@ -143,7 +145,8 @@ const char* coMessage:: 	replyComandFull(){
 
 bool coMessage:: 			clear(){
 	etStringClean( this->reqID_t );
-	etStringClean( this->hostName_t );
+	etStringClean( this->hostNameTarget_t );
+    etStringClean( this->hostNameSource_t );
 	etStringClean( this->group_t );
 	etStringClean( this->command_t );
 	etStringClean( this->payload_t );
@@ -180,9 +183,13 @@ bool coMessage::			toJson( json_t* jsonObject, bool isReply ){
 	if( tempChar == NULL ) return false;
 	json_object_set_new( jsonObject, "id", json_string(tempChar) );
 
-	tempChar = this->hostName();
+	tempChar = this->hostNameSource();
 	if( tempChar == NULL ) return false;
-	json_object_set_new( jsonObject, "h", json_string(tempChar) );
+	json_object_set_new( jsonObject, "s", json_string(tempChar) );
+
+	tempChar = this->hostNameTarget();
+	if( tempChar == NULL ) return false;
+	json_object_set_new( jsonObject, "t", json_string(tempChar) );
 
 	tempChar = this->group();
 	if( tempChar == NULL ) return false;
@@ -226,9 +233,14 @@ bool coMessage::			fromJson( json_t* jsonObject ){
 	}
 
 // host
-	jsonValue = json_object_get( jsonObject, "h" );
+	jsonValue = json_object_get( jsonObject, "s" );
 	if( jsonValue == NULL ) return false;
-	this->hostName( json_string_value(jsonValue) );
+	this->hostNameSource( json_string_value(jsonValue) );
+
+// host
+	jsonValue = json_object_get( jsonObject, "t" );
+	if( jsonValue == NULL ) return false;
+	this->hostNameTarget( json_string_value(jsonValue) );
 
 // group
 	jsonValue = json_object_get( jsonObject, "g" );
