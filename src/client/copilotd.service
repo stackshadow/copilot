@@ -6,7 +6,7 @@ Description=copilot-daemon
 User=copilot
 Group=copilot
 Type=simple
-ExecStart=/usr/bin/copilotd
+ExecStart=/usr/bin/copilotd --debug
 
 Restart=always
 RestartSec=5

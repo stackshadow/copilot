@@ -475,7 +475,7 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
 coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
 
 // vars
-	const char*			msgHostName = message->hostName();
+	const char*			msgHostName = message->hostNameTarget();
 	const char*			msgGroup = message->group();
 	const char*			msgCommand = message->command();
 	const char*			msgPayload = message->payload();

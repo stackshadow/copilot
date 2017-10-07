@@ -164,7 +164,6 @@ CFLAGS      += -D_DEBUG
 endif
 
 
-CFLAGS      += -DbaseFilePath="\"/tmp/etc/copilotd/\""
 
 default: binary-qt
 
