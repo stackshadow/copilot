@@ -446,17 +446,8 @@ bool sshService:: 					verify_knownhost( ssh_session session ){
 
 		case SSH_SERVER_NOT_KNOWN:
 			hexa = ssh_get_hexa(hash, hlen);
-			fprintf(stderr,"The server is unknown. Do you trust the host key?\n");
-			fprintf(stderr, "Public key hash: %s\n", hexa);
+			fprintf(stderr,"The server '%s' is unknown. WE cherry pick it and add it to known hosts?\n", hexa );
 			free(hexa);
-			if (fgets(buf, sizeof(buf), stdin) == NULL){
-				free(hash);
-				return false;
-			}
-			if (strncasecmp(buf, "yes", 3) != 0){
-				free(hash);
-				return false;
-			}
 			if (ssh_write_knownhost(session) < 0){
 				fprintf(stderr, "Error %s\n", strerror(errno));
 				free(hash);
