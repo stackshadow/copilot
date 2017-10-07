@@ -139,6 +139,7 @@ bool sshSession:: 					send( coMessage* message, ssh_channel sshChannel, bool us
     size_t          messageStringSize = 0;
     int             uintSize = sizeof(unsigned int);
 
+
 // check if channel is open
 	if( ssh_channel_is_open( sshChannel ) == 0 ) return false;
 
@@ -163,23 +164,27 @@ bool sshSession:: 					send( coMessage* message, ssh_channel sshChannel, bool us
 		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
     // allocate bigger message and add seperator ( '\n' )
-        jsonStringSize = strlen(jsonString) * sizeof(char);
-        messageStringSize = jsonStringSize + (2*sizeof(char));
-        messageString = (char*)malloc(messageStringSize);
-        memset( messageString, 0, messageStringSize );
-        memcpy( messageString, jsonString, jsonStringSize );
-        messageString[jsonStringSize] = '\n';
-
-        char bigchar[1024];
-        memcpy( bigchar, messageString, messageStringSize );
+        jsonStringSize = (strlen(jsonString)+1) * sizeof(char);
 
 	// write to ssh-channel
-		int writtenBytes = ssh_channel_write( sshChannel, messageString, messageStringSize );
-        if( writtenBytes < 0 ){
-        // debugging message
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "SSH Error %s", ssh_get_error(this->sshServer) );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            goto onfail;
+		int writtenBytes = ssh_channel_write( sshChannel, jsonString, jsonStringSize );
+        int flushrc = ssh_blocking_flush( this->session, 5000 );
+        while( flushrc != SSH_OK ){
+
+            switch( flushrc ){
+
+                case SSH_AGAIN:
+                    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Not all bytes are written, need to send again", jsonString );
+                    etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+                    break;
+                case SSH_ERROR:
+                    snprintf( etDebugTempMessage, etDebugTempMessageLen, "SSH Error %s", ssh_get_error(this->sshServer) );
+                    etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+                default:
+                    break;
+            }
+
         }
 
 
@@ -246,9 +251,48 @@ ssh_channel sshSession::			cbReqChannelOpen(ssh_session session, void *userdata)
 // set callback for server-channel
 	ssh_set_channel_callbacks( newChannel, &psession->serverChannelCallbacks );
 
+
+
+// get the host
+    struct sockaddr_storage     sockStorage;
+    struct sockaddr_in*         sockIn;
+    unsigned int                len = 100;
+    char                        ip[100] = "\0";
+    char                        node[NI_MAXHOST];
+    char*                       nodeHostName = NULL;
+
+// get peer
+    getpeername( ssh_get_fd(session), (struct sockaddr*)&sockStorage, &len );
+    sockIn = (struct sockaddr_in *)&sockStorage;
+    sockIn->sin_family = AF_INET;
+
+
+// try to resolve the hostname
+    int res = getnameinfo((struct sockaddr*)sockIn, sizeof(*sockIn), node, sizeof(node), NULL, 0, 0);
+    if( res == 0 ){
+        nodeHostName = node;
+    } else {
+    // could not get hostname, get the ip
+        inet_ntop(AF_INET, &sockIn->sin_addr, ip, len);
+        nodeHostName = ip;
+    }
+    etStringCharSet( psession->host, nodeHostName, NI_MAXHOST );
+
+// try to find and add node
+    coCore::ptr->config->nodesIterate();
+    if( coCore::ptr->config->nodeSelectByHostName(nodeHostName) == false ){
+        coCore::ptr->config->nodeAppend( nodeHostName );
+        coCore::ptr->config->nodeConnInfo( (const char**)&nodeHostName, NULL, true );
+    }
+    coCore::ptr->config->nodesIterateFinish();
+
+
 // debugging message
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "New channel created" );
     etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+
+    psession->channelShell = newChannel;
 
 	return newChannel;
 }
@@ -314,6 +358,14 @@ int sshSession::					cbServerShellRequest( ssh_session session, ssh_channel chan
     }
     etStringCharSet( psession->host, nodeHostName, NI_MAXHOST );
 
+// try to find and add node
+    coCore::ptr->config->nodesIterate();
+    if( coCore::ptr->config->nodeSelectByHostName(nodeHostName) == false ){
+        coCore::ptr->config->nodeAppend( nodeHostName );
+        coCore::ptr->config->nodeConnInfo( (const char**)&nodeHostName, NULL, true );
+    }
+    coCore::ptr->config->nodesIterateFinish();
+
 // debugging message
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "Accept requested shell for %s", nodeHostName );
     etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
@@ -371,13 +423,6 @@ int sshSession:: 					cbServerChannelData(	ssh_session 	session,
 		return len;
 	}
     json_decref(jsonMessage);
-
-
-// broadcast it to all plugins
-// BUG: first we need to return then we can send an broadcast message,
-// this is now the flow:
-// read from channel -> broadcast -> some plugin answer -> write to channel ..... hang
-	// coCore::ptr->plugins->broadcast( psession, &psession->tempMessage );
 
 
 
@@ -623,10 +668,11 @@ nodelay:
 
 
 // request shell
+/*
 	if( ssh_channel_request_shell( this->channelShell ) ){
 		return false;
 	}
-
+*/
 
 
 // Test: Send a ping

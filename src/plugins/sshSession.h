@@ -45,7 +45,6 @@ class sshSession : public coPlugin {
 		ssh_session 		session;
 		ssh_event			sessionLoop;
 		ssh_channel			channelShell;
-        int                 channelWrittenBytes = 0;
 		coMessage			tempMessage;
 
 	public:
