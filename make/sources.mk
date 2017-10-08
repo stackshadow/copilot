@@ -177,8 +177,10 @@ default: binary-qt
 client:
 	make -f make/Makefile \
 	DISABLE_WEBSOCKET=1 \
-	MQTT_ONLY_LOCAL=1 \
 	DISABLE_MQTT=1 \
+	DISABLE_SYSSTATE=1 \
+	DISABLE_LDAP=1 \
+	MQTT_ONLY_LOCAL=1 \
 	binary-dbg
 clientTargets = /etc/copilot/services
 
@@ -208,7 +210,7 @@ uninstall-client:
 
 
 
-engineering:
+engineering: gitversion
 	make -f make/Makefile \
 	SSH_SERVER=1 \
 	DISABLE_SYSSTATE=1 \

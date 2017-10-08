@@ -8,9 +8,10 @@ include make/sources.mk
 include make/cflags.mk
 include make/clibs.mk
 
+
 include make/generic/bin.mk
 include make/generic/qt.mk
-
+include make/generic/gitversion.mk
 
 
 
