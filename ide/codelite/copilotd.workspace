@@ -1,37 +1,30 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CodeLite_Workspace Name="copilotd" Database="" Version="10.0.0">
   <Project Name="copilotd" Path="copilotd.project" Active="Yes"/>
-  <Project Name="copilotc-web" Path="../../../copilotc-web/ide/codelite/copilotc-web.project" Active="No"/>
   <BuildMatrix>
     <WorkspaceConfiguration Name="Release" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Release"/>
-      <Project Name="copilotc-web" ConfigName="Release"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Client" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Client"/>
-      <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Setup" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Setup"/>
-      <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Docu" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Docu"/>
-      <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Debug Server" Selected="yes">
       <Environment/>
       <Project Name="copilotd" ConfigName="Debug Server"/>
-      <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
     <WorkspaceConfiguration Name="Debug Client" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Debug Client"/>
-      <Project Name="copilotc-web" ConfigName="Debug"/>
     </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

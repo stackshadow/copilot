@@ -147,8 +147,8 @@ bool coPluginList::         iterateFinish(){
 
 
 bool coPluginList::         messageAdd( coPlugin*   sourcePlugin,
-                                        const char* hostNameSource,
-                                        const char* hostNameTarget,
+                                        const char* nodeNameSource,
+                                        const char* nodeNameTarget,
                                         const char* group,
                                         const char* command,
                                         const char* payload ){
@@ -180,8 +180,8 @@ bool coPluginList::         messageAdd( coPlugin*   sourcePlugin,
 // set message
     message = this->messageFiFo[indexWriteNext];
     message->source( sourcePlugin );
-    message->hostNameSource( hostNameSource );
-    message->hostNameTarget( hostNameTarget );
+    message->nodeNameSource( nodeNameSource );
+    message->nodeNameTarget( nodeNameTarget );
     message->group( group );
     message->command( command );
     message->payload( payload );
@@ -286,21 +286,21 @@ void* coPluginList::        broadcastThread( void* userdata ){
     coPluginList*       pluginList = (coPluginList*)userdata;
     coMessage*          message = NULL;
 	coPlugin*		    tempPlugin;
-    const char*         msgHostNameSource = NULL;
-	const char*		    msgHostNameTarget = NULL;
+    const char*         msgNodeNameSource = NULL;
+	const char*		    msgNodeNameTarget = NULL;
 	const char*		    msgGroup = NULL;
 	const char*		    msgCommand = NULL;
 
     while( pluginList->broadcastThreadRun == 1 ){
 
         if( pluginList->messageGet( &message ) == true ){
-            msgHostNameSource = message->hostNameSource();
-            msgHostNameTarget = message->hostNameTarget();
+            msgNodeNameSource = message->nodeNameSource();
+            msgNodeNameTarget = message->nodeNameTarget();
             msgGroup = message->group();
             msgCommand = message->command();
 
         // iterate
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "MSG FROM %s TO %s/%s/%s", msgHostNameSource, msgHostNameTarget, msgGroup, msgCommand );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "MSG FROM %s TO %s/%s/%s", msgNodeNameSource, msgNodeNameTarget, msgGroup, msgCommand );
             etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 
@@ -315,7 +315,7 @@ void* coPluginList::        broadcastThread( void* userdata ){
                 if( tempPlugin == message->source() ) continue;
 
             // check if plugin accepts the hostname/group
-                if( tempPlugin->filterCheck( msgHostNameTarget, msgGroup ) == false ) continue;
+                if( tempPlugin->filterCheck( msgNodeNameTarget, msgGroup ) == false ) continue;
 
             // call plugin-function
                 tempPlugin->onBroadcastMessage( message );

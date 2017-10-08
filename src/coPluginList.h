@@ -71,8 +71,8 @@ class coPluginList {
 
     // message fifo
         bool                messageAdd( coPlugin*   sourcePlugin,
-                                        const char* hostNameSource,
-                                        const char* hostNameTarget,
+                                        const char* nodeNameSource,
+                                        const char* nodeNameTarget,
                                         const char* group,
                                         const char* command,
                                         const char* payload );

@@ -169,6 +169,12 @@ int main( int argc, char *argv[] ){
 #endif
 
 
+// nft
+#ifndef DISABLE_NFT
+    nftService*      nftPlugin = new nftService();
+#endif
+
+
 
 // Setup All plugins
 	core->plugins->setupAll();

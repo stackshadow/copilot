@@ -32,14 +32,12 @@ public:
     void*           sourcePlugin;
 
 	etString*		reqID_t;
-    etString*		hostNameTarget_t;
-	etString*		hostNameSource_t;
+    etString*		nodeNameTarget_t;
+	etString*		nodeNameSource_t;
 	etString*		group_t;
 	etString*		command_t;
 	etString*		payload_t;
 
-	etString*		replyCommand_t;
-	etString*		replyPayload_t;
 
 	etString*		temp;
 
@@ -50,28 +48,20 @@ public:
 // base
     void*           source( void* sourcePlugin = NULL );
 	const char*		reqID( const char *newRequestID = NULL ){ return this->setValue(this->reqID_t, newRequestID); };
-	const char*		hostNameTarget( const char* newHostName = NULL ){ return this->setValue(this->hostNameTarget_t, newHostName); };
-    const char*		hostNameSource( const char* newHostName = NULL ){ return this->setValue(this->hostNameSource_t, newHostName); };
+	const char*		nodeNameTarget( const char* newHostName = NULL ){ return this->setValue(this->nodeNameTarget_t, newHostName); };
+    const char*		nodeNameSource( const char* newHostName = NULL ){ return this->setValue(this->nodeNameSource_t, newHostName); };
 	const char*		group( const char* newGroup = NULL ){ return this->setValue(this->group_t, newGroup); };
 	const char*		command( const char* newCommand = NULL ){ return this->setValue(this->command_t, newCommand); };
 	const char*		payload( const char* newPayload = NULL ){ return this->setValue(this->payload_t, newPayload); };
 
 // topic
-	const char*		topic( const char* newTopic = NULL, bool isReply = false );
-
-// reply
-	const char*		replyCommand( const char* newReplyCommand = NULL ){ return this->setValue(this->replyCommand_t, newReplyCommand); };
-	const char*		replyPayload( const char* newReplyPayload = NULL ){ return this->setValue(this->replyPayload_t, newReplyPayload); };
-
-	bool			replyExists();
-	const char*		replyComandFull();
-
+	const char*		topic( const char* newTopic = NULL );
 	bool			clear();
-	bool			clearReply();
+
 
 // json-stuff
 
-	bool			toJson( json_t* jsonObject, bool isReply );
+	bool			toJson( json_t* jsonObject );
 	bool			fromJson( json_t* jsonObject );
 
 private:
