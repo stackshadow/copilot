@@ -69,8 +69,8 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
 // vars
     const char*         myHostName = coCore::ptr->hostNameGet();
-	const char*			msgSource = message->hostNameSource();
-    const char*			msgTarget = message->hostNameTarget();
+	const char*			msgSource = message->nodeNameSource();
+    const char*			msgTarget = message->nodeNameTarget();
 	const char*			msgGroup = message->group();
 	const char*			msgCommand = message->command();
 	const char*			msgPayload = message->payload();
@@ -126,7 +126,7 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
 // get hosts
     if( strncmp( (char*)msgCommand, "nodesGet", 8 ) == 0 ){
-
+        nodesGet:
 	// vars
 		//json_t*			jsonArray = json_array();
 		json_t*			jsonObject = NULL;
@@ -147,6 +147,59 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
         return coPlugin::REPLY;
     }
 
+
+	if( strncmp( (char*)msgCommand, "nodeRemove", 10 ) == 0 ){
+        coCore::ptr->config->nodeRemove( msgPayload );
+        goto nodesGet;
+    }
+
+
+	if( strncmp( (char*)msgCommand, "nodeClientAdd", 13 ) == 0 ){
+
+    // vars
+        json_error_t                jsonError;
+        json_t*                     jsonPayload = NULL;
+        json_t*                     jsonValue = NULL;
+
+        const char*                 nodeName = NULL;
+        const char*                 nodeHostName = NULL;
+        int                         nodeHostPostPort = 0;
+        coCoreConfig::nodeType      nodeType = coCoreConfig::UNKNOWN;
+
+
+
+	// parse json
+		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
+		if( jsonPayload == NULL || jsonError.line > -1 ){
+			return coPlugin::NO_REPLY;
+		}
+
+        nodeType = coCoreConfig::CLIENT;
+
+		jsonValue = json_object_get( jsonPayload, "node" );
+        nodeName = json_string_value( jsonValue );
+
+		jsonValue = json_object_get( jsonPayload, "host" );
+        nodeHostName = json_string_value( jsonValue );
+
+		jsonValue = json_object_get( jsonPayload, "port" );
+        nodeHostPostPort = json_integer_value( jsonValue );
+
+
+        coCore::ptr->config->nodesIterate();
+        coCore::ptr->config->nodeAppend( nodeName );
+        coCore::ptr->config->nodeInfo( NULL, &nodeType, true );
+        coCore::ptr->config->nodeConnInfo( &nodeHostName, &nodeHostPostPort, true );
+        coCore::ptr->config->save();
+        coCore::ptr->config->nodesIterateFinish();
+
+        goto nodesGet;
+    }
+
+
+	if( strncmp( (char*)msgCommand, "nodesSave", 9 ) == 0 ){
+        coCore::ptr->config->save();
+    }
 
 
     return coPlugin::NO_REPLY;
