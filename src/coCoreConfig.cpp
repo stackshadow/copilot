@@ -129,7 +129,7 @@ bool coCoreConfig::			save( const char* jsonString ){
 
 // save the json to file
 	if( json_dump_file( this->jsonConfig, baseFilePath "core.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
-		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s%s\n", baseFilePath, "core.json" );
+		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s%s", baseFilePath, "core.json" );
 		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 		unlockMyPthread();
@@ -226,6 +226,15 @@ bool coCoreConfig::			nodeAppend( const char* name ){
 
 // return
 	return true;
+}
+
+
+bool coCoreConfig::			nodeRemove( const char* name ){
+	if( this->jsonNodes == NULL ) return false;
+
+    json_object_del( this->jsonNodes, name );
+
+    return true;
 }
 
 
@@ -380,34 +389,6 @@ bool coCoreConfig::			nodeConnInfo( const char** host, int* port, bool set ){
 
 // return
 	return true;
-}
-
-
-bool  coCoreConfig::	    nodeState( coCoreConfig::nodeStates* state, bool set ){
-    if( this->jsonNodesIterator == NULL ) return false;
-    if( this->jsonNode == NULL ) return false;
-
-// vars
-	json_t*		                jsonVar = NULL;
-    coCoreConfig::nodeStates    jsonState = coCoreConfig::UNKNOW;
-
-    if( state != NULL ){
-        jsonVar = json_object_get( this->jsonNode, "state" );
-
-        if( set == true ){
-            jsonVar = json_integer( (json_int_t)state );
-            json_object_set_new( this->jsonNode, "state", jsonVar );
-        }
-        if( set == false ){
-            if( jsonVar == NULL ) return false;
-            if( jsonVar != NULL ){
-                *state = (coCoreConfig::nodeStates)json_integer_value(jsonVar);
-            }
-        }
-
-    }
-
-    return true;
 }
 
 

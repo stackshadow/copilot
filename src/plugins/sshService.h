@@ -49,7 +49,7 @@ class sshService : public coPlugin {
 
     private:
         lockID				sessionStateLock = 0;
-		unsigned int		maxConnections = 1;
+		unsigned int		maxConnections = 5;
 		unsigned int		curConnections = 0;
 
 		pthread_t			threadWaitForNewClients;
@@ -59,11 +59,14 @@ class sshService : public coPlugin {
 	public:
 							sshService();
 							~sshService();
+
 // API
 		coPlugin::t_state	onBroadcastMessage( coMessage* message );
-		bool        		onBroadcastReply( coMessage* message );
 		bool 				onSetup();
 		bool				onExecute();
+
+// configuration
+        int                 maxConnection( int* setConnections );
 
 // helper
 		static bool 		cmpToAllLokalKeys( ssh_key clientKey );

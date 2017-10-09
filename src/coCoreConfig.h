@@ -86,11 +86,7 @@ class coCoreConfig {
             CLIENT_IN = 11,
 		} nodeType;
 
-        typedef enum {
-            UNKNOW = 0,
-            DISCONNECTED = 10,
-            CONNECTED = 15,
-        } nodeStates;
+
 
 // public values
 	private:
@@ -118,12 +114,12 @@ public:
 	// iterate nodes / get node-infos
 		bool				nodesIterate();
 		bool				nodeAppend( const char* name );
+        bool                nodeRemove( const char* name );
 		bool				nodeSelect( const char* name );
         bool                nodeSelectByHostName( const char* hostName );
 		bool				nodeNext();
 		bool				nodeInfo( const char** name, coCoreConfig::nodeType* type, bool set = false );
 		bool				nodeConnInfo( const char** host, int* port, bool set = false );
-        bool                nodeState( coCoreConfig::nodeStates* state, bool set = false );
 		bool				nodesIterateFinish();
 
     // user / password
