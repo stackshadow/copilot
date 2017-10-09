@@ -85,6 +85,7 @@
       <File Name="../../make/generic/library.mk"/>
       <File Name="../../make/generic/objects.mk"/>
       <File Name="../../make/generic/qt.mk"/>
+      <File Name="../../make/generic/gitversion.mk"/>
     </VirtualDirectory>
     <VirtualDirectory Name="postmake">
       <File Name="../../make/postmake/README"/>
@@ -100,6 +101,12 @@
     <File Name="../../make/progs.mk"/>
     <File Name="../../make/sources.mk"/>
   </VirtualDirectory>
+  <Dependencies Name="Client"/>
+  <Dependencies Name="Debug Client"/>
+  <Dependencies Name="Debug Server"/>
+  <Dependencies Name="Docu"/>
+  <Dependencies Name="Release"/>
+  <Dependencies Name="Setup"/>
   <Settings Type="Dynamic Library">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
@@ -156,7 +163,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--debug --connect 127.0.0.1:4568" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--debug --hostname testclient --connect 127.0.0.1:4568" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -171,7 +178,7 @@
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
         <CleanCommand>make -f make/Makefile clean</CleanCommand>
-        <BuildCommand>make -f make/Makefile engineering</BuildCommand>
+        <BuildCommand>make -f make/Makefile client</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>

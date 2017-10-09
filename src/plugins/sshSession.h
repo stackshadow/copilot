@@ -30,12 +30,17 @@ class sshSession : public coPlugin {
 		struct ssh_server_callbacks_struct 		serverCallbacks;
 		struct ssh_channel_callbacks_struct		serverChannelCallbacks;
 
-        struct sshMessage {
-            unsigned int    size;
-            char            message;
-        };
+        typedef enum {
+            UNKNOW              = 0,
+            CONNECTING          = 1,
+            DISCONNECTED        = 10,       /**< connection is established */
+            CONNECTED_OUT       = 20,       /**< connected to external host */
+            CONNECTED_INC       = 21,       /**< incoming connection */
+            REQ_DISCONNECT      = 30,       /**< Request disconnect */
+        } state;
 
     private:
+        sshSession::state   connectionState = UNKNOW;
 		int					port = 8989;
 		etString*			host = NULL;
 //		etString*           peerName = NULL;
@@ -58,7 +63,9 @@ class sshSession : public coPlugin {
 
 
 // common stuff
+        sshSession::state   connState( sshSession::state* connectionState );
 		void				setConnection( int port, const char* hostname );
+        const char*         hostName( const char* hostName );
 		bool				isAuthenticated();
 		bool				isActive();
 		bool				send( coMessage* message, ssh_channel sshChannel, bool useReply );

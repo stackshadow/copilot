@@ -48,6 +48,8 @@ sshService::               			sshService() : coPlugin( "sshService", coCore::ptr
 		system( "mkdir -p " sshClientKeyPath );
 	}
 
+
+
 // register plugin
 	coCore::ptr->plugins->append( this );
 }
@@ -63,7 +65,7 @@ sshService::               			~sshService(){
 coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
 // vars
-    const char*                 msgSource = message->hostNameSource();
+    const char*                 msgSource = message->nodeNameSource();
     const char*		            msgGroup = message->group();
 	const char*		            msgCommand = message->command();
 	const char*		            msgPayload = message->payload();
@@ -78,7 +80,8 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
 
 
 
-	if( strncmp(msgCommand,"serverConfigGet",10) == 0 ){
+
+	if( strncmp(msgCommand,"serverConfigGet",15) == 0 ){
         serverConfigGet:
 
     // lock
@@ -242,13 +245,15 @@ coPlugin::t_state sshService::		onBroadcastMessage( coMessage* message ){
     }
 
 
+    if( strncmp(msgCommand,"connectionStateGet",18) == 0 ){
+
+
+
+
+    }
+
 
     return coPlugin::NO_REPLY;
-}
-
-
-bool sshService::        			onBroadcastReply( coMessage* message ){
-
 }
 
 
@@ -319,6 +324,16 @@ bool sshService:: 					onExecute(){
 
 	this->serve();
 	this->connectAll();
+}
+
+
+// configuration
+int sshService::                    maxConnection( int* setConnections ){
+    if( setConnections != NULL ){
+        this->maxConnections = *setConnections;
+    }
+
+    return this->maxConnections;
 }
 
 
@@ -781,8 +796,7 @@ void* sshService::					serveThread( void* void_service ){
     const char*     serverHost = NULL;
     int             serverPort = 0;
 	sshSession*     session = NULL;
-    uuid_t          UUID;
-    char            UUIDString[37];
+
 
 // wait for connection limit
 	while( service->curConnections >= service->maxConnections ){
@@ -793,9 +807,6 @@ void* sshService::					serveThread( void* void_service ){
 // create a new Session
 	session = new sshSession();
 
-// create uuid
-    uuid_generate( UUID );
-    uuid_unparse( UUID, UUIDString );
 
 // get the server infos
     coCore::ptr->config->nodesIterate();
@@ -827,12 +838,6 @@ void* sshService::					serveThread( void* void_service ){
 // poll all events
 	session->pollUntilShell( mainloop, 10 );
 
-// node state
-    coCoreConfig::nodeStates newState = coCoreConfig::CONNECTED;
-    coCore::ptr->config->nodesIterate();
-    coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet());
-    coCore::ptr->config->nodeState( &newState, true );
-    coCore::ptr->config->nodesIterateFinish();
 
 // now a shell is established, so we TRY to serve a new connection
 	pthread_t thread;
@@ -851,18 +856,6 @@ void* sshService::					serveThread( void* void_service ){
 
 
 
-
-void sshService::					connect( const char* hostname, int port ){
-	// create new session
-		sshSession* session = NULL;
-		session = new sshSession();
-		session->setConnection( port, hostname );
-
-	// start the thread which wait for clients
-		pthread_t thread;
-		pthread_create( &thread, NULL, sshService::connectToClientThread, session );
-		pthread_detach( thread );
-}
 
 
 void sshService::					connectAll(){
@@ -899,14 +892,25 @@ void sshService::					connectAll(){
 }
 
 
+void sshService::					connect( const char* hostname, int port ){
+	// create new session
+		sshSession* session = NULL;
+		session = new sshSession();
+		session->setConnection( port, hostname );
+
+	// start the thread which wait for clients
+		pthread_t thread;
+		pthread_create( &thread, NULL, sshService::connectToClientThread, session );
+		pthread_detach( thread );
+}
+
+
 void* sshService::					connectToClientThread( void* void_service ){
 
 //vars
 	const char 		bindAddr[] = "0.0.0.0";
 	int 			bindPort = 8989;
-// vars
-	sshService* service = (sshService*)void_service;
-	sshSession* session = (sshSession*)void_service;
+	sshSession*     session = (sshSession*)void_service;
 
 wait:
 	session->connectToClient();
