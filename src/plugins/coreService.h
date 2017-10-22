@@ -36,20 +36,13 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 @defgroup capi-co co - Core messages
 @ingroup capi
 
+target node | group | command | command example |   | respond command | respond example
+----------- | ----- | ------- | --------------- | - |---------------- | ----
+ <specific> | co    | ping    | dummy/co/ping   |   | pong            |  dummy/co/pong
+ "all"      | co    | ping    | all/co/ping     |   | pong            |  dummy/co/pong
 
-@defgroup capi-co-ping {node}/co/ping - Send a ping
-@ingroup capi-co
-
-With this command you can ping a single node or all nodes
-
-# command
-Schema: {node}/co/ping
-{node} could be a specific node or "all"
-Esample message:
- - all/co/ping
- - localhost/co/ping
- - somehost/co/ping
-
+| Send a ping to an specific node to check if the node is present
+ * | Send a ping to all nodes, and all nodes will respond to it
 # answer
 Schema: {myhostname}/co/pong \n
 Payload: empty

@@ -1,6 +1,7 @@
 
 
-INPUT = ../src
+INPUT  = ../src
+INPUT += ./
 RECURSIVE = YES
 
 
@@ -15,5 +16,5 @@ HTML_TIMESTAMP = YES
 GENERATE_TREEVIEW = YES
 
 
-
+ENABLED_SECTIONS = capi
 
