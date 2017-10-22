@@ -88,8 +88,8 @@ int websocket::             		wsCallbackCopilot(  struct lws *wsi, enum lws_call
 
 
         case LWS_CALLBACK_ESTABLISHED:
-            fprintf( stdout, "[%p] LWS_CALLBACK_ESTABLISHED\n", pss );
-            fflush( stdout );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p] LWS_CALLBACK_ESTABLISHED", pss );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
         // only one connection is allowed
             if( websocket::ptr->actualClientSession != NULL ){
@@ -104,14 +104,11 @@ int websocket::             		wsCallbackCopilot(  struct lws *wsi, enum lws_call
             break;
 
         case LWS_CALLBACK_RECEIVE:
-            fprintf( stdout, "[%p] LWS_CALLBACK_RECEIVE", pss );
-            fflush( stdout );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p] LWS_CALLBACK_RECEIVE", pss );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
         // are we allowed ?
             if( websocket::ptr->actualClientSession != pss ){
-                fprintf( stdout, "\n" );
-                fflush( stdout );
-
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p] Somebody already connected, you can not do anything !" );
                 etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
@@ -125,16 +122,15 @@ int websocket::             		wsCallbackCopilot(  struct lws *wsi, enum lws_call
 
         // are we allowed ?
             if( websocket::ptr->actualClientSession != pss ){
-                fprintf( stdout, "\n" );
-                fflush( stdout );
-
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p] Somebody already connected, you can not do anything !" );
                 etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
                 break;
             }
 
-            fprintf( stdout, "[%p] LWS_CALLBACK_CLOSED\n", pss );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p] LWS_CALLBACK_CLOSED", pss );
+            etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+
             websocket::ptr->actualClientSession = NULL;
             fflush( stdout );
             break;
@@ -168,7 +164,7 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
 
     const char*         myHostName = coCore::ptr->hostNameGet();
     const char*			msgSource = myHostName;
-    const char*			msgTarget = tempMessage->hostNameTarget();
+    const char*			msgTarget = tempMessage->nodeNameTarget();
     const char*			msgGroup = tempMessage->group();
     const char*			msgCommad = tempMessage->command();
 	const char*			msgPayload = tempMessage->payload();
@@ -187,7 +183,7 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
         tempMessage->payload( msgPayload );
 
     // reply
-		tempMessage->toJson( jsonAnswerObject, false );
+		tempMessage->toJson( jsonAnswerObject );
         char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
         this->wsReply( jsonDump );
 
@@ -203,17 +199,17 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
         json_t* jsonAnswerObject = json_object();
 
 	// set reply
-		tempMessage->replyCommand( "authMethode" );
+		tempMessage->command( "authMethode" );
 
         if( coCore::ptr->config->authMethode() == false ){
-            tempMessage->replyPayload( "none" );
+            tempMessage->payload( "none" );
             this->setAuth( true );
         } else {
-            tempMessage->replyPayload( "password" );
+            tempMessage->payload( "password" );
         }
 
     // reply
-		tempMessage->toJson( jsonAnswerObject, true );
+		tempMessage->toJson( jsonAnswerObject );
         char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
         this->wsReply( jsonDump );
 
@@ -253,11 +249,11 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
         json_t* jsonAnswerObject = json_object();
 
 	// set reply
-		tempMessage->replyCommand( "loginok" );
-		tempMessage->replyPayload( "" );
+		tempMessage->command( "loginok" );
+		tempMessage->payload( "" );
 
     // reply
-		tempMessage->toJson( jsonAnswerObject, true );
+		tempMessage->toJson( jsonAnswerObject );
         char* jsonDump = json_dumps( jsonAnswerObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
         this->wsReply( jsonDump );
         free( jsonDump );
@@ -331,7 +327,7 @@ coPlugin::t_state websocket::		onBroadcastMessage( coMessage* message ){
 
 // convert message to json
 	jsonObject = json_object();
-	message->toJson( jsonObject, false );
+	message->toJson( jsonObject );
 	jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
 // send it out
@@ -354,7 +350,7 @@ bool websocket:: 					onBroadcastReply( coMessage* message ){
 
 // convert message to json
 	jsonObject = json_object();
-	message->toJson( jsonObject, true );
+	message->toJson( jsonObject );
 	jsonObjectChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
 // send it out

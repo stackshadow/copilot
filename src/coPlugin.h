@@ -68,7 +68,6 @@ public:
 
 // API
 	virtual t_state		onBroadcastMessage( coMessage* message ){ return NO_REPLY; }
-	virtual bool        onBroadcastReply( coMessage* message ){ return true; }
 	virtual bool 		onSetup(){ return true; }
 	virtual bool		onExecute(){ return true; }
 

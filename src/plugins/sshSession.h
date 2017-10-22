@@ -59,7 +59,6 @@ class sshSession : public coPlugin {
 
 // API
 		coPlugin::t_state	onBroadcastMessage( coMessage* message );
-		bool        		onBroadcastReply( coMessage* message );
 
 
 // common stuff

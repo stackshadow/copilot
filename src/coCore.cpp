@@ -55,6 +55,9 @@ coCore::                    coCore(){
 	etStringCharSet( this->hostName, tempHostInfo.nodename, -1 );
 	this->hostNodeNameLen = strlen( tempHostInfo.nodename );
 
+// because ssh-configuration is based on our hostname, we print it out for debugging
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "My hostname: %s", tempHostInfo.nodename );
+    etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
 
 // init libsodium
     if (sodium_init() == -1) {
