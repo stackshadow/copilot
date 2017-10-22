@@ -52,6 +52,7 @@ static struct option options[] = {
     #ifndef DISABLE_WEBSOCKET
     { "websocket",  no_argument,        NULL, 'w' },
     #endif
+    { "nonft",      no_argument,        NULL, 'a' },
     { NULL, 0, 0, 0 }
 };
 
@@ -82,6 +83,7 @@ int main( int argc, char *argv[] ){
     const char*     connectToPortString = NULL;
     int             connectToPort = 0;
     bool            startWebSocket = false;
+    bool            disablenft = false;
 
     while( optionSelected >= 0 ) {
         optionSelected = getopt_long(argc, argv, "", options, NULL);
@@ -105,6 +107,9 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, "--connect <hostname:port>: Connect to an copilotd-server \n" );
                 #ifndef DISABLE_WEBSOCKET
                 fprintf( stdout, "--websocket: start websocket-server \n" );
+                #endif
+                #ifndef DISABLE_NFT
+                fprintf( stdout, "--nonft: Dont apply nft-rules on startup \n" );
                 #endif
                 exit(1);
 
@@ -132,6 +137,13 @@ int main( int argc, char *argv[] ){
             case 'w':
                 printf ("Start Websocket server\n" );
                 startWebSocket = true;
+                break;
+            #endif
+
+            #ifndef DISABLE_NFT
+            case 'a':
+                printf ("We dont apply nft-rules\n" );
+                disablenft = true;
                 break;
             #endif
 
@@ -172,6 +184,10 @@ int main( int argc, char *argv[] ){
 // nft
 #ifndef DISABLE_NFT
     nftService*      nftPlugin = new nftService();
+    if( disablenft == false ){
+        nftPlugin->applyRules();
+    }
+
 #endif
 
 

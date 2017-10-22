@@ -31,27 +31,6 @@ nftService::                    	nftService() : coPlugin( "nft", coCore::ptr->ho
 // json
     this->load();
 
-// apply the rules for the local host
-	const char* hostName = NULL;
-	coCore::ptr->hostNameGet( &hostName, NULL );
-	this->applyRules( hostName );
-
-// test
-/*
-    this->iterate();
-    const char* hostname;
-    const char* chainName;
-    while( this->nextHost( &hostname ) == true ){
-
-        while( this->nextChain( &chainName ) == true ){
-
-        }
-
-
-    }
-*/
-
-
 // register plugin
 	coCore::ptr->plugins->append( this );
 
@@ -155,6 +134,10 @@ void nftService::               	load(){
     json_error_t jsonError;
     this->jsonRootObject = json_load_file( baseFilePath "nftrules.json", JSON_PRESERVE_ORDER, &jsonError );
     if( jsonError.position == 0 || jsonError.line >= 0 ){
+
+    // report
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not load json-file: %s", jsonError.text );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
     // there is an error, we create an empty element
         this->jsonRootObject = json_object();
@@ -560,7 +543,11 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
 }
 
 
-
+bool nftService::               	applyRules(){
+	const char* hostName = NULL;
+	coCore::ptr->hostNameGet( &hostName, NULL );
+	this->applyRules( hostName );
+}
 
 
 

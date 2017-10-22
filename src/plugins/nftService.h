@@ -63,6 +63,7 @@ private:
 public:
                     nftService();
                     ~nftService();
+    bool            applyRules();
 
 private:
     void            load();
