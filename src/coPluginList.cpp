@@ -23,6 +23,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coCore.h"
 #include "coPluginList.h"
 
+/** @greoupdef pluginlist coPluginList - handling all plugins
+*/
+
 
 coPluginList::				coPluginList(){
 // plugin-list
@@ -270,9 +273,14 @@ void coPluginList::         boradcastThreadStart(){
     this->broadcastThreadRun = 1;
 
 // start the thread which wait for clients
-    pthread_t thread;
-    pthread_create( &thread, NULL, coPluginList::broadcastThread, this );
-    pthread_detach( thread );
+    pthread_create( &this->broadcastThread_i, NULL, coPluginList::broadcastThread, this );
+    pthread_detach( this->broadcastThread_i );
+
+// start the watchdog
+    pthread_t threadWatchdog;
+    pthread_create( &threadWatchdog, NULL, coPluginList::broadcastWatchdogThread, this );
+    pthread_detach( threadWatchdog );
+
 }
 
 /**
@@ -320,12 +328,17 @@ void* coPluginList::        broadcastThread( void* userdata ){
             // call plugin-function
                 tempPlugin->onBroadcastMessage( message );
 
+            // ping if needed
+                if( pluginList->boradcastThreadPing == true ){ pluginList->boradcastThreadPing = false; }
+
                 usleep( 1000L );
             }
             pluginList->iterateFinish();
             pluginList->messageRelease();
 
         } else {
+        // ping if needed
+            if( pluginList->boradcastThreadPing == true ){ pluginList->boradcastThreadPing = false; }
             usleep( 50000L );
         }
 
@@ -336,6 +349,36 @@ void* coPluginList::        broadcastThread( void* userdata ){
     return NULL;
 }
 
+
+void* coPluginList::        broadcastWatchdogThread( void* userdata ){
+
+    // vars
+    coPluginList*       pluginList = (coPluginList*)userdata;
+
+    while( pluginList->broadcastThreadRun == 1 ){
+
+    // we set the ping and wait for response
+        pluginList->boradcastThreadPing = true;
+        sleep(1);
+
+    // now the broadcast thread should set the ping to false
+        if( pluginList->boradcastThreadPing == true ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "broadcast thread seems to hang... kill and restart it" );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+            pthread_cancel( pluginList->broadcastThread_i );
+
+        // start the thread which wait for clients
+            pthread_create( &this->broadcastThread_i, NULL, coPluginList::broadcastThread, this );
+            pthread_detach( this->broadcastThread_i );
+
+
+        }
+
+    }
+
+
+}
 
 
 /*

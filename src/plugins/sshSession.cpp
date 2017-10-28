@@ -97,11 +97,6 @@ coPlugin::t_state	sshSession::	onBroadcastMessage( coMessage* message ){
 }
 
 
-bool sshSession::       			onBroadcastReply( coMessage* message ){
-	this->send( message, this->channelShell, true );
-}
-
-
 
 
 
@@ -503,7 +498,7 @@ bool sshSession::					waitForClient( const char* bindAddr, int bindPort ){
 
 // debugging message
 	snprintf( etDebugTempMessage, etDebugTempMessageLen, "Start Server on %s on port %i", bindAddr, bindPort );
-	etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+	etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
 
 // register listener
 	if( ssh_bind_listen(this->sshServer) < 0 ){
@@ -709,7 +704,9 @@ nodelay:
             if( ssh_channel_is_eof(this->channelShell) != 0 ) break;
 
 
-            //bufferReadedBytes = ssh_channel_read_timeout( this->channelShell, buffer, sizeof(buffer), 0, 500 );
+
+
+            //bufferReadedBytes = ssh_channel_read_timeout( this->channelShell, buffer, bufferSize, 0, 100 );
             bufferReadedBytes = ssh_channel_read( this->channelShell, buffer, bufferSize, 0 );
             if( bufferReadedBytes > 0 ){
 

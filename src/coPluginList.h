@@ -54,7 +54,9 @@ class coPluginList {
         int                 messageFiFoIndexWritten = -1;
         int                 messageFiFoIndexRead = 0;
 
-        int                broadcastThreadRun = 0;
+        pthread_t           broadcastThread_i;
+        int                 broadcastThreadRun = 0;
+        bool                boradcastThreadPing = false;
 
 	public:
 		coPluginList();
@@ -82,6 +84,7 @@ class coPluginList {
     // API
         void                boradcastThreadStart();
         static void*        broadcastThread( void* userdata );
+        static void*        broadcastWatchdogThread( void* userdata );
 
         //void                broadcast( coPlugin* source, coMessage* message );
         void                setupAll();
