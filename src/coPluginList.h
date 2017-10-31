@@ -51,8 +51,8 @@ class coPluginList {
         lockID              messageFiFoLock;
         coMessage*          messageFiFo[messageFiFoMax];
         bool                messageFiFoUsed[messageFiFoMax];
-        int                 messageFiFoIndexWritten = -1;
-        int                 messageFiFoIndexRead = 0;
+        int                 messageFiFoIndexWritten = messageFiFoMax - 1;
+        int                 messageFiFoIndexReaded = 0;
 
         pthread_t           broadcastThread_i;
         int                 broadcastThreadRun = 0;

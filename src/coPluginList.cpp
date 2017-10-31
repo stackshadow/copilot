@@ -41,6 +41,16 @@ coPluginList::				coPluginList(){
         this->messageFiFo[index] = new coMessage;
     }
 
+
+
+// test: add some messages
+    this->messageAdd( NULL, "test", "test", "test", "test1", "" );
+    this->messageAdd( NULL, "test", "test", "test", "test2", "" );
+    this->messageAdd( NULL, "test", "test", "test", "test3", "" );
+
+
+
+
 // start thread
     this->boradcastThreadStart();
 
@@ -158,46 +168,113 @@ bool coPluginList::         messageAdd( coPlugin*   sourcePlugin,
 
 
 // vars
-    int             indexWriteNext = this->messageFiFoIndexWritten+1;
     coMessage*      message = NULL;
+    int             messageIndex = 0;
+    int             messageNextIndex = 0;
+
+// Lock
 
 // Lock
     lockPthread( this->messageFiFoLock );
 
-// end of the fifo
-    if( indexWriteNext >= messageFiFoMax ){
-        indexWriteNext = 0;
+// try to find an written message
+    while(1){
+
+    // check if element is free
+        if( this->messageFiFoUsed[messageIndex] == false ){
+            break;
+        }
+
+    // iterate
+        messageIndex++;
+
+    // end of the fifo
+        if( messageIndex >= messageFiFoMax ){
+            messageIndex = 0;
+        }
+
+    // did we reach our start-element ?
+        if( messageIndex == this->messageFiFoIndexReaded ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO FULL ( this should't happen ... ) please restart thist application." );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            unlockPthread( this->messageFiFoLock );
+            return false;
+        }
+
     }
 
-// check if the next element is ready for use
-    if( this->messageFiFoUsed[indexWriteNext] == true ){
-    // debug
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO: full" );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
-    // UnLock
-        unlockPthread( this->messageFiFoLock );
-        return false;
-    }
+
 
 // set message
-    message = this->messageFiFo[indexWriteNext];
+    message = this->messageFiFo[messageIndex];
     message->source( sourcePlugin );
     message->nodeNameSource( nodeNameSource );
     message->nodeNameTarget( nodeNameTarget );
     message->group( group );
     message->command( command );
     message->payload( payload );
-    this->messageFiFoUsed[indexWriteNext] = true;
+    this->messageFiFoUsed[messageIndex] = true;
 
-// set index
-    this->messageFiFoIndexWritten = indexWriteNext;
+
+    this->messageFiFoIndexWritten = messageIndex;
 
 // debug
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: append message '%s'", indexWriteNext, command );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: append message '%s'", messageIndex, command );
     etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 // UnLock
+    unlockPthread( this->messageFiFoLock );
+    return true;
+}
+
+bool coPluginList::         messageGet( coMessage** p_message ){
+
+// vars
+    coMessage*      message = NULL;
+    int             messageIndex = this->messageFiFoIndexReaded;
+
+// Lock
+    lockPthread( this->messageFiFoLock );
+
+// try to find an written message
+    while(1){
+
+    // check if element is free
+        if( this->messageFiFoUsed[messageIndex] == true ){
+            break;
+        }
+
+    // iterate
+        messageIndex++;
+
+    // end of the fifo
+        if( messageIndex >= messageFiFoMax ){
+            messageIndex = 0;
+        }
+
+    // did we reach our start-element ?
+        if( messageIndex == this->messageFiFoIndexReaded ){
+            unlockPthread( this->messageFiFoLock );
+            return false;
+        }
+
+    }
+
+
+
+// get message
+    message = this->messageFiFo[messageIndex];
+    *p_message = message;
+
+// save readed position
+    this->messageFiFoIndexReaded = messageIndex;
+
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: get", this->messageFiFoIndexReaded );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
     unlockPthread( this->messageFiFoLock );
     return true;
 }
@@ -209,60 +286,30 @@ bool coPluginList::         messageAdd( coPlugin*   sourcePlugin,
 bool coPluginList::         messageRelease(){
 
 // vars
-    int             indexReadNext = this->messageFiFoIndexRead+1;
+    int             indexReadNext = this->messageFiFoIndexReaded+1;
     coMessage*      message = NULL;
 
 // Lock
     lockPthread( this->messageFiFoLock );
 
 // release actual mesage
-    this->messageFiFoUsed[this->messageFiFoIndexRead] = false;
+    this->messageFiFoUsed[this->messageFiFoIndexReaded] = false;
 
 // debug
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: release message", this->messageFiFoIndexRead );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: release message", this->messageFiFoIndexReaded );
     etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
-// end of the fifo
-    if( indexReadNext >= messageFiFoMax ){
-        indexReadNext = 0;
+// iterate
+    this->messageFiFoIndexReaded++;
+    if( this->messageFiFoIndexReaded >= messageFiFoMax ){
+        this->messageFiFoIndexReaded = 0;
     }
-
-// save the indexs
-    this->messageFiFoIndexRead = indexReadNext;
-
 
 // UnLock
     unlockPthread( this->messageFiFoLock );
     return true;
 }
 
-
-bool coPluginList::         messageGet( coMessage** p_message ){
-
-// vars
-    coMessage*      message = NULL;
-
-// Lock
-    lockPthread( this->messageFiFoLock );
-
-//
-    if( this->messageFiFoUsed[this->messageFiFoIndexRead] == false ){
-    // UnLock
-        unlockPthread( this->messageFiFoLock );
-        return false;
-    }
-
-    message = this->messageFiFo[this->messageFiFoIndexRead];
-    *p_message = message;
-
-// debug
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "FIFO %i: get", this->messageFiFoIndexRead );
-    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-
-
-    unlockPthread( this->messageFiFoLock );
-    return true;
-}
 
 
 
@@ -277,10 +324,11 @@ void coPluginList::         boradcastThreadStart(){
     pthread_detach( this->broadcastThread_i );
 
 // start the watchdog
+/*
     pthread_t threadWatchdog;
     pthread_create( &threadWatchdog, NULL, coPluginList::broadcastWatchdogThread, this );
     pthread_detach( threadWatchdog );
-
+*/
 }
 
 /**
@@ -359,18 +407,19 @@ void* coPluginList::        broadcastWatchdogThread( void* userdata ){
 
     // we set the ping and wait for response
         pluginList->boradcastThreadPing = true;
-        sleep(1);
+        sleep(5);
 
     // now the broadcast thread should set the ping to false
         if( pluginList->boradcastThreadPing == true ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "broadcast thread seems to hang... kill and restart it" );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
+        // exit the running thread
             pthread_cancel( pluginList->broadcastThread_i );
 
         // start the thread which wait for clients
-            pthread_create( &this->broadcastThread_i, NULL, coPluginList::broadcastThread, this );
-            pthread_detach( this->broadcastThread_i );
+            pthread_create( &pluginList->broadcastThread_i, NULL, coPluginList::broadcastThread, pluginList );
+            pthread_detach( pluginList->broadcastThread_i );
 
 
         }
