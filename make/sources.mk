@@ -215,7 +215,6 @@ engineering: gitversion
 	SSH_SERVER=1 \
 	DISABLE_SYSSTATE=1 \
 	DISABLE_MQTT=1 \
-	DISABLE_LDAP=1 \
 	binary-dbg
 
 install-engineering: engineering $(clientTargets)

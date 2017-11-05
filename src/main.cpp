@@ -37,7 +37,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 //#include "plugins/sysState.h"
 //#include "plugins/lxcService.h"
 #include "plugins/nftService.h"
-//#include "plugins/ldapService.h"
+#include "plugins/ldapService.h"
 //#include "plugins/mqttService.h"
 //#include "plugins/ldapService.h"
 
@@ -190,6 +190,10 @@ int main( int argc, char *argv[] ){
 
 #endif
 
+// ldap
+#ifndef DISABLE_LDAP
+    ldapService*    ldapPlugin = new ldapService();
+#endif
 
 
 // Setup All plugins

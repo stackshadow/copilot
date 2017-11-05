@@ -19,7 +19,6 @@
     </VirtualDirectory>
     <VirtualDirectory Name="develop">
       <File Name="../../src/develop/mqttService.cpp"/>
-      <File Name="../../src/develop/ldapService.cpp"/>
       <File Name="../../src/develop/lxcService.cpp"/>
       <File Name="../../src/develop/sysState.cpp"/>
       <File Name="../../src/develop/doDBDConnections.cpp"/>
@@ -30,7 +29,6 @@
       <File Name="../../src/develop/lxcContainer.h"/>
       <File Name="../../src/develop/lxcService.h"/>
       <File Name="../../src/develop/qwebsocketClient.h"/>
-      <File Name="../../src/develop/ldapService.h"/>
       <File Name="../../src/develop/doDBDConnections.h"/>
       <File Name="../../src/develop/qwebsocket.cpp"/>
       <File Name="../../src/develop/qwebsocket.h"/>
@@ -48,6 +46,8 @@
       <File Name="../../src/plugins/sshSession.h"/>
       <File Name="../../src/plugins/websocket.cpp"/>
       <File Name="../../src/plugins/websocket.h"/>
+      <File Name="../../src/plugins/ldapService.cpp"/>
+      <File Name="../../src/plugins/ldapService.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="server"/>
     <File Name="../../src/coCore.cpp"/>
@@ -205,7 +205,7 @@ $(ProjectPath)/../../src/plugins</SearchPaths>
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--debug --websocket" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--debug --websocket --nonft" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
