@@ -32,7 +32,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 // plugins
 //#include "plugins/qwebsocket.h"
 #include "plugins/sshService.h"
-#include "plugins/wolfssl.h"
+#include "plugins/gnutls.h"
 #include "plugins/websocket.h"
 #include "plugins/coreService.h"
 //#include "plugins/sysState.h"

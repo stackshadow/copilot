@@ -20,7 +20,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef wolfssl_C
 #define wolfssl_C
 
-#include "plugins/wolfssl.h"
+#include "plugins/gnutls.h"
 #include "coCore.h"
 
 #define SERV_PORT 11111

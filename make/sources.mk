@@ -120,13 +120,10 @@ CFLAGS      += -DDISABLE_SSH
 endif
 
 # use wolfssl or not
-ifdef DISABLE_WOLFSSL
-CFLAGS		+= -DDISABLE_WOLFSSL
+ifdef DISABLE_TLS
+CFLAGS		+= -DDISABLE_TLS
 else
-sources     += src/plugins/wolfssl.cpp
-CFLAGS		+= -DUSE_WOLFSSL
-CFLAGS		+= -DWOLFSSL_TRUST_PEER_CERT
-CLIBS		+= -Wl,-rpath -Wl,/usr/local/lib
+sources     += src/plugins/gnutls.cpp
 CLIBS		+= -lgnutls
 endif
 
