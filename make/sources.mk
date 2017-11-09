@@ -95,6 +95,9 @@ CFLAGSREL   += -fstack-protector
 CFLAGSREL   += -Wformat -Wformat-security
 CFLAGSREL   += -O2
 
+# search paths
+CLIBS       += -L/usr/local/lib
+
 CLIBS       += -ljansson
 CLIBS       += -lpthread
 CLIBS       += -lz
@@ -115,6 +118,18 @@ CLIBS		+= $(shell pkg-config --libs libsodium)
 ifdef DISABLE_SSH
 CFLAGS      += -DDISABLE_SSH
 endif
+
+# use wolfssl or not
+ifdef DISABLE_WOLFSSL
+CFLAGS		+= -DDISABLE_WOLFSSL
+else
+sources     += src/plugins/wolfssl.cpp
+CFLAGS		+= -DUSE_WOLFSSL
+CFLAGS		+= -DWOLFSSL_TRUST_PEER_CERT
+CLIBS		+= -Wl,-rpath -Wl,/usr/local/lib
+CLIBS		+= -lgnutls
+endif
+
 
 ifdef DISABLE_SYSSTATE
 CFLAGS      += -DDISABLE_SYSSTATE
@@ -176,11 +191,10 @@ default: binary-qt
 
 client:
 	make -f make/Makefile \
-	DISABLE_WEBSOCKET=1 \
 	DISABLE_MQTT=1 \
 	DISABLE_SYSSTATE=1 \
-	DISABLE_LDAP=1 \
 	MQTT_ONLY_LOCAL=1 \
+	DISABLE_SSH=1 \
 	binary-dbg
 clientTargets = /etc/copilot/services
 
@@ -215,7 +229,7 @@ engineering: gitversion
 	SSH_SERVER=1 \
 	DISABLE_SYSSTATE=1 \
 	DISABLE_MQTT=1 \
-	DISABLE_LDAP=1 \
+	DISABLE_SSH=1 \
 	binary-dbg
 
 install-engineering: engineering $(clientTargets)

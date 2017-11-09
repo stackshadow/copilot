@@ -324,11 +324,10 @@ void coPluginList::         boradcastThreadStart(){
     pthread_detach( this->broadcastThread_i );
 
 // start the watchdog
-/*
     pthread_t threadWatchdog;
     pthread_create( &threadWatchdog, NULL, coPluginList::broadcastWatchdogThread, this );
     pthread_detach( threadWatchdog );
-*/
+
 }
 
 /**

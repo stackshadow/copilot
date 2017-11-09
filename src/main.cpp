@@ -32,12 +32,13 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 // plugins
 //#include "plugins/qwebsocket.h"
 #include "plugins/sshService.h"
+#include "plugins/wolfssl.h"
 #include "plugins/websocket.h"
 #include "plugins/coreService.h"
 //#include "plugins/sysState.h"
 //#include "plugins/lxcService.h"
 #include "plugins/nftService.h"
-//#include "plugins/ldapService.h"
+#include "plugins/ldapService.h"
 //#include "plugins/mqttService.h"
 //#include "plugins/ldapService.h"
 
@@ -53,6 +54,10 @@ static struct option options[] = {
     { "websocket",  no_argument,        NULL, 'w' },
     #endif
     { "nonft",      no_argument,        NULL, 'a' },
+
+    { "sslserver",      no_argument,        NULL, 'x' },
+    { "sslclient",      no_argument,        NULL, 'y' },
+
     { NULL, 0, 0, 0 }
 };
 
@@ -70,11 +75,17 @@ int main( int argc, char *argv[] ){
 
     etInit(argc,(const char**)argv);
     etDebugLevelSet( etID_LEVEL_WARNING );
+    etDebugLevelSet( etID_LEVEL_ALL );
 //    QCoreApplication a(argc, argv);
 
 
 // create the core which contains all services
     coCore*         core = new coCore();
+
+// ssl service
+#ifndef DISABLE_WOLFSSL
+    sslService* ssl = new sslService();
+#endif
 
 // parse options
     int             optionSelected = 0;
@@ -150,6 +161,14 @@ int main( int argc, char *argv[] ){
 			case 's':
 				coCore::setupMode = true;
 				break;
+
+            case 'x':
+                ssl->serve();
+                break;
+
+            case 'y':
+                ssl->client();
+                break;
 		}
 
 
@@ -173,6 +192,7 @@ int main( int argc, char *argv[] ){
 #endif
 
 
+
 // websocket-service
 #ifndef DISABLE_WEBSOCKET
     if( startWebSocket == true ){
@@ -190,6 +210,10 @@ int main( int argc, char *argv[] ){
 
 #endif
 
+// ldap
+#ifndef DISABLE_LDAP
+    ldapService*    ldapPlugin = new ldapService();
+#endif
 
 
 // Setup All plugins
