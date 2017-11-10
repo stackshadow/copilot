@@ -56,7 +56,7 @@ class sslService : public coPlugin {
 
     private:
         int                                 port = 1111;
-        static gnutls_dh_params_t           dhParams;
+        gnutls_dh_params_t                  dhParams;
         gnutls_certificate_credentials_t    x509Cred;
         gnutls_priority_t                   priority_cache;
 
@@ -67,15 +67,20 @@ class sslService : public coPlugin {
 
         bool                certInfo( const char* name );
 
+        static bool         pubKeyGetId( gnutls_pubkey_t publicKey, char* outBuffer, size_t* outBufferSize );
+        static bool         checkAcceptedKey( gnutls_pubkey_t publicKey, const char* peerHostName, bool pinning );
+
         static bool         import( const char* filename, gnutls_privkey_t privateKey );
         static bool         import( const char* filename, gnutls_pubkey_t  publicKey );
 
-
-        bool                generateKeyPair( const char* name, const char* folder );
+// callbakcs
+        static int          verifyPublikKeyOnServerCallback( gnutls_session_t session );    // no pinning
+        static int          verifyPublikKeyOnClientCallback( gnutls_session_t session );    // with pinning
 
 // internal functions
     private:
-        bool                credCreate( gnutls_certificate_credentials_t* xcred, const char* certFile, const char* privKey, gnutls_certificate_verify_function* func );
+        bool                generateKeyPair( const char* name, const char* folder );
+        bool                credCreate( gnutls_certificate_credentials_t* xcred, const char* name, const char* folder, gnutls_certificate_verify_function* func );
 
 // API
     public:

@@ -216,6 +216,12 @@
 		<Unit filename="../../src/plugins/coreService.h">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
+		<Unit filename="../../src/plugins/gnutls.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/gnutls.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
 		<Unit filename="../../src/plugins/ldapService.cpp">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
@@ -247,12 +253,6 @@
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
 		<Unit filename="../../src/plugins/websocket.h">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
-		<Unit filename="../../src/plugins/wolfssl.cpp">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
-		<Unit filename="../../src/plugins/wolfssl.h">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
 		<Unit filename="../../src/version.h">
