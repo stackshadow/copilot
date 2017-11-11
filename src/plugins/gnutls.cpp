@@ -22,19 +22,45 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "plugins/gnutls.h"
 #include "coCore.h"
+#include <sys/socket.h>
+#include <netdb.h>
 
 #define SERV_PORT 11111
 #define MAX_LINE 4096
 #define MAX_BUF 1024
 
+typedef struct sslServiceGlobals_s {
+    bool                    init = false;
+    gnutls_priority_t       priorityCache;
+} sslServiceGlobals_t;
+static sslServiceGlobals_t sslServiceGlobals;
 
 
-void my_log_func( int level, const char* message ){
-    etDebugMessage( etID_LEVEL_WARNING, message );
+bool sslServiceInit(){
+    if( sslServiceGlobals.init == true ){
+        return true;
+    }
+
+// init tls
+    gnutls_global_init();
+    gnutls_global_set_log_level( 1 );
+
+// alloc priority cache
+    gnutls_priority_init( &sslServiceGlobals.priorityCache, "PFS", NULL);
+
+// remember it
+    sslServiceGlobals.init = true;
+    return true;
 }
 
 
+//gnutls_global_deinit ();
+
+
 sslService::                sslService() : coPlugin( "sslService", coCore::ptr->hostNameGet(), "cocom" ){
+
+// allocate memory
+    etStringAlloc( this->sessionHost );
 
 // check core-config path
 	if( access( wsslServerKeyPath, F_OK ) != 0 ){
@@ -50,19 +76,44 @@ sslService::                sslService() : coPlugin( "sslService", coCore::ptr->
 		system( "mkdir -p " wsslClientKeyPath );
 	}
 
+    sslServiceInit();
 
 
-// create cert
-    gnutls_global_init();
-    gnutls_global_set_log_level( 1 );
-    gnutls_global_set_log_function( my_log_func );
+// we use an global priority-cache
+// this cache selects the cipher in tls
 
 
 }
 
 
 sslService::                ~sslService(){
+    etStringFree( this->sessionHost );
 
+}
+
+
+
+int sslService::            port( int port ){
+    if( port > 0 ){
+        this->sessionPort = port;
+    }
+
+    return this->sessionPort;
+}
+
+
+const char* sslService::    host( const char* hostName ){
+
+// vars
+    const char* hostNameToReturn = NULL;
+
+    if( hostName != NULL ){
+        etStringCharSet( this->sessionHost, hostName, -1 );
+    }
+
+    etStringCharGet( this->sessionHost, hostNameToReturn );
+
+    return hostNameToReturn;
 }
 
 
@@ -331,7 +382,7 @@ bool sslService::           import( const char* fileName, gnutls_pubkey_t  publi
 
 
 
-int sslService::            verifyPublikKeyOnServerCallback( gnutls_session_t session ){
+int sslService::            verifyPublikKeyCallback( gnutls_session_t session, bool pinning ){
 
 
     unsigned int                certStatus;
@@ -344,131 +395,36 @@ int sslService::            verifyPublikKeyOnServerCallback( gnutls_session_t se
 
 /* read hostname */
     hostname = (const char*)gnutls_session_get_ptr (session);
-
-//
-    certList = gnutls_certificate_get_peers( session, &certListSize );
-    if( certList == NULL ){
-            printf("No certificate was found!\n");
-            return GNUTLS_E_CERTIFICATE_ERROR;
-    }
-
-// get the public key
-    gnutls_pubkey_init( &publicKey );
-    ret = gnutls_pubkey_import_x509_raw( publicKey, &certList[0], GNUTLS_X509_FMT_DER, 0 );
-
-// get key id
-    size_t keyIDHexSize = 100;
-    char keyIDHex[keyIDHexSize];
-    sslService::pubKeyGetId( publicKey, keyIDHex, &keyIDHexSize );
-
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key ID of %s: %s", hostname, keyIDHex );
-    etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
-
-// check if key is accepted
-    if( sslService::checkAcceptedKey( publicKey, hostname, false ) == true ){
-        return 0;
-    }
-
-// key was not accepted
-    return GNUTLS_E_CERTIFICATE_ERROR;
-
-}
-
-
-int sslService::            verifyPublikKeyOnClientCallback( gnutls_session_t session ){
-
-
-    unsigned int                certStatus;
-    const gnutls_datum_t*       certList;
-    unsigned int                certListSize;
-    gnutls_pubkey_t             publicKey;
-    int ret;
-    gnutls_x509_crt_t cert;
-    const char *hostname;
-
-/* read hostname */
-    hostname = (const char*)gnutls_session_get_ptr (session);
-
-//
-    certList = gnutls_certificate_get_peers( session, &certListSize );
-    if( certList == NULL ){
-            printf("No certificate was found!\n");
-            return GNUTLS_E_CERTIFICATE_ERROR;
-    }
-
-// get the public key
-    gnutls_pubkey_init( &publicKey );
-    ret = gnutls_pubkey_import_x509_raw( publicKey, &certList[0], GNUTLS_X509_FMT_DER, 0 );
-
-// get key id
-    size_t keyIDHexSize = 100;
-    char keyIDHex[keyIDHexSize];
-    sslService::pubKeyGetId( publicKey, keyIDHex, &keyIDHexSize );
-
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key ID of %s: %s", hostname, keyIDHex );
-    etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
-
-// check if key is accepted
-    if( sslService::checkAcceptedKey( publicKey, hostname, true ) == true ){
-        return 0;
-    }
-
-// key was not accepted
-    return GNUTLS_E_CERTIFICATE_ERROR;
-
-
-/*
-    ret = gnutls_certificate_verify_peers2( session, &certStatus );
-    if (ret < 0) {
-        printf ("Error\n");
+    if( hostname == NULL ){
+        etDebugMessage( etID_LEVEL_ERR, "No hostname was provided" );
         return GNUTLS_E_CERTIFICATE_ERROR;
     }
-
-    gnutls_certificate_type_t type = gnutls_certificate_type_get( session );
-
-    if (certStatus & GNUTLS_CERT_SIGNER_NOT_FOUND)
-        printf ("The certificate hasn't got a known issuer.\n");
-
-    if (certStatus & GNUTLS_CERT_REVOKED)
-        printf ("The certificate has been revoked.\n");
-
-    if (certStatus & GNUTLS_CERT_EXPIRED)
-        printf ("The certificate has expired\n");
-
-    if (certStatus & GNUTLS_CERT_NOT_ACTIVATED){
-        printf ("The certificate is not yet activated\n");
+//
+    certList = gnutls_certificate_get_peers( session, &certListSize );
+    if( certList == NULL ){
+            printf("No certificate was found!\n");
+            return GNUTLS_E_CERTIFICATE_ERROR;
     }
 
-    if (certStatus & GNUTLS_CERT_INVALID) {
-        printf ("The certificate is not trusted...yet\n");
+// get the public key
+    gnutls_pubkey_init( &publicKey );
+    ret = gnutls_pubkey_import_x509_raw( publicKey, &certList[0], GNUTLS_X509_FMT_DER, 0 );
 
-        unsigned int cert_list_size;
-        const gnutls_datum_t* cert_list = gnutls_certificate_get_peers( session, &cert_list_size );
-        if( cert_list == NULL ){
-                printf("No certificate was found!\n");
-                return GNUTLS_E_CERTIFICATE_ERROR;
-        }
+// get key id
+    size_t keyIDHexSize = 100;
+    char keyIDHex[keyIDHexSize];
+    sslService::pubKeyGetId( publicKey, keyIDHex, &keyIDHexSize );
 
-    // get the public key
-        gnutls_pubkey_t publicKey;
-        gnutls_pubkey_init( &publicKey );
-        ret = gnutls_pubkey_import_x509_raw( publicKey, &cert_list[0], GNUTLS_X509_FMT_DER, 0 );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key ID of %s: %s", hostname, keyIDHex );
+    etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
 
-    // get key id
-        size_t keyIDHexSize = 100;
-        char keyIDHex[keyIDHexSize];
-        sslService::pubKeyGetId( publicKey, keyIDHex, &keyIDHexSize );
-
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Key ID of %s: %s", hostname, keyIDHex );
-        etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
-
-    // check if key is accepted
-        sslService::pubKeyAccepted( publicKey, hostname );
-
+// check if key is accepted
+    if( sslService::checkAcceptedKey( publicKey, hostname, pinning ) == true ){
+        return 0;
     }
-*/
 
-
+// key was not accepted
+    return GNUTLS_E_CERTIFICATE_ERROR;
 
 }
 
@@ -669,6 +625,9 @@ bool sslService::           credCreate( gnutls_certificate_credentials_t* xcred,
         return false;
     }
 
+// set diffie hellman key exchange
+    gnutls_certificate_set_known_dh_params( *xcred, GNUTLS_SEC_PARAM_MEDIUM );
+
 // setup callback function
     if( func != NULL ){
         gnutls_certificate_set_verify_function( *xcred, func );
@@ -804,23 +763,16 @@ bool sslService::           serve(){
     int                     socketChannel;
     int                     socketClientChannel;
     int                     sd, ret;
-    struct sockaddr_in      sa_serv;
+    struct sockaddr_in      serverSocketAddress;
     struct sockaddr_in      clientSocketAddress;
     socklen_t               clientSocketAddressLen;
     char                    topbuf[512];
     gnutls_session_t        session;
     char                    buffer[MAX_BUF + 1];
     int                     optval = 1;
-    const char*             hostName;
+    char                    hostName[hostNameBufferSize];
     gnutls_certificate_credentials_t        xcred;
 
-// alloc
-    gnutls_certificate_allocate_credentials( &xcred );
-    gnutls_priority_init (&priority_cache, "PERFORMANCE:%SERVER_PRECEDENCE", NULL);
-    gnutls_dh_params_init (&this->dhParams);
-
-// set dh
-    gnutls_certificate_set_known_dh_params( xcred, GNUTLS_SEC_PARAM_MEDIUM );
 
 // generate keypair if needed
     if( this->generateKeyPair( "server", wsslServerKeyPath ) != true ){
@@ -828,113 +780,106 @@ bool sslService::           serve(){
     }
 
 // load credentials ( keys )
+    gnutls_certificate_allocate_credentials( &xcred );
     if( this->credCreate( &xcred, "server", wsslServerKeyPath, sslService::verifyPublikKeyOnServerCallback ) != true ){
         goto onerror;
     }
 
-// set dh
-    gnutls_certificate_set_dh_params( xcred, this->dhParams );
 
 // create address description
-    memset( &sa_serv, '\0', sizeof(sa_serv) );
-    sa_serv.sin_family = AF_INET;
-    sa_serv.sin_addr.s_addr = INADDR_ANY;
-    sa_serv.sin_port = htons( this->port );
+    memset( &serverSocketAddress, '\0', sizeof(serverSocketAddress) );
+    serverSocketAddress.sin_family = AF_INET;
+    serverSocketAddress.sin_addr.s_addr = INADDR_ANY;
+    serverSocketAddress.sin_port = htons( this->sessionPort );
 
 // create socket
     socketChannel = socket( AF_INET, SOCK_STREAM, 0 );
     setsockopt( socketChannel, SOL_SOCKET, SO_REUSEADDR, (void*)&optval, sizeof (int) );
-    bind( socketChannel, (struct sockaddr*)&sa_serv, sizeof(sa_serv) );
+    bind( socketChannel, (struct sockaddr*)&serverSocketAddress, sizeof(serverSocketAddress) );
     listen( socketChannel, 1024 );
-    printf( "Server ready. Listening to port '%d'.\n\n", this->port );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Server ready. Listening to port '%d'.\n\n",this->sessionPort );
+    etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
 
 
     clientSocketAddressLen = sizeof( clientSocketAddress );
-    for (;;){
 
-    // init out tls-connection
-        gnutls_init( &session, GNUTLS_SERVER );
-        gnutls_priority_set( session, priority_cache );
-        gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, xcred );
+// init out tls-connection
+    gnutls_init( &session, GNUTLS_SERVER );
+    gnutls_priority_set( session, sslServiceGlobals.priorityCache );
+    gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, xcred );
 
-    // we request the client certificate to verify it
-        gnutls_certificate_server_set_request( session, GNUTLS_CERT_REQUEST );
+// we request the client certificate to verify it
+    gnutls_certificate_server_set_request( session, GNUTLS_CERT_REQUEST );
 
-    // got client connection ( blocked )
-        socketClientChannel = accept( socketChannel, (struct sockaddr *)&clientSocketAddress, &clientSocketAddressLen );
+// got client connection ( blocking )
+    socketClientChannel = accept( socketChannel, (struct sockaddr *)&clientSocketAddress, &clientSocketAddressLen );
 
-    //gnutls_session_set_ptr( session, (void *)"localhost" );
-        hostName = inet_ntop( AF_INET, &clientSocketAddress.sin_addr, topbuf,sizeof (topbuf) );
-        printf ("- connection from %s, port %d\n",
-            hostName,
-            ntohs (clientSocketAddress.sin_port));
+    gnutls_session_set_ptr( session, NULL );
+    if( getnameinfo( (struct sockaddr *)&clientSocketAddress, clientSocketAddressLen, hostName, hostNameBufferSize, NULL, 0, 0 ) == 0 ){
 
-    // gnu tls use the socket
-        gnutls_transport_set_int( session, socketClientChannel );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "got connection from %s on port %d", hostName, ntohs (clientSocketAddress.sin_port) );
+        etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
 
-    // save info
+     // save info
         gnutls_session_set_ptr( session, (void*)hostName );
 
-
-    // client is now on tls
-        //gnutls_transport_set_ptr( session, (gnutls_transport_ptr_t)socketClientChannel );
-
-    // handshake
-        do {
-            ret = gnutls_handshake( session );
-        } while( ret < 0 && gnutls_error_is_fatal( ret ) == 0 );
-
-        //verifyPublikKeyOnServerCallback( session );
-
-    // failed ?
-        if (ret < 0) {
-            close (socketClientChannel);
-            gnutls_deinit (session);
-            fprintf (stderr, "*** Handshake has failed (%s)\n\n",
-            gnutls_strerror (ret));
-            continue;
-        }
-
-
-        printf ("- Handshake was completed\n");
-
-        for (;;){
-            memset( buffer, 0, MAX_BUF + 1 );
-            ret = gnutls_record_recv( session, buffer, MAX_BUF );
-
-        // closed
-            if( ret == 0 ){
-                printf ("\n- Peer has closed the GnuTLS connection\n");
-                break;
-            }
-
-        // error
-            else if (ret < 0){
-                fprintf (stderr, "\n*** Received corrupted "
-                "data(%d). Closing the connection.\n\n", ret);
-                break;
-            }
-
-        // data recieved
-            else if (ret > 0){
-                gnutls_record_send( session, buffer, strlen (buffer) );
-            }
-        }
-
-        printf ("\n");
-
-        gnutls_bye (session, GNUTLS_SHUT_WR);
-
-        close( socketClientChannel );
-        gnutls_deinit (session);
-
     }
+
+// gnu tls use the socket
+    gnutls_transport_set_int( session, socketClientChannel );
+
+
+// handshake
+    do { ret = gnutls_handshake( session ); }
+    while( ret < 0 && gnutls_error_is_fatal( ret ) == 0 );
+
+// failed ?
+    if (ret < 0) {
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake failed: %s", gnutls_strerror(ret) );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        goto onerror;
+    } else {
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake complete.", gnutls_strerror(ret) );
+        etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
+    }
+
+
+    for (;;){
+        memset( buffer, 0, MAX_BUF + 1 );
+        ret = gnutls_record_recv( session, buffer, MAX_BUF );
+
+    // closed
+        if( ret == 0 ){
+            printf ("\n- Peer has closed the GnuTLS connection\n");
+            break;
+        }
+
+    // error
+        else if (ret < 0){
+            fprintf (stderr, "\n*** Received corrupted "
+            "data(%d). Closing the connection.\n\n", ret);
+            break;
+        }
+
+    // data recieved
+        else if (ret > 0){
+            gnutls_record_send( session, buffer, strlen (buffer) );
+        }
+    }
+
+    printf ("\n");
+
+    gnutls_bye (session, GNUTLS_SHUT_WR);
+
+    close( socketClientChannel );
+    gnutls_deinit (session);
+
+
 
 onerror:
     close( socketChannel );
 
     gnutls_certificate_free_credentials( xcred );
-    gnutls_priority_deinit( priority_cache );
     gnutls_global_deinit();
 
     return 0;
@@ -949,78 +894,72 @@ bool sslService::           client(){
     gnutls_session_t                        session;
     char                                    buffer[MAX_BUF + 1];
     const char*                             err;
-    struct sockaddr_in                      saClient;
+    struct sockaddr_in                      clientSocketAddress;
     gnutls_certificate_credentials_t        xcred;
     int                                     socketClientChannel;
 
 
-/* X509 stuff */
+// generate keypair if needed
+    if( this->generateKeyPair( "client", wsslServerKeyPath ) != true ){
+        return false;
+    }
+
+// load credentials ( keys )
     gnutls_certificate_allocate_credentials( &xcred );
+    if( this->credCreate( &xcred, "client", wsslServerKeyPath, sslService::verifyPublikKeyOnClientCallback ) != true ){
+        return false;
+    }
 
-
-
-    this->generateKeyPair( "client", wsslClientKeyPath );
-    this->credCreate( &xcred, "client", wsslClientKeyPath, sslService::verifyPublikKeyOnClientCallback );
-
-
-
+// init gnutls
     gnutls_init( &session, GNUTLS_CLIENT );
+    gnutls_priority_set( session, sslServiceGlobals.priorityCache );
+    gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, xcred );
 
     gnutls_session_set_ptr( session, (void *)"localhost" );
     gnutls_server_name_set( session, GNUTLS_NAME_DNS, "localhost", strlen("localhost") );
 
-    /* Use default priorities */
-    ret = gnutls_priority_set_direct( session, "NORMAL", &err );
-    if (ret < 0){
-        if (ret == GNUTLS_E_INVALID_REQUEST){
-            fprintf (stderr, "Syntax error at: %s\n", err);
-        }
 
-        exit (1);
-    }
-
-
-    gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, xcred );
-
-    /* connect to the peer
-    */
-    memset( &saClient, '\0', sizeof(saClient) );
-    saClient.sin_family = AF_INET;
-    saClient.sin_addr.s_addr = inet_addr( "127.0.0.1" );
-    saClient.sin_port = htons( this->port );      /* Server Port number */
+// create address description
+    memset( &clientSocketAddress, '\0', sizeof(clientSocketAddress) );
+    clientSocketAddress.sin_family = AF_INET;
+    clientSocketAddress.sin_addr.s_addr = inet_addr( "127.0.0.1" );
+    clientSocketAddress.sin_port = htons( this->sessionPort );      /* Server Port number */
 
 // connect
     socketClientChannel = socket( AF_INET, SOCK_STREAM, 0 );
-    connect( socketClientChannel, (const sockaddr*)&saClient, sizeof(saClient) );
+    connect( socketClientChannel, (const sockaddr*)&clientSocketAddress, sizeof(clientSocketAddress) );
 
-    gnutls_transport_set_ptr( session, (gnutls_transport_ptr_t)socketClientChannel );
 
-    /* Perform the TLS handshake
-    */
-    do {
-        ret = gnutls_handshake (session);
-    } while (ret < 0 && gnutls_error_is_fatal (ret) == 0);
+// gnu tls use the socket
+    gnutls_transport_set_int( session, socketClientChannel );
 
+// handshake
+    do { ret = gnutls_handshake( session ); }
+    while( ret < 0 && gnutls_error_is_fatal( ret ) == 0 );
+
+// failed ?
     if (ret < 0) {
-        fprintf (stderr, "*** Handshake failed\n");
-        gnutls_perror (ret);
-        goto end;
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake failed: %s", gnutls_strerror(ret) );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        goto onerror;
+    } else {
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake complete.", gnutls_strerror(ret) );
+        etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
     }
-    else {
-        printf ("- Handshake was completed\n");
-    }
+
 
     for(;;){
         gnutls_record_send (session, MSG, strlen (MSG));
 
+        memset( buffer, 0, MAX_BUF + 1 );
         ret = gnutls_record_recv (session, buffer, MAX_BUF);
         if( ret == 0 ){
             printf ("- Peer has closed the TLS connection\n");
-            goto end;
+            goto onerror;
         }
         else if( ret < 0 ){
             fprintf (stderr, "*** Error: %s\n", gnutls_strerror (ret));
-            goto end;
+            goto onerror;
         }
 
         printf ("- Received %d bytes: ", ret);
@@ -1036,7 +975,7 @@ bool sslService::           client(){
 
     gnutls_bye (session, GNUTLS_SHUT_RDWR);
 
-    end:
+onerror:
 
     close(socketClientChannel);
 
@@ -1044,7 +983,7 @@ bool sslService::           client(){
 
     gnutls_certificate_free_credentials (xcred);
 
-    gnutls_global_deinit ();
+
 
     return 0;
 }

@@ -52,18 +52,34 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #define wsslAcceptedKeyPath baseFilePath "ssl_accepted_keys/"
 #define wsslClientKeyPath baseFilePath "ssl_client_keys/"
 
+#define hostNameBufferSize 1024
+
 class sslService : public coPlugin {
 
+    public:
+        typedef enum {
+            UNKNOW              = 0,
+            CONNECTING          = 1,
+            DISCONNECTED        = 10,       /**< connection is established */
+            CONNECTED_OUT       = 20,       /**< connected to external host */
+            CONNECTED_INC       = 21,       /**< incoming connection */
+            REQ_DISCONNECT      = 30,       /**< Request disconnect */
+        } state_t;
+
+
     private:
-        int                                 port = 1111;
-        gnutls_dh_params_t                  dhParams;
+        sslService::state_t                 sessionState = UNKNOW;
+		etString*			                sessionHost = NULL;
+        int                                 sessionPort = 1111;
         gnutls_certificate_credentials_t    x509Cred;
-        gnutls_priority_t                   priority_cache;
 
 // public functions
 	public:
                             sslService();
                             ~sslService();
+
+        int                 port( int port );
+        const char*         host( const char* hostName );
 
         bool                certInfo( const char* name );
 
@@ -74,8 +90,9 @@ class sslService : public coPlugin {
         static bool         import( const char* filename, gnutls_pubkey_t  publicKey );
 
 // callbakcs
-        static int          verifyPublikKeyOnServerCallback( gnutls_session_t session );    // no pinning
-        static int          verifyPublikKeyOnClientCallback( gnutls_session_t session );    // with pinning
+        static int          verifyPublikKeyOnServerCallback( gnutls_session_t session ) { return sslService::verifyPublikKeyCallback( session, false ); };    // no pinning
+        static int          verifyPublikKeyOnClientCallback( gnutls_session_t session ) { return sslService::verifyPublikKeyCallback( session, true ); };    // with pinning
+        static int          verifyPublikKeyCallback( gnutls_session_t session, bool pinning );
 
 // internal functions
     private:
