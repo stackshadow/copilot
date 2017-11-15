@@ -71,8 +71,7 @@ sources     += src/coPluginList.cpp
 sources     += src/coMessage.cpp
 
 # plugins
-sources     += src/plugins/sshService.cpp
-sources     += src/plugins/sshSession.cpp
+sources     += src/plugins/sslService.cpp
 sources     += src/plugins/coreService.cpp
 #sources     += src/plugins/lxcService.cpp
 #sources     += src/plugins/lxcContainer.cpp
@@ -117,13 +116,16 @@ CLIBS		+= $(shell pkg-config --libs libsodium)
 # use SSH or not
 ifdef DISABLE_SSH
 CFLAGS      += -DDISABLE_SSH
+else
+sources     += src/plugins/sshSession.cpp
 endif
 
 # use wolfssl or not
 ifdef DISABLE_TLS
 CFLAGS		+= -DDISABLE_TLS
 else
-sources     += src/plugins/gnutls.cpp
+sources     += src/plugins/sslService.cpp
+sources     += src/plugins/sslSession.cpp
 CLIBS		+= -lgnutls
 endif
 
@@ -227,6 +229,7 @@ engineering: gitversion
 	DISABLE_SYSSTATE=1 \
 	DISABLE_MQTT=1 \
 	DISABLE_SSH=1 \
+	DISABLE_WEBSOCKET=1 \
 	binary-dbg
 
 install-engineering: engineering $(clientTargets)

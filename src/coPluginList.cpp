@@ -29,7 +29,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 coPluginList::				coPluginList(){
 // plugin-list
-    this->threadLock = 0;
+    this->pluginListLock = 0;
     etListAlloc( this->pluginList );
     this->pluginListIterator = NULL;
 
@@ -94,7 +94,7 @@ coPluginList::				~coPluginList(){
 
 
 bool coPluginList::      	append( coPlugin* plugin ){
-    lockMyPthread();
+    lockPthread( this->pluginListLock );
 
 // check
     if( this->pluginList == NULL ) return false;
@@ -105,14 +105,13 @@ bool coPluginList::      	append( coPlugin* plugin ){
 
 // add it to the list
     etListAppend( this->pluginList, (void*)plugin );
-
-    unlockMyPthread();
+    unlockPthread( this->pluginListLock );
 	return true;
 }
 
 
 bool coPluginList::       	remove( coPlugin* plugin ){
-    lockMyPthread();
+    lockPthread( this->pluginListLock );
 
     if( this->pluginList == NULL ) return false;
 
@@ -123,7 +122,7 @@ bool coPluginList::       	remove( coPlugin* plugin ){
     etListDataRemove( this->pluginList, (void*)plugin, etID_TRUE );
     this->pluginListIterator = NULL;
 
-    unlockMyPthread();
+    unlockPthread( this->pluginListLock );
 	return true;
 }
 
@@ -131,7 +130,7 @@ bool coPluginList::       	remove( coPlugin* plugin ){
 
 
 bool coPluginList::			iterate(){
-    lockMyPthread();
+    lockPthread( this->pluginListLock );
 
 	this->pluginListIterator = NULL;
 	etListIterate( this->pluginList, this->pluginListIterator );
@@ -153,7 +152,7 @@ bool coPluginList::			next( coPlugin** plugin ){
 
 
 bool coPluginList::         iterateFinish(){
-    unlockMyPthread();
+    unlockPthread( this->pluginListLock );
 }
 
 

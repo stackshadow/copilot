@@ -17,6 +17,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+#ifndef DISABLE_WEBSOCKET
 #ifndef websocket_H
 #define websocket_H
 
@@ -104,3 +105,4 @@ public slots:
 
 #endif // websocket_H
 
+#endif // DISABLE_WEBSOCKET

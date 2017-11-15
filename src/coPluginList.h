@@ -44,7 +44,7 @@ class coPluginList {
 
 	private:
 	// plugins
-        lockID				threadLock;
+        lockID				pluginListLock;
 		etList*             pluginList;
 		void*				pluginListIterator;
 

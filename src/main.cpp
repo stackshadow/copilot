@@ -31,8 +31,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 // plugins
 //#include "plugins/qwebsocket.h"
-#include "plugins/sshService.h"
-#include "plugins/gnutls.h"
+#include "plugins/sslService.h"
+#include "plugins/sslSession.h"
 #include "plugins/websocket.h"
 #include "plugins/coreService.h"
 //#include "plugins/sysState.h"
@@ -85,6 +85,7 @@ int main( int argc, char *argv[] ){
 // ssl service
 #ifndef DISABLE_WOLFSSL
     sslService* ssl = new sslService();
+    sslSession* sslClient = new sslSession();
 #endif
 
 // parse options
@@ -167,7 +168,7 @@ int main( int argc, char *argv[] ){
                 break;
 
             case 'y':
-                ssl->client();
+                ssl->connectAll();
                 break;
 		}
 

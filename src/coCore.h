@@ -45,6 +45,8 @@ class coCore {
 	private:
 		pthread_t			threadLock;
 
+        etString*           myNodeName;
+
 		etString*			hostName;
 		int                 hostNodeNameLen;
 
@@ -65,6 +67,7 @@ class coCore {
 		coPluginList*		plugins;
 
 	// set / get
+        const char*         nodeName();
 		void            	setHostName( const char* hostname );
 		bool				hostNameGet( const char** hostName, int* hostNameChars );
 		const char*			hostNameGet();

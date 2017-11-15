@@ -103,7 +103,7 @@ public:
 		~coCoreConfig();
 
 	// config
-		bool				load();
+		bool				load( const char* myNodeName );
 		bool				save( const char* jsonString = NULL );
 
 	// nodes
