@@ -806,7 +806,7 @@ bool sslSession::           handleClient(){
 // init out tls-connection
     gnutls_init( &session, GNUTLS_SERVER );
     gnutls_priority_set( session, sslSession::priorityCache );
-    gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, sslSession::clientCerts );
+    gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, sslSession::myCerts );
 
 // we request the client certificate to verify it
     gnutls_certificate_server_set_request( session, GNUTLS_CERT_REQUEST );
