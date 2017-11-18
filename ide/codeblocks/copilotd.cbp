@@ -16,7 +16,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug --sslclient" />
+				<Option parameters="--debug --nonft --sslserver" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -216,12 +216,6 @@
 		<Unit filename="../../src/plugins/coreService.h">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
-		<Unit filename="../../src/plugins/gnutls.cpp">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
-		<Unit filename="../../src/plugins/gnutls.h">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
 		<Unit filename="../../src/plugins/ldapService.cpp">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
@@ -247,6 +241,18 @@
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
 		<Unit filename="../../src/plugins/sshSession.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sslService.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sslService.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sslSession.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sslSession.h">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
 		<Unit filename="../../src/plugins/websocket.cpp">

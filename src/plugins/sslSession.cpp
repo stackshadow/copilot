@@ -897,14 +897,11 @@ bool sslSession::           client(){
     gnutls_priority_set( session, sslSession::priorityCache );
     gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, sslSession::clientCerts );
 
-    gnutls_session_set_ptr( session, (void *)"localhost" );
-    gnutls_server_name_set( session, GNUTLS_NAME_DNS, "localhost", strlen("localhost") );
-
 
 // save info
     clientHostName = this->host(NULL);
     gnutls_session_set_ptr( session, (void*)clientHostName );
-
+    gnutls_server_name_set( session, GNUTLS_NAME_DNS, clientHostName, strlen(clientHostName) );
 
 // gnu tls use the socket
     gnutls_transport_set_int( session, this->socketChannel );
