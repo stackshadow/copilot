@@ -101,7 +101,7 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
         msgPayload = json_dumps( jsonPayload, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     // message send back so source
-        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->plugins->messageQueue->add( this,
         coCore::ptr->hostNameGet(), msgSource,
         msgGroup, "serverConfig", msgPayload );
 
@@ -168,7 +168,7 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
         msgPayload = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     // add the message to list
-        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->plugins->messageQueue->add( this,
         coCore::ptr->hostNameGet(), msgSource,
         msgGroup, "requestKeys", msgPayload );
 
@@ -212,7 +212,7 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
         msgPayload = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     // add the message to list
-        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->plugins->messageQueue->add( this,
         coCore::ptr->hostNameGet(), msgSource,
         msgGroup, "acceptedKeys", msgPayload );
 

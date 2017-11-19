@@ -85,7 +85,7 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 			coCore::ptr->hostNameGet( &tempHostName, NULL );
 
         // add the message to list
-            coCore::ptr->plugins->messageAdd( this,
+            coCore::ptr->plugins->messageQueue->add( this,
             myHostName, msgSource,
             msgGroup, "pong", "" );
 
@@ -117,7 +117,7 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
     if( strncmp( (char*)msgCommand, "versionGet", 10 ) == 0 ){
 
     // add the message to list
-        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->plugins->messageQueue->add( this,
         myHostName, msgSource,
         msgGroup, "version", copilotVersion );
 
@@ -136,7 +136,7 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 		jsonArrayChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageAdd( this,
+        coCore::ptr->plugins->messageQueue->add( this,
         myHostName, msgSource,
         msgGroup, "nodes", jsonArrayChar );
 

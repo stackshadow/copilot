@@ -65,7 +65,8 @@ sources     += src/main.cpp
 
 sources     += src/coCore.cpp
 sources     += src/coCoreConfig.cpp
-#sources     += src/coPluginElement.cpp
+sources     += src/coMessageQueue.cpp
+sources     += src/coMessageQueue2.cpp
 sources     += src/coPlugin.cpp
 sources     += src/coPluginList.cpp
 sources     += src/coMessage.cpp

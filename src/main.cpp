@@ -75,7 +75,7 @@ int main( int argc, char *argv[] ){
 
     etInit(argc,(const char**)argv);
     etDebugLevelSet( etID_LEVEL_WARNING );
-    etDebugLevelSet( etID_LEVEL_ALL );
+    etDebugLevelSet( etID_LEVEL_DETAIL_APP );
 //    QCoreApplication a(argc, argv);
 
 

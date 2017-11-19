@@ -73,7 +73,7 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
 
         char* jsonString = json_dumps( this->jsonChainsObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
-        coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource, "nft", "chains", jsonString );
+        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "chains", jsonString );
 
         free( (void*)jsonString );
         return coPlugin::REPLY;
@@ -103,7 +103,7 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     // save it to the file
         this->save();
 
-        coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource, "nft", "saveok", "" );
+        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "saveok", "" );
 
 
         return coPlugin::REPLY;
@@ -434,7 +434,7 @@ bool nftService::               	applyChain( const char* chainName, const char* 
         returnValue = system( command.c_str() );
         fprintf( stdout, "nft: %s\n", command.c_str() );
         if( returnValue != 0 ){
-            coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource,
+            coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
             "nft", "msgError", "Could not create chain" );
             return false;
         }
@@ -450,7 +450,7 @@ bool nftService::               	applyChain( const char* chainName, const char* 
         returnValue = system( command.c_str() );
         fprintf( stdout, "nft: %s\n", command.c_str() );
         if( returnValue != 0 ){
-            coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource,
+            coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
             "nft", "msgError", "Could not create chain" );
             return false;
         }
@@ -464,7 +464,7 @@ bool nftService::               	applyChain( const char* chainName, const char* 
 
 					command = "Could not apply " + command;
 
-                    coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource,
+                    coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
                     "nft", "msgError", command.c_str() );
 
                     return false;
@@ -507,7 +507,7 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
     returnValue = system( "sudo nft flush ruleset" );
     fprintf( stdout, "nft: sudo nft flush ruleset\n" );
     if( returnValue != 0 ){
-        coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource,
+        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
         "nft", "msgError", "Could not flush rules" );
         return false;
     }
@@ -516,14 +516,14 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
     returnValue = system( "sudo nft add table ip default" );
     fprintf( stdout, "nft: sudo nft add table ip default\n" );
     if( returnValue != 0 ){
-        coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource,
+        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
         "nft", "msgError", "Could not create ip table" );
         return false;
     }
     returnValue = system( "sudo nft add table ip6 default" );
     fprintf( stdout, "nft: sudo nft add table ip6 default\n" );
     if( returnValue != 0 ){
-        coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource,
+        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
         "nft", "msgError", "Could not create ip6 table" );
         return false;
     }
@@ -536,7 +536,7 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
     if( this->applyChain( "postrouting",    "nat",      message ) == false ) return false;
 
 
-    coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource,
+    coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
     "nft", "msgInfo", "Rules active." );
 
     return true;

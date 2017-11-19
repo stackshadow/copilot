@@ -84,6 +84,11 @@
       <File Name="../../src/deprecated/doDBDws.cpp"/>
       <File Name="../../src/deprecated/doDBDws.qt.h"/>
     </VirtualDirectory>
+    <File Name="../../src/coMessageQueue.h"/>
+    <File Name="../../src/coMessageQueue.cpp"/>
+    <File Name="../../src/lockPthread.h"/>
+    <File Name="../../src/coMessageQueue2.h"/>
+    <File Name="../../src/coMessageQueue2.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="make">
     <VirtualDirectory Name="generic">
@@ -130,7 +135,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--debug --nonft --sslclient" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--debug --nonft" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -163,7 +168,9 @@
         <SearchPaths>/usr/include
 /usr/src/projekte/copilot/copilotd/libs/evillib/core
 $(ProjectPath)/../../src
-$(ProjectPath)/../../src/plugins</SearchPaths>
+$(ProjectPath)/../../src/plugins
+$(ProjectPath)/../../libs/evillib
+$(ProjectPath)/../../libs/evillib/core</SearchPaths>
       </Completion>
     </Configuration>
     <Configuration Name="Debug Server" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">

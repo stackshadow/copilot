@@ -38,6 +38,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coPluginList.h"
 
 
+
+
 class coCore {
 
 
