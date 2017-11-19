@@ -17,7 +17,14 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+/* test:
+gnutls-cli --no-ca-verification \
+--x509keyfile=/etc/copilot/services/ssl_my_keys/hacktop7.mnet.local-key.pem \
+--x509certfile=/etc/copilot/services/ssl_my_keys/hacktop7.mnet.local-cert.pem  \
+localhost:4567
 
+{ "id":"", "s":"testnode", "t":"all", "g":"cocom", "c":"ping", "v": "" }
+*/
 
 #include "jansson.h"
 //#include "doDBDws.h"
@@ -55,8 +62,6 @@ static struct option options[] = {
     #endif
     { "nonft",      no_argument,        NULL, 'a' },
 
-    { "sslserver",      no_argument,        NULL, 'x' },
-    { "sslclient",      no_argument,        NULL, 'y' },
 
     { NULL, 0, 0, 0 }
 };
@@ -82,11 +87,7 @@ int main( int argc, char *argv[] ){
 // create the core which contains all services
     coCore*         core = new coCore();
 
-// ssl service
-#ifndef DISABLE_WOLFSSL
-    sslService* ssl = new sslService();
-    sslSession* sslClient = new sslSession();
-#endif
+
 
 // parse options
     int             optionSelected = 0;
@@ -163,19 +164,19 @@ int main( int argc, char *argv[] ){
 				coCore::setupMode = true;
 				break;
 
-            case 'x':
-                ssl->serve();
-                break;
-
-            case 'y':
-                ssl->connectAll();
-                break;
 		}
 
 
     }
 
 
+
+// ssl service
+#ifndef DISABLE_WOLFSSL
+    sslService* ssl = new sslService();
+    ssl->serve();
+    ssl->connectAll();
+#endif
 
 
 // create services
@@ -222,6 +223,10 @@ int main( int argc, char *argv[] ){
 
 // execute all plugins
 	core->plugins->executeAll();
+
+
+    //coCore::ptr->plugins->messageQueue->add( NULL, "test", "all", "", "ping", "" );
+
 
 // because the most plugins run own threads we need a "busy" thread
     core->mainLoop();

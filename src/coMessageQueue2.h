@@ -50,6 +50,7 @@ class coMessageQueue2 {
 		~coMessageQueue2();
 
     // message fifo
+        bool                add( coPlugin* sourcePlugin, coMessage* message );
         bool                add(    coPlugin*   sourcePlugin,
                                     const char* nodeNameSource,
                                     const char* nodeNameTarget,

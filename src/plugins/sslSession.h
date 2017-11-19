@@ -51,10 +51,11 @@ class sslSession : public coPlugin {
         typedef enum {
             UNKNOW              = 0,
             CONNECTING          = 1,
+            REQ_DISCONNECT      = 9,        /**< Request disconnect */
             DISCONNECTED        = 10,       /**< connection is established */
-            CONNECTED_OUT       = 20,       /**< connected to external host */
-            CONNECTED_INC       = 21,       /**< incoming connection */
-            REQ_DISCONNECT      = 30,       /**< Request disconnect */
+            CONNECTED           = 20,
+            CONNECTED_OUT       = 21,       /**< connected to external host */
+            CONNECTED_INC       = 22,       /**< incoming connection */
         } state_t;
 
 
@@ -74,6 +75,7 @@ class sslSession : public coPlugin {
         int                                 socketChannel;
         struct sockaddr_in                  socketChannelAddress;
         socklen_t                           socketChannelAddressLen;
+        gnutls_session_t                    tlsSession;
         sslSessionServerOnNewPeerCallback*  newPeerCallbackFunct = NULL;
         void*                               userdata;
 
@@ -88,7 +90,7 @@ class sslSession : public coPlugin {
         static bool         globalServerInit( const char* serverName );
 
 
-// static functions ( for all sessions )
+// ######################################## static functions ( for all sessions ) ########################################
     public:
 // key handling
         static bool         import( const char* filename, gnutls_privkey_t privateKey );
@@ -106,32 +108,31 @@ class sslSession : public coPlugin {
         static int          verifyPublikKeyCallback( gnutls_session_t session, bool pinning );
 
 
-// instance-functions
+
+
+
+
+
+// ######################################## public stuff ########################################
     public:
         int                 port( int port );
         const char*         host( const char* hostName = NULL );
 
         bool                certInfo( const char* name );
 
-
-
-// internal functions
-    private:
-
-
-// API
+// ######################################## server / client ########################################
     public:
-/*
-		coPlugin::t_state	onBroadcastMessage( coMessage* message );
-		bool 				onSetup();
-		bool				onExecute();
-*/
-// server
         bool                handleClient();
-
-// client
         bool                client();
-        static void*		clientSessionThread( void* void_service );
+
+    private:
+        bool                communicate();
+
+
+
+// ######################################## API ########################################
+		coPlugin::t_state	onBroadcastMessage( coMessage* message );
+
 
 
 };

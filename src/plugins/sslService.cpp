@@ -694,7 +694,12 @@ void* sslService::					connectToClientThread( void* void_session ){
         session->socketChannel = socket( AF_INET, SOCK_STREAM, 0 );
         ret = connect( session->socketChannel, (const sockaddr*)&session->socketChannelAddress, session->socketChannelAddressLen );
         if( ret != 0 ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Socket connect error: %s", strerror(errno) );
+
+            char* inetAddress;
+
+            inetAddress = inet_ntoa( session->socketChannelAddress.sin_addr ),
+
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not connect to %s on %i: %s", inetAddress, session->port(-1), strerror(errno) );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
             sleep(10);

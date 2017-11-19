@@ -51,6 +51,23 @@ coMessageQueue2::                ~coMessageQueue2(){
 
 
 
+bool coMessageQueue2::           add( coPlugin* sourcePlugin, coMessage* message ){
+
+// Lock
+    lockPthread( this->messageFiFoLock );
+
+// add it to the list
+    etListAppend( this->list, (void*)message );
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%p: append message", message );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+// UnLock
+    unlockPthread( this->messageFiFoLock );
+    return true;
+}
+
 
 bool coMessageQueue2::           add(    coPlugin*   sourcePlugin,
                                         const char* nodeNameSource,
@@ -63,9 +80,6 @@ bool coMessageQueue2::           add(    coPlugin*   sourcePlugin,
 // vars
     coMessage*      message = NULL;
 
-// Lock
-    lockPthread( this->messageFiFoLock );
-
 // set message
     message = new coMessage();
     message->source( sourcePlugin );
@@ -76,15 +90,7 @@ bool coMessageQueue2::           add(    coPlugin*   sourcePlugin,
     message->payload( payload );
 
 // add it to the list
-    etListAppend( this->list, (void*)message );
-
-// debug
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%p: append message", message );
-    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-
-// UnLock
-    unlockPthread( this->messageFiFoLock );
-    return true;
+    return this->add( sourcePlugin, message );
 }
 
 

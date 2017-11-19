@@ -158,7 +158,7 @@ int print_info(gnutls_session_t session) {
 
 
 
-sslSession::                sslSession() : coPlugin( "sslSession", coCore::ptr->hostNameGet(), "cocom" ){
+sslSession::                sslSession() : coPlugin( "sslSession", "", "" ){
 
 // allocate memory
     etStringAlloc( this->sessionHost );
@@ -798,18 +798,17 @@ bool sslSession::           handleClient(){
 
 // vars
     int                     sd, ret;
-    gnutls_session_t        session;
     char                    buffer[MAX_BUF + 1];
-    const char* clientHostName;
+    const char*             clientHostName;
 
 
 // init out tls-connection
-    gnutls_init( &session, GNUTLS_SERVER );
-    gnutls_priority_set( session, sslSession::priorityCache );
-    gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, sslSession::myCerts );
+    gnutls_init( &this->tlsSession, GNUTLS_SERVER );
+    gnutls_priority_set( this->tlsSession, sslSession::priorityCache );
+    gnutls_credentials_set( this->tlsSession, GNUTLS_CRD_CERTIFICATE, sslSession::myCerts );
 
 // we request the client certificate to verify it
-    gnutls_certificate_server_set_request( session, GNUTLS_CERT_REQUEST );
+    gnutls_certificate_server_set_request( this->tlsSession, GNUTLS_CERT_REQUEST );
 
 // call
     if( this->newPeerCallbackFunct != NULL ){
@@ -818,74 +817,35 @@ bool sslSession::           handleClient(){
 
  // save info
     clientHostName = this->host(NULL);
-    gnutls_session_set_ptr( session, (void*)clientHostName );
+    gnutls_session_set_ptr( this->tlsSession, (void*)clientHostName );
 
 
 // gnu tls use the socket
-    gnutls_transport_set_int( session, this->socketChannel );
+    gnutls_transport_set_int( this->tlsSession, this->socketChannel );
 
 
-// handshake
-    do { ret = gnutls_handshake( session ); }
-    while( ret < 0 && gnutls_error_is_fatal( ret ) == 0 );
-
-// failed ?
-    if (ret < 0) {
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake failed: %s", gnutls_strerror(ret) );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-        goto onerror;
-    } else {
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake complete.", gnutls_strerror(ret) );
-        etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
-    }
+// communication
+    this->sessionState = sslSession::CONNECTED_INC;
+    this->communicate();
+    this->sessionState = sslSession::DISCONNECTED;
 
 
-    for (;;){
-        memset( buffer, 0, MAX_BUF + 1 );
-        ret = gnutls_record_recv( session, buffer, MAX_BUF );
-
-    // closed
-        if( ret == 0 ){
-            printf ("\n- Peer has closed the GnuTLS connection\n");
-            break;
-        }
-
-    // error
-        else if (ret < 0){
-            fprintf (stderr, "\n*** Received corrupted "
-            "data(%d). Closing the connection.\n\n", ret);
-            break;
-        }
-
-    // data recieved
-        else if (ret > 0){
-            gnutls_record_send( session, buffer, strlen (buffer) );
-        }
-    }
-
-    printf ("\n");
-
-    gnutls_bye (session, GNUTLS_SHUT_WR);
-
+    gnutls_bye (this->tlsSession, GNUTLS_SHUT_WR);
     close( this->socketChannel );
-    gnutls_deinit (session);
-
-
+    gnutls_deinit (this->tlsSession);
 
 onerror:
-    close( socketChannel );
+    close( this->socketChannel );
 
 
     return 0;
 }
 
-#define MSG "GET / HTTP/1.0\r\n\r\n"
 
 bool sslSession::           client(){
 
 // vars
     int ret, ii;
-    gnutls_session_t                        session;
     char                                    buffer[MAX_BUF + 1];
     const char*                             err;
     struct sockaddr_in                      clientSocketAddress;
@@ -893,72 +853,157 @@ bool sslSession::           client(){
     const char*                             clientHostName;
 
 // init gnutls
-    gnutls_init( &session, GNUTLS_CLIENT );
-    gnutls_priority_set( session, sslSession::priorityCache );
-    gnutls_credentials_set( session, GNUTLS_CRD_CERTIFICATE, sslSession::clientCerts );
+    gnutls_init( &this->tlsSession, GNUTLS_CLIENT );
+    gnutls_priority_set( this->tlsSession, sslSession::priorityCache );
+    gnutls_credentials_set( this->tlsSession, GNUTLS_CRD_CERTIFICATE, sslSession::clientCerts );
+
+// save info
+    clientHostName = this->host(NULL);
+    gnutls_server_name_set( this->tlsSession, GNUTLS_NAME_DNS, clientHostName, strlen(clientHostName) );
 
 
 // save info
     clientHostName = this->host(NULL);
-    gnutls_session_set_ptr( session, (void*)clientHostName );
-    gnutls_server_name_set( session, GNUTLS_NAME_DNS, clientHostName, strlen(clientHostName) );
+    gnutls_session_set_ptr( this->tlsSession, (void*)clientHostName );
 
 // gnu tls use the socket
-    gnutls_transport_set_int( session, this->socketChannel );
-
-// handshake
-    do { ret = gnutls_handshake( session ); }
-    while( ret < 0 && gnutls_error_is_fatal( ret ) == 0 );
-
-// failed ?
-    if (ret < 0) {
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake failed: %s", gnutls_strerror(ret) );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-        goto onerror;
-    } else {
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake complete.", gnutls_strerror(ret) );
-        etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
-    }
+    gnutls_transport_set_int( this->tlsSession, this->socketChannel );
 
 
-    for(;;){
-        gnutls_record_send (session, MSG, strlen (MSG));
-
-        memset( buffer, 0, MAX_BUF + 1 );
-        ret = gnutls_record_recv (session, buffer, MAX_BUF);
-        if( ret == 0 ){
-            printf ("- Peer has closed the TLS connection\n");
-            goto onerror;
-        }
-        else if( ret < 0 ){
-            fprintf (stderr, "*** Error: %s\n", gnutls_strerror (ret));
-            goto onerror;
-        }
-
-        printf ("- Received %d bytes: ", ret);
-        for( ii = 0; ii < ret; ii++ ){
-            fputc (buffer[ii], stdout);
-        }
-        fputs ("\n", stdout);
-
-        //sleep(2);
-        usleep( 5000 );
-    }
+// communication
+    this->sessionState = sslSession::CONNECTED_OUT;
+    this->communicate();
+    this->sessionState = sslSession::DISCONNECTED;
 
 
-    gnutls_bye (session, GNUTLS_SHUT_RDWR);
+    gnutls_bye (this->tlsSession, GNUTLS_SHUT_RDWR);
 
 onerror:
 
     close(socketClientChannel);
 
-    gnutls_deinit (session);
+    gnutls_deinit (this->tlsSession);
 
 
 
 
     return 0;
 }
+
+
+bool sslSession::           communicate(){
+
+// vars
+    int                     ret = -1;
+    char                    buffer[MAX_BUF + 1];
+	json_error_t	        jsonError;
+	json_t*			        jsonMessage = NULL;
+
+// handshake
+    do { ret = gnutls_handshake( this->tlsSession ); }
+    while( ret < 0 && gnutls_error_is_fatal( ret ) == 0 );
+
+// failed ?
+    if (ret < 0) {
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake failed: %s", gnutls_strerror(ret) );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return false;
+    } else {
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Handshake complete.", gnutls_strerror(ret) );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    }
+
+
+    for (;;){
+
+    // recieve data
+        memset( buffer, 0, MAX_BUF + 1 );
+        ret = gnutls_record_recv( this->tlsSession, buffer, MAX_BUF );
+
+    // close
+        if( ret == 0 ){
+            etDebugMessage( etID_LEVEL_ERR, "Peer has closed the TLS connection" );
+            return false;
+        }
+    // Error
+        else if( ret < 0 ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Error: %s", gnutls_strerror (ret) );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            return false;
+        }
+
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Received %s", buffer );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+
+    // try to parse the data into json
+        jsonMessage = json_loads( (const char*)buffer, JSON_PRESERVE_ORDER, &jsonError );
+        if( jsonMessage == NULL || jsonError.line >= 0 ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "JSON ERROR: %s", jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            continue;
+        }
+
+    // add message to queue
+        coMessage* message = new coMessage();
+        if( message->fromJson( jsonMessage ) == true ){
+            message->source( this );
+            coCore::ptr->plugins->messageQueue->add( this, message );
+        }
+
+        usleep( 5000 );
+    }
+
+
+    return true;
+}
+
+
+
+
+
+coPlugin::t_state sslSession::onBroadcastMessage( coMessage* message ){
+    if( this->sessionState < sslSession::CONNECTED ) return NO_REPLY;
+
+// vars
+    const char*     myHostName = coCore::ptr->hostNameGet();
+    const char*     msgTarget = message->nodeNameTarget();
+    const char*     msgSource = message->nodeNameSource();
+	json_t*			jsonMessage = NULL;
+	char*			jsonString = NULL;
+
+// if there is a message for myHost we dont need to send it out to the world
+    if( strncmp(msgTarget,myHostName,strlen(myHostName)) == 0 ){
+        return NO_REPLY;
+    }
+
+// create json from message
+	jsonMessage = json_object();
+	if( message->toJson( jsonMessage ) == false ){
+		return NO_REPLY;
+	}
+
+// dump / send json
+	jsonString = json_dumps( jsonMessage, JSON_PRESERVE_ORDER | JSON_COMPACT );
+	if( jsonString != NULL ){
+
+	// debugging message
+		snprintf( etDebugTempMessage, etDebugTempMessageLen, "[TLS] [try to send] [%s]", jsonString );
+		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+        gnutls_record_send( this->tlsSession, jsonString, strlen(jsonString) );
+
+
+    }
+
+// we dont have anything to reply, because the answer comes asynchron
+	return coPlugin::NO_REPLY;
+}
+
+
+
+
 
 
 
