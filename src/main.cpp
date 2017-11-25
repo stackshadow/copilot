@@ -17,7 +17,14 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
+/* test:
+gnutls-cli --no-ca-verification \
+--x509keyfile=/etc/copilot/services/ssl_my_keys/hacktop7.mnet.local-key.pem \
+--x509certfile=/etc/copilot/services/ssl_my_keys/hacktop7.mnet.local-cert.pem  \
+localhost:4567
 
+{ "id":"", "s":"testnode", "t":"all", "g":"cocom", "c":"ping", "v": "" }
+*/
 
 #include "jansson.h"
 //#include "doDBDws.h"
@@ -31,13 +38,14 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 // plugins
 //#include "plugins/qwebsocket.h"
-#include "plugins/sshService.h"
+#include "plugins/sslService.h"
+#include "plugins/sslSession.h"
 #include "plugins/websocket.h"
 #include "plugins/coreService.h"
 //#include "plugins/sysState.h"
 //#include "plugins/lxcService.h"
 #include "plugins/nftService.h"
-//#include "plugins/ldapService.h"
+#include "plugins/ldapService.h"
 //#include "plugins/mqttService.h"
 //#include "plugins/ldapService.h"
 
@@ -53,6 +61,8 @@ static struct option options[] = {
     { "websocket",  no_argument,        NULL, 'w' },
     #endif
     { "nonft",      no_argument,        NULL, 'a' },
+
+
     { NULL, 0, 0, 0 }
 };
 
@@ -70,11 +80,14 @@ int main( int argc, char *argv[] ){
 
     etInit(argc,(const char**)argv);
     etDebugLevelSet( etID_LEVEL_WARNING );
+    etDebugLevelSet( etID_LEVEL_DETAIL_APP );
 //    QCoreApplication a(argc, argv);
 
 
 // create the core which contains all services
     coCore*         core = new coCore();
+
+
 
 // parse options
     int             optionSelected = 0;
@@ -150,12 +163,20 @@ int main( int argc, char *argv[] ){
 			case 's':
 				coCore::setupMode = true;
 				break;
+
 		}
 
 
     }
 
 
+
+// ssl service
+#ifndef DISABLE_WOLFSSL
+    sslService* ssl = new sslService();
+    ssl->serve();
+    ssl->connectAll();
+#endif
 
 
 // create services
@@ -171,6 +192,7 @@ int main( int argc, char *argv[] ){
         newSshService->connect( connectToHostName, connectToPort );
     }
 #endif
+
 
 
 // websocket-service
@@ -190,6 +212,10 @@ int main( int argc, char *argv[] ){
 
 #endif
 
+// ldap
+#ifndef DISABLE_LDAP
+    ldapService*    ldapPlugin = new ldapService();
+#endif
 
 
 // Setup All plugins
@@ -197,6 +223,10 @@ int main( int argc, char *argv[] ){
 
 // execute all plugins
 	core->plugins->executeAll();
+
+
+    //coCore::ptr->plugins->messageQueue->add( NULL, "test", "all", "", "ping", "" );
+
 
 // because the most plugins run own threads we need a "busy" thread
     core->mainLoop();

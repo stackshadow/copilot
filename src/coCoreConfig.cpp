@@ -39,7 +39,7 @@ coCoreConfig::				~coCoreConfig(){
 
 
 
-bool coCoreConfig::			load(){
+bool coCoreConfig::			load( const char* myNodeName ){
 	lockMyPthread();
 
 // vars
@@ -79,6 +79,12 @@ bool coCoreConfig::			load(){
         json_object_set_new( this->jsonConfig, "users", jsonUsers );
         saveToFile = true;
     }
+
+// get our own node
+    if( this->nodeSelect(myNodeName) == false ){
+        saveToFile = true;
+    }
+
 
 	if( saveToFile == true ){
 		this->save(NULL);

@@ -37,16 +37,6 @@ coCore::                    coCore(){
 // init lock
 	this->threadLock = 0;
 
-// create config-object
-	this->config = new coCoreConfig();
-	this->config->load();
-
-// create plugin list
-	this->plugins = new coPluginList();
-
-// create temp-message
-    coCore::message = new coMessage();
-
 
 // get host name
 	struct utsname tempHostInfo;
@@ -54,6 +44,22 @@ coCore::                    coCore(){
 	etStringAlloc( this->hostName );
 	etStringCharSet( this->hostName, tempHostInfo.nodename, -1 );
 	this->hostNodeNameLen = strlen( tempHostInfo.nodename );
+
+// my node name
+    etStringAlloc( this->myNodeName );
+	etStringCharSet( this->myNodeName, tempHostInfo.nodename, -1 );
+
+
+// create config-object
+	this->config = new coCoreConfig();
+	this->config->load( this->nodeName() );
+
+// create plugin list
+	this->plugins = new coPluginList();
+
+// create temp-message
+    coCore::message = new coMessage();
+
 
 // because ssh-configuration is based on our hostname, we print it out for debugging
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "My hostname: %s", tempHostInfo.nodename );
@@ -83,6 +89,14 @@ coCore::                    ~coCore(){
 
 
 
+const char* coCore::        nodeName(){
+
+    // vars
+    const char*         myNodeNameCharArray = NULL;
+    etStringCharGet( this->myNodeName, myNodeNameCharArray );
+
+    return myNodeNameCharArray;
+}
 
 
 void coCore::               setHostName( const char *hostname ){

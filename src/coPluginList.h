@@ -37,26 +37,26 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "coPlugin.h"
 #include "coCoreConfig.h"
+#include "coMessageQueue.h"
+#include "coMessageQueue2.h"
 
 
-const int           messageFiFoMax = 10;
 class coPluginList {
 
 	private:
 	// plugins
-        lockID				threadLock;
+        lockID				pluginListLock;
 		etList*             pluginList;
 		void*				pluginListIterator;
-
-        lockID              messageFiFoLock;
-        coMessage*          messageFiFo[messageFiFoMax];
-        bool                messageFiFoUsed[messageFiFoMax];
-        int                 messageFiFoIndexWritten = messageFiFoMax - 1;
-        int                 messageFiFoIndexReaded = 0;
 
         pthread_t           broadcastThread_i;
         int                 broadcastThreadRun = 0;
         bool                boradcastThreadPing = false;
+
+    public:
+        coMessageQueue2*     messageQueue;
+
+
 
 	public:
 		coPluginList();
@@ -71,19 +71,11 @@ class coPluginList {
 		bool    	        next( coPlugin** plugin );
         bool                iterateFinish();
 
-    // message fifo
-        bool                messageAdd( coPlugin*   sourcePlugin,
-                                        const char* nodeNameSource,
-                                        const char* nodeNameTarget,
-                                        const char* group,
-                                        const char* command,
-                                        const char* payload );
-        bool                messageRelease();
-        bool                messageGet( coMessage** p_message );
 
     // API
         void                boradcastThreadStart();
         static void*        broadcastThread( void* userdata );
+        void                broadcastWatchdogThreadStart();
         static void*        broadcastWatchdogThread( void* userdata );
 
         //void                broadcast( coPlugin* source, coMessage* message );

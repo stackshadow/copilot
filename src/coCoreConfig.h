@@ -34,45 +34,13 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "jansson.h"
 
-#include <sys/syscall.h>
-#include <sys/types.h>
+#include "lockPthread.h"
+
+
 
 #ifndef baseFilePath
 #define baseFilePath "/etc/copilot/services/"
 #endif
-
-#define lockID pid_t
-
-#define lockMyPthread() \
-	pid_t myThreadTIDLock = syscall(SYS_gettid); \
-	while( this->threadLock != myThreadTIDLock && this->threadLock != 0 ){ \
-		usleep( 10000 ); \
-	} \
-	this->threadLock = myThreadTIDLock; \
-
-#define unlockMyPthread() \
-	pid_t myThreadTIDUnLock = syscall(SYS_gettid); \
-	while( this->threadLock != myThreadTIDUnLock && this->threadLock != 0 ){ \
-		usleep( 10000 ); \
-	} \
-	this->threadLock = 0; \
-
-
-
-#define lockPthread( threadLock ) \
-	pid_t myThreadTIDLock = syscall(SYS_gettid); \
-	while( threadLock != myThreadTIDLock && threadLock != 0 ){ \
-		usleep( 10000 ); \
-	} \
-	threadLock = myThreadTIDLock; \
-
-#define unlockPthread( threadLock ) \
-	pid_t myThreadTIDUnLock = syscall(SYS_gettid); \
-	while( threadLock != myThreadTIDUnLock && threadLock != 0 ){ \
-		usleep( 10000 ); \
-	} \
-	threadLock = 0; \
-
 
 class coCoreConfig {
 
@@ -103,7 +71,7 @@ public:
 		~coCoreConfig();
 
 	// config
-		bool				load();
+		bool				load( const char* myNodeName );
 		bool				save( const char* jsonString = NULL );
 
 	// nodes

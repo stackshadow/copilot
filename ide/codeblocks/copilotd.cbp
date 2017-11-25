@@ -1,0 +1,280 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="copilotd" />
+		<Option makefile="make/Makefile" />
+		<Option makefile_is_custom="1" />
+		<Option execution_dir="../../../copilotd" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="src/;src/classes/;src/develop/;src/plugins/;src/deprecated/;make/;make/generic/;make/postmake/;make/premake/;" />
+		<Build>
+			<Target title="engineering">
+				<Option output="/tmp/copilotd/build/app" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="/tmp/copilotd/build" />
+				<Option object_output="obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="--debug --nonft --sslserver" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+				<MakeCommands>
+					<Build command="$make -f $makefile $target" />
+					<CompileFile command="$make -f $makefile $file" />
+					<Clean command="$make -f $makefile clean" />
+					<DistClean command="$make -f $makefile distclean$target" />
+					<AskRebuildNeeded command="$make -q -f $makefile $target" />
+					<SilentBuild command="$make -f $makefile $target &gt; $(CMD_NULL)" />
+				</MakeCommands>
+			</Target>
+			<Target title="Release">
+				<Option output="bin/Release/copilotd" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-O2" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+		</Compiler>
+		<Unit filename="../../make/Makefile">
+			<Option virtualFolder="make/" />
+		</Unit>
+		<Unit filename="../../make/cflags.mk">
+			<Option virtualFolder="make/" />
+		</Unit>
+		<Unit filename="../../make/clibs.mk">
+			<Option virtualFolder="make/" />
+		</Unit>
+		<Unit filename="../../make/generic/bin.mk">
+			<Option virtualFolder="make/generic/" />
+		</Unit>
+		<Unit filename="../../make/generic/gitversion.mk">
+			<Option virtualFolder="make/generic/" />
+		</Unit>
+		<Unit filename="../../make/generic/library.mk">
+			<Option virtualFolder="make/generic/" />
+		</Unit>
+		<Unit filename="../../make/generic/objects.mk">
+			<Option virtualFolder="make/generic/" />
+		</Unit>
+		<Unit filename="../../make/generic/qt.mk">
+			<Option virtualFolder="make/generic/" />
+		</Unit>
+		<Unit filename="../../make/postmake/README">
+			<Option virtualFolder="make/postmake/" />
+		</Unit>
+		<Unit filename="../../make/premake/README">
+			<Option virtualFolder="make/premake/" />
+		</Unit>
+		<Unit filename="../../make/premake/evillib.mk">
+			<Option virtualFolder="make/premake/" />
+		</Unit>
+		<Unit filename="../../make/premake/uuid.mk">
+			<Option virtualFolder="make/premake/" />
+		</Unit>
+		<Unit filename="../../make/progs.mk">
+			<Option virtualFolder="make/" />
+		</Unit>
+		<Unit filename="../../make/sources.mk">
+			<Option virtualFolder="make/" />
+		</Unit>
+		<Unit filename="../../make/sources.mk~">
+			<Option virtualFolder="make/" />
+		</Unit>
+		<Unit filename="../../src/classes/doDBDConnection.cpp">
+			<Option virtualFolder="src/classes/" />
+		</Unit>
+		<Unit filename="../../src/classes/doDBDConnection.h">
+			<Option virtualFolder="src/classes/" />
+		</Unit>
+		<Unit filename="../../src/classes/doDBDTools.cpp">
+			<Option virtualFolder="src/classes/" />
+		</Unit>
+		<Unit filename="../../src/classes/doDBDTools.h">
+			<Option virtualFolder="src/classes/" />
+		</Unit>
+		<Unit filename="../../src/client/copilotd.service" />
+		<Unit filename="../../src/client/sudoers" />
+		<Unit filename="../../src/coCore.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coCore.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coCoreConfig.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coCoreConfig.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coMessage.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coMessage.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coPlugin.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coPlugin.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coPluginList.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/coPluginList.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/deprecated/coPluginElement.cpp">
+			<Option virtualFolder="src/deprecated/" />
+		</Unit>
+		<Unit filename="../../src/deprecated/coPluginElement.h">
+			<Option virtualFolder="src/deprecated/" />
+		</Unit>
+		<Unit filename="../../src/deprecated/doDBDws.cpp">
+			<Option virtualFolder="src/deprecated/" />
+		</Unit>
+		<Unit filename="../../src/deprecated/doDBDws.h">
+			<Option virtualFolder="src/deprecated/" />
+		</Unit>
+		<Unit filename="../../src/deprecated/doDBDws.qt.h">
+			<Option virtualFolder="src/deprecated/" />
+		</Unit>
+		<Unit filename="../../src/deprecated/doDBDwsClient.cpp">
+			<Option virtualFolder="src/deprecated/" />
+		</Unit>
+		<Unit filename="../../src/deprecated/doDBDwsClient.h">
+			<Option virtualFolder="src/deprecated/" />
+		</Unit>
+		<Unit filename="../../src/develop/doDBDConnections.cpp">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/doDBDConnections.h">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/doDBTable.cpp">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/doDBTable.h">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/lxcContainer.cpp">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/lxcContainer.h">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/lxcService.cpp">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/lxcService.h">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/mqttService.cpp">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/mqttService.h">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/qwebsocket.cpp">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/qwebsocket.h">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/qwebsocketClient.cpp">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/qwebsocketClient.h">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/sysState.cpp">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/develop/sysState.h">
+			<Option virtualFolder="src/develop/" />
+		</Unit>
+		<Unit filename="../../src/evillib.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/main.cpp">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/plugins/coreService.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/coreService.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/ldapService.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/ldapService.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/nftService.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/nftService.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sshService.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sshService.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sshSession.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sshSession.cpp~">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sshSession.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sslService.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sslService.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sslSession.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sslSession.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/websocket.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/websocket.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/version.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Extensions>
+			<code_completion>
+				<search_path add="/usr/include" />
+				<search_path add="/usr/include/linux" />
+				<search_path add="../../libs/evillib/core" />
+			</code_completion>
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1">
+				<lib name="libssh" />
+			</lib_finder>
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>
