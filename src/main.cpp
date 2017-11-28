@@ -52,15 +52,15 @@ localhost:4567
 //#include <QtCore/QCoreApplication>
 
 static struct option options[] = {
-    { "help",       no_argument,        NULL, 'h' },
-    { "debug",      no_argument,        NULL, 'd' },
-    { "hostname",   required_argument,  NULL, 'n' },
-	{ "setup",      no_argument,        NULL, 's' },
-    { "connect",    required_argument,  NULL, 'c' },
+    { "help",                   no_argument,        NULL, 'h' },
+    { "debug",                  no_argument,        NULL, 'd' },
+    { "hostname",               required_argument,  NULL, 'n' },
+	{ "setup",                  no_argument,        NULL, 's' },
+    { "createConnection",       required_argument,  NULL, 'c' },
     #ifndef DISABLE_WEBSOCKET
-    { "websocket",  no_argument,        NULL, 'w' },
+    { "websocket",              no_argument,        NULL, 'w' },
     #endif
-    { "nonft",      no_argument,        NULL, 'a' },
+    { "nonft",                  no_argument,        NULL, 'a' },
 
 
     { NULL, 0, 0, 0 }
@@ -80,7 +80,7 @@ int main( int argc, char *argv[] ){
 
     etInit(argc,(const char**)argv);
     etDebugLevelSet( etID_LEVEL_WARNING );
-    etDebugLevelSet( etID_LEVEL_DETAIL_APP );
+
 //    QCoreApplication a(argc, argv);
 
 
@@ -117,7 +117,7 @@ int main( int argc, char *argv[] ){
 				fprintf( stdout, "--debug: Enable debug messages\n" );
                 fprintf( stdout, "--hostname <hostname>: Set the hostname ( not detect it automatically )\n" );
                 fprintf( stdout, "--setup: Run setup of all plugins. \n" );
-                fprintf( stdout, "--connect <hostname:port>: Connect to an copilotd-server \n" );
+                fprintf( stdout, "--createConnection <hostname:port>: Create a new client connection and exit \n" );
                 #ifndef DISABLE_WEBSOCKET
                 fprintf( stdout, "--websocket: start websocket-server \n" );
                 #endif
@@ -172,8 +172,20 @@ int main( int argc, char *argv[] ){
 
 
 // ssl service
-#ifndef DISABLE_WOLFSSL
+#ifndef DISABLE_TLS
     sslService* ssl = new sslService();
+
+    if( connectToHost == true ){
+        if( coCore::ptr->config->nodeSelectByHostName(connectToHostName) != true ){
+            coCoreConfig::nodeType connectNodeType = coCoreConfig::CLIENT;
+            coCore::ptr->config->nodeAppend(connectToHostName);
+            coCore::ptr->config->nodeInfo( &connectToHostName, &connectNodeType, true );
+            coCore::ptr->config->nodeConnInfo( &connectToHostName, &connectToPort, true );
+            coCore::ptr->config->save();
+            exit(0);
+        }
+    }
+
     ssl->serve();
     ssl->connectAll();
 #endif
