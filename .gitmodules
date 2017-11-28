@@ -1,3 +1,7 @@
-[submodule "libs/wolfssl"]
-	path = libs/wolfssl
-	url = https://github.com/wolfSSL/wolfssl.git
+[submodule "libs/evillib"]
+	path = libs/evillib
+	url = git@github.com:stackshadow/evillib.git
+[submodule "libs/util-linux"]
+	path = libs/util-linux
+	url = https://git.kernel.org/pub/scm/utils/util-linux/util-linux.git
+	branch = v2.30.2
