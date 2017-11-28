@@ -61,6 +61,36 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     std::string     answerTopic;
 
 
+    if( strncmp( (char*)msgCommand, "chainsCountGet", 14 ) == 0 ){
+
+    // vars
+        const char*     chainName = NULL;
+        json_t*         jsonChainCounter = json_object();
+        int             chainCounter = 0;
+        char*           jsonString = NULL;
+
+    // get the host
+        if( this->selectHost(msgTarget) == false ){
+            return coPlugin::NO_REPLY;
+        }
+
+        this->iterate();
+        while( this->nextChain(&chainName) == true ){
+            chainCounter = json_array_size( this->jsonRulesArray );
+            json_object_set_new( jsonChainCounter, chainName, json_integer(chainCounter) );
+        }
+
+    // dump
+        jsonString = json_dumps( jsonChainCounter, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+    // send back
+        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "chainsCount", jsonString );
+
+    // clean
+        free( (void*)jsonString );
+        json_decref( jsonChainCounter );
+        return coPlugin::REPLY;
+    }
 
 
     if( strncmp( (char*)msgCommand, "chainsList", 10 ) == 0 ){
@@ -80,31 +110,86 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-    if( strncmp( (char*)msgCommand, "save", 4 ) == 0 ){
+    if( strncmp( (char*)msgCommand, "chainGet", 8 ) == 0 ){
 
-        json_error_t    jsonError;
-        int             msgPayloadLen = 0;
-        json_t*         jsonChains = NULL;
+    // vars
+        json_t*         jsonChain = json_object();
 
     // get the host
-        if( this->selectHost(msgTarget) == false ) return coPlugin::NO_REPLY;
+        if( this->selectHost(msgTarget) == false ){
+            return coPlugin::NO_REPLY;
+        }
+
+    // select the chain
+        if( this->selectChain(msgPayload) == false ){
+            coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "", "msgError", "Chain dont exist !" );
+            return coPlugin::NO_REPLY;
+        }
+
+    // set the object
+        json_object_set( jsonChain, msgPayload, this->jsonRulesArray );
+
+    // dump
+        char* jsonString = json_dumps( jsonChain, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+    // send back
+        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "chain", jsonString );
+
+    // clean
+        free( (void*)jsonString );
+        json_decref( jsonChain );
+        return coPlugin::REPLY;
+    }
 
 
-    // because jsonPayload is a string, we need to reparse it
-        if( msgPayload == NULL ) return coPlugin::NO_REPLY;
-        msgPayloadLen = strlen(msgPayload);
-        jsonChains = json_loads( msgPayload, msgPayloadLen, &jsonError );
-        if( jsonError.column >= 0 ) return coPlugin::NO_REPLY;
+    if( strncmp( (char*)msgCommand, "chainSave", 9 ) == 0 ){
+
+    // vars
+        json_t*         jsonChain = NULL;
+        json_error_t    jsonError;
+        int             msgPayloadLen = strlen( msgPayload );
+        const char*     chainName = NULL;
+        void*           jsonIterator = NULL;
+        json_t*         jsonRulesArray = NULL;
+
+    // parse json
+        jsonChain = json_loads( msgPayload, msgPayloadLen, &jsonError );
+        if( jsonChain == NULL || jsonError.line > 0 ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "chainSave error: '%s'", jsonError.text );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+            coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "", "msgError", etDebugTempMessage );
+            return coPlugin::NO_REPLY;
+        }
+
+    // get the chain name
+        jsonIterator = json_object_iter( jsonChain );
+        if( jsonIterator == NULL ) return coPlugin::REPLY;
+        chainName = json_object_iter_key( jsonIterator );
+        if( chainName == NULL ) return coPlugin::REPLY;
+
+        jsonRulesArray = json_object_iter_value( jsonIterator );
+
+    // select the requested host
+        if( this->selectHost(msgTarget) == false ){
+            return coPlugin::NO_REPLY;
+        }
+
+    // overwrite chain
+        json_object_set( this->jsonChainsObject, chainName, jsonRulesArray );
+
+    // clean
+        json_decref( jsonChain );
+
+        return coPlugin::REPLY;
+    }
 
 
-    // overwrite with new chains
-        json_object_set_new( this->jsonHostObject, "chains", jsonChains );
+    if( strncmp( (char*)msgCommand, "save", 4 ) == 0 ){
 
     // save it to the file
         this->save();
 
         coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "saveok", "" );
-
 
         return coPlugin::REPLY;
     }
@@ -313,14 +398,21 @@ bool nftService::               	selectHost( const char* hostName ){
     if( this->jsonChainsObject == NULL ){
         this->jsonChainsObject = json_object();
         json_object_set_new( this->jsonHostObject, "chains", this->jsonChainsObject );
-
-    // add default chains
-        json_object_set_new( this->jsonChainsObject, "prerouting", json_array() );
-        json_object_set_new( this->jsonChainsObject, "input", json_array() );
-        json_object_set_new( this->jsonChainsObject, "output", json_array() );
-        json_object_set_new( this->jsonChainsObject, "forward", json_array() );
-        json_object_set_new( this->jsonChainsObject, "postrouting", json_array() );
     }
+
+// default chains
+    this->jsonRulesArray = json_object_get( this->jsonChainsObject, "prerouting" );
+    if( this->jsonRulesArray == NULL ) json_object_set_new( this->jsonChainsObject, "prerouting", json_array() );
+    this->jsonRulesArray = json_object_get( this->jsonChainsObject, "input" );
+    if( this->jsonRulesArray == NULL ) json_object_set_new( this->jsonChainsObject, "input", json_array() );
+    this->jsonRulesArray = json_object_get( this->jsonChainsObject, "output" );
+    if( this->jsonRulesArray == NULL ) json_object_set_new( this->jsonChainsObject, "output", json_array() );
+    this->jsonRulesArray = json_object_get( this->jsonChainsObject, "forward" );
+    if( this->jsonRulesArray == NULL ) json_object_set_new( this->jsonChainsObject, "forward", json_array() );
+    this->jsonRulesArray = json_object_get( this->jsonChainsObject, "postrouting" );
+    if( this->jsonRulesArray == NULL ) json_object_set_new( this->jsonChainsObject, "postrouting", json_array() );
+
+
 
 // reset the rest
     this->jsonChainsIterator = NULL;
