@@ -666,6 +666,14 @@ void sslService::					connectAll(){
 		}
 
 
+
+
+    /*
+        if( getnameinfo( (struct sockaddr *)&clientSocketAddress, sizeof(clientSocketAddress), clientHostName, clientHostNameSize, NULL, 0, 0 ) == 0 ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "got connection from %s on port %d", clientHostName, ntohs (clientSocketAddress.sin_port) );
+            etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
+        }
+    */
     // create address description
         memset( &clientSocketAddress, '\0', sizeof(clientSocketAddress) );
         clientSocketAddress.sin_family = AF_INET;
@@ -703,23 +711,46 @@ void* sslService::					connectToClientThread( void* void_session ){
     for(;;){
 
 
+// in_addr_t
+    // setup address
+//        memset( &session->socketChannelAddress, '\0', sizeof(session->socketChannelAddress) );
+//        session->socketChannelAddress.sin_family = AF_INET;
+        //session->socketChannelAddress.sin_addr.s_addr = inet_addr( clientHost );
+        //session->socketChannelAddress.sin_port = htons( clientPort );      /* Server Port number */
+
     // connect
-        session->socketChannel = socket( AF_INET, SOCK_STREAM, 0 );
-        ret = connect( session->socketChannel, (const sockaddr*)&session->socketChannelAddress, session->socketChannelAddressLen );
+//        session->socketChannel = socket( AF_INET, SOCK_STREAM, 0 );
+//        ret = connect( session->socketChannel, (const sockaddr*)&session->socketChannelAddress, session->socketChannelAddressLen );
+
+
+
+
+    // get ip-address
+        struct addrinfo* clientHostAddrInfo;
+        const char* hostName = session->host();
+        getaddrinfo( hostName, "4567", NULL, &clientHostAddrInfo );
+
+
+
+    // from getaddrinfo
+        session->socketChannel = socket( clientHostAddrInfo->ai_family, clientHostAddrInfo->ai_socktype, clientHostAddrInfo->ai_protocol );
+        ret = connect( session->socketChannel, clientHostAddrInfo->ai_addr, clientHostAddrInfo->ai_addrlen );
         if( ret != 0 ){
 
             char* inetAddress;
 
             inetAddress = inet_ntoa( session->socketChannelAddress.sin_addr ),
 
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not connect to %s on %i: %s", inetAddress, session->port(-1), strerror(errno) );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not connect to %s on %i: %s", session->host(), session->port(-1), strerror(errno) );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
             sleep(10);
             continue;
         }
 
         session->client();
+
+        close( session->socketChannel );
         sleep(10);
     }
 

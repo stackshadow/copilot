@@ -27,7 +27,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #define SERV_PORT 11111
 #define MAX_LINE 4096
-#define MAX_BUF 1024
+#define MAX_BUF 20480
 
 
 // static stuff
@@ -849,7 +849,6 @@ bool sslSession::           client(){
     char                                    buffer[MAX_BUF + 1];
     const char*                             err;
     struct sockaddr_in                      clientSocketAddress;
-    int                                     socketClientChannel;
     const char*                             clientHostName;
 
 // init gnutls
@@ -880,7 +879,6 @@ bool sslSession::           client(){
 
 onerror:
 
-    close(socketClientChannel);
 
     gnutls_deinit (this->tlsSession);
 
