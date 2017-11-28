@@ -134,7 +134,14 @@ const char* coCore::		hostNameGet(){
 
 
 bool coCore::				isHostName( const char* hostNameToCheck ){
-	if( etStringCharCompare( this->hostName, hostNameToCheck ) == 0 ){
+
+// vars
+	const char*		tempCharArray = NULL;
+	if( etStringCharGet( this->hostName, tempCharArray ) != etID_YES ){
+		return NULL;
+	}
+
+	if( strncmp( hostNameToCheck, tempCharArray, strlen(tempCharArray) ) == 0 ){
 		return true;
 	}
 	return false;

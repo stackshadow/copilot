@@ -949,8 +949,18 @@ bool sslSession::           communicate(){
         coMessage* message = new coMessage();
         if( message->fromJson( jsonMessage ) == true ){
             message->source( this );
-            coCore::ptr->plugins->messageQueue->add( this, message );
+
+        // an external message should not come from us
+            if( coCore::ptr->isHostName( message->nodeNameSource() ) == true ){
+                etDebugMessage( etID_LEVEL_ERR, "We recieve a message from another host with our hostname as source. Message will be dropped" );
+                delete message;
+            } else {
+                coCore::ptr->plugins->messageQueue->add( this, message );
+            }
         }
+
+    // cleanup
+        json_decref( jsonMessage );
 
         usleep( 5000 );
     }

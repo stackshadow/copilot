@@ -87,7 +87,7 @@ CFLAGS      += -I/usr/include/qt
 CFLAGS      += -I$(sourcePath)/src
 CFLAGS      += -I$(sourcePath)/libs/evillib/core
 CFLAGS      += -I$(sourcePath)/libs/evillib/extra
-CFLAGS      += -I$(sourcePath)/libs/util-linux-2.29.2/libuuid/src
+CFLAGS      += -I$(sourcePath)/libs/util-linux/libuuid/src
 
 CFLAGSDBG	+= -g
 
@@ -230,7 +230,6 @@ engineering: gitversion
 	DISABLE_SYSSTATE=1 \
 	DISABLE_MQTT=1 \
 	DISABLE_SSH=1 \
-	DISABLE_WEBSOCKET=1 \
 	binary-dbg
 
 install-engineering: engineering $(clientTargets)

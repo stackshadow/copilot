@@ -586,8 +586,9 @@ void* sslService::					serveThread( void* void_service ){
         if( getnameinfo( (struct sockaddr *)&clientSocketAddress, sizeof(clientSocketAddress), clientHostName, clientHostNameSize, NULL, 0, 0 ) == 0 ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "got connection from %s on port %d", clientHostName, ntohs (clientSocketAddress.sin_port) );
             etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
-
         }
+
+
 
     // create a new session
         sslSession* newSession = new sslSession();
@@ -596,6 +597,12 @@ void* sslService::					serveThread( void* void_service ){
         newSession->socketChannel = socketClientChannel;
         newSession->socketChannelAddress = clientSocketAddress;
         newSession->socketChannelAddressLen = sizeof(clientSocketAddress);
+
+    // send it out that we have an new client
+        coCore::ptr->plugins->messageQueue->add(
+            newSession, coCore::ptr->hostNameGet(), coCore::ptr->hostNameGet(),
+            "cocom", "onNewInClient", clientHostName
+        );
 
     // client communication will be handled inside an thread
         pthread_t thread;
@@ -615,6 +622,12 @@ void* sslService::					serverHandleClientThread( void* void_sslSession ){
 
 // client loop
     session->handleClient();
+
+// send it out that we have an new client
+    coCore::ptr->plugins->messageQueue->add(
+        session, coCore::ptr->hostNameGet(), coCore::ptr->hostNameGet(),
+        "cocom", "onDisconnectClient", session->host()
+    );
 
 // session finished
     delete session;

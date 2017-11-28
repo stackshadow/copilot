@@ -2,11 +2,11 @@
 <CodeLite_Workspace Name="copilotd" Database="" Version="10.0.0">
   <Project Name="copilotd" Path="copilotd.project" Active="Yes"/>
   <BuildMatrix>
-    <WorkspaceConfiguration Name="Debug Server" Selected="no">
+    <WorkspaceConfiguration Name="Debug Server" Selected="yes">
       <Environment/>
       <Project Name="copilotd" ConfigName="Debug Server"/>
     </WorkspaceConfiguration>
-    <WorkspaceConfiguration Name="Debug Client" Selected="yes">
+    <WorkspaceConfiguration Name="Debug Client" Selected="no">
       <Environment/>
       <Project Name="copilotd" ConfigName="Debug Client"/>
     </WorkspaceConfiguration>
