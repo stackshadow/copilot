@@ -5,8 +5,9 @@ include make/sources.mk
 include make/cflags.mk
 include make/clibs.mk
 
-utilVersion = -2.29.2
-gitVersion = v2.29.2
+
+gitVersion = v2.30.2
+utilVersion =
 
 CFLAGS       = -pie -fPIE -fPIC
 CFLAGS      += -I$(sourcePath)/libs/util-linux$(utilVersion)/include
@@ -15,6 +16,8 @@ CFLAGS		+= -DHAVE_NANOSLEEP
 
 sources		=
 sources		+= libs/util-linux$(utilVersion)/lib/randutils.c
+sources		+= libs/util-linux$(utilVersion)/lib/md5.c
+sources		+= libs/util-linux$(utilVersion)/lib/sha1.c
 sources		+= libs/util-linux$(utilVersion)/libuuid/src/clear.c
 sources		+= libs/util-linux$(utilVersion)/libuuid/src/copy.c
 sources		+= libs/util-linux$(utilVersion)/libuuid/src/unpack.c
@@ -26,7 +29,7 @@ sources		+= libs/util-linux$(utilVersion)/libuuid/src/isnull.c
 sources		+= libs/util-linux$(utilVersion)/libuuid/src/unparse.c
 sources		+= libs/util-linux$(utilVersion)/libuuid/src/uuid_time.c
 
- 	
+
 
 
 
