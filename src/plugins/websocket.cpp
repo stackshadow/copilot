@@ -274,7 +274,7 @@ checkAuth:
 // broadcast
     //coCore::ptr->plugins->broadcast( this, tempMessage );
 
-    coCore::ptr->plugins->messageAdd(   this,
+    coCore::ptr->plugins->messageQueue->add(   this,
                                         msgSource, msgTarget,
                                         tempMessage->group(),
                                         tempMessage->command(),
