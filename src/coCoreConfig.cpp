@@ -224,6 +224,7 @@ bool coCoreConfig::			nodesIterate(){
 bool coCoreConfig::			nodeAppend( const char* name ){
 	if( this->jsonNodes == NULL ) return false;
 
+
 // create new Object
 	this->jsonNode = json_object();
 	if( json_object_set_new( this->jsonNodes, name, this->jsonNode ) != 0 ){

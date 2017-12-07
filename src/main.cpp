@@ -24,6 +24,7 @@ gnutls-cli --no-ca-verification \
 localhost:4567
 
 { "id":"", "s":"testnode", "t":"all", "g":"cocom", "c":"ping", "v": "" }
+
 */
 
 #include "jansson.h"
@@ -42,7 +43,7 @@ localhost:4567
 #include "plugins/sslSession.h"
 #include "plugins/websocket.h"
 #include "plugins/coreService.h"
-//#include "plugins/sysState.h"
+#include "plugins/sysState.h"
 //#include "plugins/lxcService.h"
 #include "plugins/nftService.h"
 #include "plugins/ldapService.h"
@@ -229,6 +230,7 @@ int main( int argc, char *argv[] ){
     ldapService*    ldapPlugin = new ldapService();
 #endif
 
+    sysState*   state = new sysState();
 
 // Setup All plugins
 	core->plugins->setupAll();

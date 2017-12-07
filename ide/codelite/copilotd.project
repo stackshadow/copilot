@@ -48,12 +48,14 @@
       <File Name="../../src/plugins/websocket.h"/>
       <File Name="../../src/plugins/ldapService.cpp"/>
       <File Name="../../src/plugins/ldapService.h"/>
-      <File Name="../../src/plugins/wolfssl.cpp"/>
-      <File Name="../../src/plugins/wolfssl.h"/>
       <File Name="../../src/plugins/sslSession.h"/>
       <File Name="../../src/plugins/sslSession.cpp"/>
       <File Name="../../src/plugins/sslService.h"/>
       <File Name="../../src/plugins/sslService.cpp"/>
+      <File Name="../../src/plugins/sysState.h"/>
+      <File Name="../../src/plugins/sysState.cpp"/>
+      <File Name="../../src/plugins/sysHealthCmd.cpp"/>
+      <File Name="../../src/plugins/sysHealthCmd.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="server"/>
     <File Name="../../src/coCore.cpp"/>
@@ -213,7 +215,8 @@ $(ProjectPath)/../../libs/evillib/core</SearchPaths>
 /usr/local/include
 /usr/src/projekte/copilot/copilotd/libs/evillib/core
 $(ProjectPath)/../../src
-$(ProjectPath)/../../src/plugins</SearchPaths>
+$(ProjectPath)/../../src/plugins
+$(ProjectPath)/../../libs/evillib/core</SearchPaths>
       </Completion>
     </Configuration>
   </Settings>

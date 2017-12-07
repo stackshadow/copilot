@@ -135,6 +135,7 @@ ifdef DISABLE_SYSSTATE
 CFLAGS      += -DDISABLE_SYSSTATE
 else
 sources     += src/plugins/sysState.cpp
+sources     += src/plugins/sysHealthCmd.cpp
 endif
 
 # mqtt
@@ -227,7 +228,6 @@ uninstall-client:
 engineering: gitversion
 	make -f make/Makefile \
 	SSH_SERVER=1 \
-	DISABLE_SYSSTATE=1 \
 	DISABLE_MQTT=1 \
 	DISABLE_SSH=1 \
 	binary-dbg
