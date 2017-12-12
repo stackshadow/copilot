@@ -16,8 +16,8 @@ You should have received a copy of the GNU Lesser General Public License
 along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef sysHealthCmd_H
-#define sysHealthCmd_H
+#ifndef sysStateCmd_H
+#define sysStateCmd_H
 
 
 #define cmdSize 2048
@@ -26,7 +26,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 typedef void sysHealthSetFct( int newHealth );
 
-class sysHealthCmd
+class sysStateCmd
 {
     private:
         sysHealthSetFct*    updateHealth = NULL;
@@ -34,15 +34,15 @@ class sysHealthCmd
         int                 cmdHealth;
         int                 cmdValueMin;
         int                 cmdValueMax;
-    public:
-        int                 milliseconds;
+
 
     public:
-        sysHealthCmd( const char* command, int delay = 5000, int min = 0, int max = 100, sysHealthSetFct* updateHealthFunction = NULL );
-        ~sysHealthCmd();
+        sysStateCmd( const char* command, int min = 0, int max = 100, sysHealthSetFct* updateHealthFunction = NULL );
+        ~sysStateCmd();
 
     public:
         bool    execute( char* commandOutput = NULL, int* commandOutputSize = NULL );
+        int     health(){ return this->cmdHealth; };
 
 };
 

@@ -16,10 +16,10 @@ You should have received a copy of the GNU Lesser General Public License
 along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef sysHealthCmd_C
-#define sysHealthCmd_C
+#ifndef sysStateCmd_C
+#define sysStateCmd_C
 
-#include "sysHealthCmd.h"
+#include "sysStateCmd.h"
 
 #include <string.h>
 #include <stdio.h>
@@ -28,9 +28,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/etDebug.h"
 
-sysHealthCmd::              sysHealthCmd( const char* command, int delay, int min, int max, sysHealthSetFct* updateHealthFunction ){
+sysStateCmd::              sysStateCmd( const char* command, int min, int max, sysHealthSetFct* updateHealthFunction ){
 
-    this->milliseconds = delay;
     this->cmdHealth = 100;
     this->cmdValueMin = min;
     this->cmdValueMax = max;
@@ -49,14 +48,14 @@ sysHealthCmd::              sysHealthCmd( const char* command, int delay, int mi
 }
 
 
-sysHealthCmd::              ~sysHealthCmd(){
+sysStateCmd::              ~sysStateCmd(){
 
 }
 
 
 
 
-bool sysHealthCmd::         execute( char* commandOutput, int* commandOutputSize ){
+bool sysStateCmd::         execute( char* commandOutput, int* commandOutputSize ){
 
 
 // vars
@@ -111,9 +110,6 @@ bool sysHealthCmd::         execute( char* commandOutput, int* commandOutputSize
     if( this->updateHealth != NULL ){
         this->updateHealth( this->cmdHealth );
     }
-
-// sleep
-    usleep( 1000 * this->milliseconds );
 
 
     return true;
