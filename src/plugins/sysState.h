@@ -26,9 +26,21 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "lockPthread.h"
 
+#include "sysStateCmd.h"
+
+#define healthBand 2
+
 class sysState : public coPlugin
 {
+private:
+        typedef struct sysStateThreadData_s {
+            pthread_t           thread;
+            bool                running;
+            bool                requestEnd;
 
+            sysStateCmd**      cmdArray;
+            int                 cmdDelay;
+        } sysStateThreadData;
 
 
     private:
@@ -37,7 +49,9 @@ class sysState : public coPlugin
         json_t*                 jsonTimes = NULL;
 
         lockID                  healthLock = 0;
-        int                     health = 100;
+        int                     cmdHealth = 100;
+
+        sysStateThreadData**    cmdArrays = NULL;
 
 
 	public:
@@ -48,15 +62,16 @@ class sysState : public coPlugin
         bool                    load();
         bool                    save();
 
-        void                    healthSet( int newHealth );
-        static void             updateHealth( int newHealth ){ sysState::ptr->healthSet(newHealth); };
+        int                     health( int newHealth = -1 );
+        static void             updateHealth( int newHealth ){ sysState::ptr->health(newHealth); };
 
         bool                    commandAppend( json_t* jsonCommand );
 
         bool                    createBash();
 
     // cmd thread
-        void                    runAllCommands();
+        void                    commandsRunAll();
+        void                    commandsStopAllWait();
         static void*		    cmdThread( void* void_service );
 
 // API

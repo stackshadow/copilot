@@ -54,8 +54,8 @@
       <File Name="../../src/plugins/sslService.cpp"/>
       <File Name="../../src/plugins/sysState.h"/>
       <File Name="../../src/plugins/sysState.cpp"/>
-      <File Name="../../src/plugins/sysHealthCmd.cpp"/>
-      <File Name="../../src/plugins/sysHealthCmd.h"/>
+      <File Name="../../src/plugins/sysStateCmd.cpp"/>
+      <File Name="../../src/plugins/sysStateCmd.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="server"/>
     <File Name="../../src/coCore.cpp"/>

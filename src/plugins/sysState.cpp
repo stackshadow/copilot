@@ -26,7 +26,6 @@ df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//
 #define sysState_C
 
 
-#include "sysHealthCmd.h"
 
 
 #include "uuid.h"
@@ -51,14 +50,14 @@ sysState::                          sysState() : coPlugin( "sysstate", coCore::p
     int             textSizeOut = textSize;
 
 
-    sysHealthCmd freeDisk( "df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//g'", 1000, 100, 0, NULL );
+    sysStateCmd freeDisk( "df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//g'", 100, 0, NULL );
     freeDisk.execute();
 
 
 // load
     this->load();
 
-    this->runAllCommands();
+    this->commandsRunAll();
 
 
     //this->runAllCommands();
@@ -120,25 +119,28 @@ bool sysState::                     save(){
 
 
 
-void sysState::                     healthSet( int newHealth ){
-    lockPthread( this->healthLock );
+int sysState::                      health( int newHealth ){
 
-// set health
-    if( this->health > newHealth ){
-        this->health = newHealth;
+    if( newHealth >= 0 ){
+        lockPthread( this->healthLock );
 
-        char healthChar[10] = "\0\0\0\0\0\0\0\0\0";
-        snprintf( healthChar, 10, "%d", newHealth );
+    // set health
+        if( newHealth < this->cmdHealth - healthBand /* || newHealth > this->cmdHealth + healthBand */ ){
+            this->cmdHealth = newHealth;
 
-    // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "health", healthChar );
+            char healthChar[10] = "\0\0\0\0\0\0\0\0\0";
+            snprintf( healthChar, 10, "%d", this->cmdHealth );
+
+        // add the message to list
+            coCore::ptr->plugins->messageQueue->add( this,
+            coCore::ptr->hostNameGet(), "", "sysstate", "health", healthChar );
+        }
+
+        unlockPthread( this->healthLock );
     }
 
 
-
-
-    unlockPthread( this->healthLock );
+    return this->cmdHealth;
 }
 
 
@@ -285,13 +287,15 @@ fi
 
 
 
-void sysState::                     runAllCommands(){
+void sysState::                     commandsRunAll(){
 
 // vars - common
     json_t*         jsonValue;
 
 // vars- times
     void*           jsonTimeIterator = NULL;
+    int             jsonTimeIndex = 0;
+    int             jsonTimeCounter = 0;
     json_t*         jsonTime = NULL;
     const char*     timeChar = NULL;
     int             iteratorTime = 5000;
@@ -306,20 +310,29 @@ void sysState::                     runAllCommands(){
     int             cmdValueMax;
     int             cmdDelay = 100;
 
+// we need to remember all command arrays
+    jsonTimeCounter = json_object_size( this->jsonConfigObject );
+    this->cmdArrays = (sysStateThreadData**)malloc( (jsonTimeCounter+1) * sizeof(sysStateThreadData) );
+    this->cmdArrays[jsonTimeCounter] = NULL;
 
     jsonTimeIterator = json_object_iter( this->jsonConfigObject );
-    while( jsonTimeIterator != NULL ){
+    for( jsonTimeIndex = 0; jsonTimeIndex < jsonTimeCounter && jsonTimeIterator != NULL; jsonTimeIndex++ ){
         jsonTime = json_object_iter_value( jsonTimeIterator );
         timeChar = json_object_iter_key( jsonTimeIterator );
         iteratorTime = atoi(timeChar);
 
 
-    // create cmdArray
-        jsonCommandCounter = json_object_size( jsonTime );
-        sysHealthCmd** cmdArray = (sysHealthCmd**)malloc( (jsonCommandCounter+1) * sizeof(sysHealthCmd*) );
-
     // calculate delay
+        jsonCommandCounter = json_object_size( jsonTime );
         cmdDelay = iteratorTime / ( jsonCommandCounter + 1 );
+
+    // we need a data-array for thread-data
+        sysStateThreadData* threadData = (sysStateThreadData*)malloc( sizeof(sysStateThreadData) );
+        threadData->cmdArray = (sysStateCmd**)malloc( (jsonCommandCounter + 1) * sizeof(sysStateCmd) );
+        threadData->cmdDelay = iteratorTime / ( jsonCommandCounter + 1 );
+        threadData->running = false;
+        threadData->requestEnd = false;
+        this->cmdArrays[jsonTimeIndex] = threadData;
 
     // iterate commands
         jsonCommandIterator = json_object_iter( jsonTime );
@@ -342,17 +355,16 @@ void sysState::                     runAllCommands(){
             else { cmdValueMax = 100; }
 
 
-            cmdArray[jsonCommandIndex] = new sysHealthCmd( cmd, cmdDelay, cmdValueMin, cmdValueMax, sysState::updateHealth );
-            cmdArray[jsonCommandIndex+1] = NULL;
+            threadData->cmdArray[jsonCommandIndex] = new sysStateCmd( cmd, cmdValueMin, cmdValueMax, sysState::updateHealth );
+            threadData->cmdArray[jsonCommandIndex+1] = NULL;
 
 
             jsonCommandIterator = json_object_iter_next( jsonTime, jsonCommandIterator );
         }
 
     // okay, we now have all infos for the thread :D
-        pthread_t newThread;
-        pthread_create( &newThread, NULL, sysState::cmdThread, cmdArray );
-        pthread_detach( newThread );
+        pthread_create( &threadData->thread, NULL, sysState::cmdThread, threadData );
+        pthread_detach( threadData->thread );
 
 
     // next time
@@ -366,24 +378,41 @@ void sysState::                     runAllCommands(){
 }
 
 
+void sysState::                     commandsStopAllWait(){
+
+
+
+}
+
+
 void* sysState::                    cmdThread( void* void_service ){
 
 //vars
-    sysHealthCmd*       cmd = NULL;
-    sysHealthCmd**      cmdArray = (sysHealthCmd**)void_service;
-    int                 arrayIndex = 0;
-    int                 delay;
+    sysStateCmd*           cmd = NULL;
+    sysStateThreadData*     threadData = (sysStateThreadData*)void_service;
+    int                     arrayIndex = 0;
+    int                     delay;
 
-    while(1){
+// set thread to running
+    threadData->running = true;
+    threadData->requestEnd = false;
+
+    while( threadData->requestEnd == false ){
         arrayIndex = 0;
 
-        cmd = cmdArray[arrayIndex];
-        if( cmd != NULL ) delay = cmd->milliseconds;
+        cmd = threadData->cmdArray[arrayIndex];
+        while( cmd != NULL && threadData->requestEnd == false ){
 
-        while( cmd != NULL ){
+        // get data
+            cmd = threadData->cmdArray[arrayIndex];
+            delay = threadData->cmdDelay;
+
+        // run and delay
             cmd->execute();
+            usleep( 1000 * delay );
+
             arrayIndex++;
-            cmd = cmdArray[arrayIndex];
+            cmd = threadData->cmdArray[arrayIndex];
         }
 
     // sleep
@@ -391,6 +420,10 @@ void* sysState::                    cmdThread( void* void_service ){
 
     }
 
+// thread finished
+    threadData->running = false;
+
+    return NULL;
 }
 
 
@@ -410,7 +443,8 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 	json_error_t	            jsonError;
 	json_t*			            jsonPayload = NULL;
 	json_t*                     jsonValue;
-    const char*                 jsonTempString = NULL;
+    char*                       jsonTempString = NULL;
+    void*                       jsonIterator = NULL;
 
 
 
@@ -446,8 +480,9 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         commandMax = json_integer_value( jsonValue );
 
     // run
-        sysHealthCmd freeDisk( command, 100, commandMin, commandMax );
+        sysStateCmd freeDisk( command, commandMin, commandMax );
         freeDisk.execute( commandOut,  &commandOutSize );
+        commandHealth = freeDisk.health();
 
     // build output
         json_decref(jsonPayload);
@@ -496,7 +531,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
     if( strncmp(msgCommand,"healthGet",9) == 0 ){
 
         char healthChar[10] = "\0\0\0\0\0\0\0\0\0";
-        snprintf( healthChar, 10, "%d", this->health );
+        snprintf( healthChar, 10, "%d", this->health() );
 
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
@@ -506,9 +541,31 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
     }
 
 
+    if( strncmp(msgCommand,"healthReset",11) == 0 ){
+        this->cmdHealth = 100;
+        return coPlugin::REPLY;
+    }
+
+
     if( strncmp(msgCommand,"cmdListGet",10) == 0 ){
 
 
+        jsonIterator = json_object_iter( this->jsonConfigObject );
+        while( jsonIterator != NULL ){
+            jsonValue = json_object_iter_value( jsonIterator );
+
+        // dump
+            jsonTempString = json_dumps( jsonValue, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+        // add the message to list
+            coCore::ptr->plugins->messageQueue->add( this,
+            msgTarget, msgSource, msgGroup, "cmdList", jsonTempString );
+
+        // cleanup
+            free( jsonTempString );
+
+            jsonIterator = json_object_iter_next( this->jsonConfigObject, jsonIterator );
+        }
 
 
         return coPlugin::REPLY;
