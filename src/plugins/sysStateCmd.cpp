@@ -28,21 +28,23 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/etDebug.h"
 
-sysStateCmd::              sysStateCmd( const char* command, int min, int max, sysHealthSetFct* updateHealthFunction ){
+sysStateCmd::              sysStateCmd( const char* id, const char* command, int min, int max, sysHealthSetFct* updateHealthFunction ){
 
-    this->cmdHealth = 100;
+
+// init
+    this->cmdRaw = 0;
+    this->cmdHealth = 0;
     this->cmdValueMin = min;
     this->cmdValueMax = max;
 
-// copy
-    int commandLen = strlen(command);
-    if( commandLen * sizeof(char) >= cmdSize ){
-        commandLen = cmdSize / sizeof(char);
-    }
+// id
+    etStringAllocLen( this->uuid, 37 );
+    etStringCharSet( this->uuid, id, -1 );
 
-// copy the command
-    memset( this->cmd, 0, cmdSize );
-    strncpy( this->cmd, command, commandLen );
+// command
+    etStringAllocLen( this->cmd, 1024 );
+    etStringCharSet( this->cmd, command, -1 );
+
 
     this->updateHealth = updateHealthFunction;
 }
@@ -59,10 +61,11 @@ bool sysStateCmd::         execute( char* commandOutput, int* commandOutputSize 
 
 
 // vars
-    int*    cmdOutSize = 0;
-    char*   cmdOutChar = NULL;
-    int     tmpCmdOutSize = 1024;
-    char    tmpCmdOutChar[tmpCmdOutSize];
+    const char*     command = NULL;
+    int*            cmdOutSize = 0;
+    char*           cmdOutChar = NULL;
+    int             tmpCmdOutSize = 1024;
+    char            tmpCmdOutChar[tmpCmdOutSize];
 
 // temp ?
     if( commandOutput == NULL ){
@@ -76,23 +79,23 @@ bool sysStateCmd::         execute( char* commandOutput, int* commandOutputSize 
 // clean
     memset( cmdOutChar, 0, *cmdOutSize );
     int rangeDiff = this->cmdValueMax - this->cmdValueMin;
-    int healthActual;
 
 // check
     if( rangeDiff == 0 ) rangeDiff = 1;
 
 // open the command
-    FILE* pf = popen( this->cmd, "r" );
+    etStringCharGet( this->cmd, command );
+    FILE* pf = popen( command, "r" );
     while( fgets(cmdOutChar, *cmdOutSize, pf) != NULL ){
         cmdOutChar[strlen(cmdOutChar)-1] = 0;
     }
 
 // rangeDiff == 100 %
 // health = ???? + min
-    healthActual = atoi(cmdOutChar);
+    this->cmdRaw = atoi(cmdOutChar);
 
 // calculate percentage
-    this->cmdHealth = (healthActual-this->cmdValueMin) * 100 / rangeDiff;
+    this->cmdHealth = (this->cmdRaw - this->cmdValueMin) * 100 / rangeDiff;
 
 // clean
     fclose(pf);

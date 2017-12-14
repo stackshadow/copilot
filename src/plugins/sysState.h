@@ -38,7 +38,8 @@ private:
             bool                running;
             bool                requestEnd;
 
-            sysStateCmd**      cmdArray;
+            sysStateCmd**       cmdArray;
+            int                 cmdArrayCount;
             int                 cmdDelay;
         } sysStateThreadData;
 
@@ -48,11 +49,15 @@ private:
         json_t*                 jsonCommands = NULL;
         json_t*                 jsonTimes = NULL;
 
-        lockID                  healthLock = 0;
+    //
+        lockID                  cmdHealthLock = 0;
         int                     cmdHealth = 100;
+        etString*               cmdHealthDescription = NULL;    /// decription of command which set the last worst value
 
-        sysStateThreadData**    cmdArrays = NULL;
-
+        sysStateThreadData**    threadedDataArray = NULL;
+        int                     threadedDataArrayCount = 0;
+        int                     cmdRunningCount = 0;
+        lockID                  cmdRunningCountLock = 0;
 
 	public:
                                 sysState();
@@ -62,16 +67,20 @@ private:
         bool                    load();
         bool                    save();
 
-        int                     health( int newHealth = -1 );
-        static void             updateHealth( int newHealth ){ sysState::ptr->health(newHealth); };
+        int                     health( int newHealth = -1, const char* cmdDescription = NULL );
+        static void             updateHealthCallback( int newHealth ){ sysState::ptr->health(newHealth); };
+
+        int                     running( int newCounter = -1 );
 
         bool                    commandAppend( json_t* jsonCommand );
+        json_t*                 cmdGet( const char* uuid );
+        bool                    cmdRemove( const char* uuid );
 
         bool                    createBash();
 
     // cmd thread
-        void                    commandsRunAll();
-        void                    commandsStopAllWait();
+        int                     commandsStartAll();
+        int                     commandsStopAllWait();
         static void*		    cmdThread( void* void_service );
 
 // API

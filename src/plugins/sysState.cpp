@@ -44,23 +44,23 @@ sysState::                          sysState() : coPlugin( "sysstate", coCore::p
 // remember pointer
     sysState::ptr = this;
 
+// load configuration
+    this->load();
 
-    int             textSize = 1024;
-    char            text[textSize];
-    int             textSizeOut = textSize;
+// health
+    this->cmdHealthLock = 0;
+    this->cmdHealth = 101;
+    etStringAllocLen( cmdHealthDescription, 32 );
 
 
-    sysStateCmd freeDisk( "df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//g'", 100, 0, NULL );
+
+// demo
+    sysStateCmd freeDisk( "", "df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//g'", 100, 0, NULL );
     freeDisk.execute();
 
 
-// load
-    this->load();
-
-    this->commandsRunAll();
-
-
-    //this->runAllCommands();
+// start all commands
+    this->commandsStartAll();
 
 // register plugin
 	coCore::ptr->plugins->append( this );
@@ -119,13 +119,13 @@ bool sysState::                     save(){
 
 
 
-int sysState::                      health( int newHealth ){
+int sysState::                      health( int newHealth, const char* cmdDescription ){
 
     if( newHealth >= 0 ){
-        lockPthread( this->healthLock );
+        lockPthread( this->cmdHealthLock );
 
     // set health
-        if( newHealth < this->cmdHealth - healthBand /* || newHealth > this->cmdHealth + healthBand */ ){
+        if( newHealth < this->cmdHealth /* - healthBand  || newHealth > this->cmdHealth + healthBand */ ){
             this->cmdHealth = newHealth;
 
             char healthChar[10] = "\0\0\0\0\0\0\0\0\0";
@@ -136,7 +136,12 @@ int sysState::                      health( int newHealth ){
             coCore::ptr->hostNameGet(), "", "sysstate", "health", healthChar );
         }
 
-        unlockPthread( this->healthLock );
+    // set description
+        if( cmdDescription != NULL ){
+            etStringCharSet( this->cmdHealthDescription, cmdDescription, -1 );
+        }
+
+        unlockPthread( this->cmdHealthLock );
     }
 
 
@@ -144,6 +149,27 @@ int sysState::                      health( int newHealth ){
 }
 
 
+int sysState::                      running( int newCounter ){
+
+    if( newCounter >= 0 ){
+        lockPthread( this->cmdRunningCountLock );
+        this->cmdRunningCount = newCounter;
+        unlockPthread( this->cmdRunningCountLock );
+
+    // add the message to list
+        char cmdRunningChar[10] = "         ";
+        snprintf( cmdRunningChar, 10, "%d", this->cmdRunningCount );
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->hostNameGet(), "", "sysstate", "cmdRunning", cmdRunningChar );
+    }
+
+    return this->cmdRunningCount;
+}
+
+
+
+
+// ################################################### Command store ###################################################
 
 bool sysState::                     commandAppend( json_t* jsonCommand ){
 
@@ -185,11 +211,68 @@ bool sysState::                     commandAppend( json_t* jsonCommand ){
 // add the command
     json_object_set_new( jsonValue, cmdID, jsonCommand );
 
-// remove the id
-    json_object_del( jsonCommand, "id" );
 
     return true;
 }
+
+
+json_t* sysState::                  cmdGet( const char* uuid ){
+// vars
+    json_t*     jsonTimer = NULL;
+    const char* jsonTimerName = NULL;
+
+    json_t*     jsonCmd = NULL;
+    const char* jsonCmdUUID = NULL;
+
+
+// iterate times
+    json_object_foreach( this->jsonConfigObject, jsonTimerName, jsonTimer ){
+
+    // iterate commands
+        json_object_foreach( jsonTimer, jsonCmdUUID, jsonCmd ){
+
+            if( strncmp( uuid, jsonCmdUUID, strlen(jsonCmdUUID) ) == 0 ){
+                return jsonCmd;
+            }
+
+        }
+
+    }
+
+    return NULL;
+}
+
+
+bool sysState::                     cmdRemove( const char* uuid ){
+
+// vars
+    json_t*     jsonTimer = NULL;
+    const char* jsonTimerName = NULL;
+
+    json_t*     jsonCmd = NULL;
+    const char* jsonCmdUUID = NULL;
+
+
+// iterate times
+    json_object_foreach( this->jsonConfigObject, jsonTimerName, jsonTimer ){
+
+    // iterate commands
+        json_object_foreach( jsonTimer, jsonCmdUUID, jsonCmd ){
+
+            if( strncmp( uuid, jsonCmdUUID, strlen(jsonCmdUUID) ) == 0 ){
+                json_object_del( jsonTimer, jsonCmdUUID );
+                return true;
+            }
+
+        }
+
+    }
+
+    return false;
+}
+
+
+
 
 
 
@@ -286,8 +369,14 @@ fi
 
 
 
+// ################################################### Command-Thread ###################################################
 
-void sysState::                     commandsRunAll(){
+int sysState::                      commandsStartAll(){
+
+// already active
+    if( threadedDataArray != NULL ){
+        return -1; // already running
+    }
 
 // vars - common
     json_t*         jsonValue;
@@ -295,49 +384,58 @@ void sysState::                     commandsRunAll(){
 // vars- times
     void*           jsonTimeIterator = NULL;
     int             jsonTimeIndex = 0;
-    int             jsonTimeCounter = 0;
     json_t*         jsonTime = NULL;
     const char*     timeChar = NULL;
     int             iteratorTime = 5000;
 
 // vars - command values
-    int             jsonCommandCounter = 0;
     int             jsonCommandIndex = 0;
     void*           jsonCommandIterator = NULL;
     json_t*         jsonCommand = NULL;
+    const char*     cmdUUID = NULL;
     const char*     cmd = NULL;
     int             cmdValueMin;
     int             cmdValueMax;
     int             cmdDelay = 100;
 
-// we need to remember all command arrays
-    jsonTimeCounter = json_object_size( this->jsonConfigObject );
-    this->cmdArrays = (sysStateThreadData**)malloc( (jsonTimeCounter+1) * sizeof(sysStateThreadData) );
-    this->cmdArrays[jsonTimeCounter] = NULL;
+// how many threads we need ?
+// ( normaly one thread per timer )
+    this->threadedDataArrayCount = json_object_size( this->jsonConfigObject );
+    if( this->threadedDataArrayCount == 0 ){
+        return -2; // no commands aviable
+    }
 
+// allocate
+    this->threadedDataArray = (sysStateThreadData**)malloc( (this->threadedDataArrayCount+1) * sizeof(sysStateThreadData*) );
+    this->threadedDataArray[this->threadedDataArrayCount] = NULL;
+
+// reset command counter
+    this->running( 0 );
+
+// iterate timers
     jsonTimeIterator = json_object_iter( this->jsonConfigObject );
-    for( jsonTimeIndex = 0; jsonTimeIndex < jsonTimeCounter && jsonTimeIterator != NULL; jsonTimeIndex++ ){
+    for( jsonTimeIndex = 0; jsonTimeIndex < this->threadedDataArrayCount && jsonTimeIterator != NULL; jsonTimeIndex++ ){
         jsonTime = json_object_iter_value( jsonTimeIterator );
         timeChar = json_object_iter_key( jsonTimeIterator );
         iteratorTime = atoi(timeChar);
 
 
-    // calculate delay
-        jsonCommandCounter = json_object_size( jsonTime );
-        cmdDelay = iteratorTime / ( jsonCommandCounter + 1 );
-
     // we need a data-array for thread-data
         sysStateThreadData* threadData = (sysStateThreadData*)malloc( sizeof(sysStateThreadData) );
-        threadData->cmdArray = (sysStateCmd**)malloc( (jsonCommandCounter + 1) * sizeof(sysStateCmd) );
-        threadData->cmdDelay = iteratorTime / ( jsonCommandCounter + 1 );
+        threadData->cmdArrayCount = json_object_size( jsonTime );
+        threadData->cmdArray = (sysStateCmd**)malloc( (threadData->cmdArrayCount+1) * sizeof(sysStateCmd*) );
+        threadData->cmdArray[threadData->cmdArrayCount] = NULL;
+        threadData->cmdDelay = iteratorTime / (threadData->cmdArrayCount+1);
         threadData->running = false;
         threadData->requestEnd = false;
-        this->cmdArrays[jsonTimeIndex] = threadData;
+        this->threadedDataArray[jsonTimeIndex] = threadData;
+        this->threadedDataArray[jsonTimeIndex+1] = NULL;
 
     // iterate commands
         jsonCommandIterator = json_object_iter( jsonTime );
-        for( jsonCommandIndex = 0; jsonCommandIndex < jsonCommandCounter && jsonCommandIterator != NULL; jsonCommandIndex++ ){
+        for( jsonCommandIndex = 0; jsonCommandIndex < threadData->cmdArrayCount && jsonCommandIterator != NULL; jsonCommandIndex++ ){
             jsonCommand = json_object_iter_value( jsonCommandIterator );
+            cmdUUID = json_object_iter_key( jsonCommandIterator );
 
         // cmd
             jsonValue = json_object_get( jsonCommand, "cmd" );
@@ -355,9 +453,12 @@ void sysState::                     commandsRunAll(){
             else { cmdValueMax = 100; }
 
 
-            threadData->cmdArray[jsonCommandIndex] = new sysStateCmd( cmd, cmdValueMin, cmdValueMax, sysState::updateHealth );
+            threadData->cmdArray[jsonCommandIndex] = new sysStateCmd( cmdUUID, cmd, cmdValueMin, cmdValueMax, sysState::updateHealthCallback );
             threadData->cmdArray[jsonCommandIndex+1] = NULL;
 
+        // count up
+            int cmdCounter = this->running() + 1;
+            this->running( cmdCounter );
 
             jsonCommandIterator = json_object_iter_next( jsonTime, jsonCommandIterator );
         }
@@ -372,16 +473,49 @@ void sysState::                     commandsRunAll(){
     }
 
 
-
-
-
+    return 0;
 }
 
 
-void sysState::                     commandsStopAllWait(){
+int sysState::                      commandsStopAllWait(){
 
+// vars
+    sysStateThreadData*     threadData = NULL;
+    int                     cmdArraysIndex = 0;
+    sysStateCmd*            command;
+    int                     commandIndex = 0;
 
+    for( cmdArraysIndex = 0; cmdArraysIndex < this->threadedDataArrayCount; cmdArraysIndex++ ){
 
+    // threaded data
+        threadData = this->threadedDataArray[cmdArraysIndex];
+        if( threadData == NULL ) continue;
+
+    // wait until thread finished
+        threadData->requestEnd = true;
+        while( threadData->running == true ) sleep(1);
+
+    // destroy all commands
+        for( commandIndex = 0; commandIndex < threadData->cmdArrayCount; commandIndex++ ){
+
+        // command
+            command = threadData->cmdArray[commandIndex];
+            if( command == NULL ) continue;
+
+            delete command;
+        }
+
+        free( threadData->cmdArray );
+        threadData->cmdArray = NULL;
+        threadData->cmdArrayCount = 0;
+    }
+    free( this->threadedDataArray );
+    this->threadedDataArray = NULL;
+    this->threadedDataArrayCount = 0;
+
+// reset command counter
+    this->running( 0 );
+    return 0;
 }
 
 
@@ -449,6 +583,47 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 
 
 
+    if( strncmp(msgCommand,"cmdListGet",10) == 0 ){
+
+        void*       jsonTimerIterator = NULL;
+        json_t*     jsonTimer = NULL;
+
+        void*       jsonCmdIterator = NULL;
+        json_t*     jsonCmd = NULL;
+
+
+        jsonTimerIterator = json_object_iter( this->jsonConfigObject );
+        while( jsonTimerIterator != NULL ){
+            jsonTimer = json_object_iter_value( jsonTimerIterator );
+
+            jsonCmdIterator = json_object_iter( jsonTimer );
+            while( jsonCmdIterator != NULL ){
+                jsonCmd = json_object_iter_value( jsonCmdIterator );
+
+            // dump
+                jsonTempString = json_dumps( jsonCmd, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+            // add the message to list
+                coCore::ptr->plugins->messageQueue->add( this,
+                msgTarget, msgSource, msgGroup, "cmdList", jsonTempString );
+
+            // cleanup
+                free( jsonTempString );
+                //json_decref( jsonAnswer );
+
+                jsonCmdIterator = json_object_iter_next( jsonTimer, jsonCmdIterator );
+            }
+
+
+
+            jsonTimerIterator = json_object_iter_next( this->jsonConfigObject, jsonTimerIterator );
+        }
+
+
+        return coPlugin::REPLY;
+    }
+
+
 	if( strncmp(msgCommand,"cmdTry",6) == 0 ){
 
 	// parse json
@@ -480,14 +655,13 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         commandMax = json_integer_value( jsonValue );
 
     // run
-        sysStateCmd freeDisk( command, commandMin, commandMax );
+        sysStateCmd freeDisk( "test", command, commandMin, commandMax );
         freeDisk.execute( commandOut,  &commandOutSize );
         commandHealth = freeDisk.health();
 
     // build output
         json_decref(jsonPayload);
         jsonPayload = json_object();
-        json_object_set_new( jsonPayload, "cmd", json_string(command) );
         json_object_set_new( jsonPayload, "out", json_string(commandOut) );
         json_object_set_new( jsonPayload, "health", json_integer(commandHealth) );
 
@@ -505,7 +679,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
     }
 
 
-    if( strncmp(msgCommand,"cmdAppend",9) == 0 ){
+    if( strncmp(msgCommand,"cmdSave",7) == 0 ){
 
     // vars
         json_t*         jsonID = NULL;
@@ -524,7 +698,96 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         this->commandAppend( jsonPayload );
         this->save();
 
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Saved" );
 
+        return coPlugin::REPLY;
+    }
+
+
+    if( strncmp(msgCommand,"cmdDelete",9) == 0 ){
+
+    // remove id
+        if( this->cmdRemove( msgPayload ) == true ){
+            coCore::ptr->plugins->messageQueue->add( this,
+            coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Deleted" );
+            this->save();
+        } else {
+            coCore::ptr->plugins->messageQueue->add( this,
+            coCore::ptr->hostNameGet(), "", "sysstate", "msgError", "Could not delete..." );
+        }
+
+
+    }
+
+
+    if( strncmp(msgCommand,"cmdDetailGet",12) == 0 ){
+
+        json_t*     jsonCmd = this->cmdGet( msgPayload );
+        if( jsonCmd == NULL ){
+            etDebugMessage( etID_LEVEL_WARNING, "Command not found");
+            coCore::ptr->plugins->messageQueue->add( this,
+            coCore::ptr->hostNameGet(), "", "sysstate", "msgError", "Command not found" );
+        }
+
+    // dump
+        jsonTempString = json_dumps( jsonCmd, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this,
+        msgTarget, msgSource, msgGroup, "cmdDetail", jsonTempString );
+
+    // cleanup
+        free( jsonTempString );
+
+        return coPlugin::REPLY;
+    }
+
+
+    if( strncmp(msgCommand,"cmdStartAll",11) == 0 ){
+        int returnCode = commandsStartAll();
+
+        if( returnCode == -1 ){
+            etDebugMessage( etID_LEVEL_WARNING, "Commands already started, you need to stop it first!");
+            coCore::ptr->plugins->messageQueue->add( this,
+            coCore::ptr->hostNameGet(), "", "sysstate", "msgError", "Already running..." );
+        }
+        if( returnCode == -2 ){
+            etDebugMessage( etID_LEVEL_WARNING, "No commands aviable.");
+            coCore::ptr->plugins->messageQueue->add( this,
+            coCore::ptr->hostNameGet(), "", "sysstate", "msgError", "No commands aviable." );
+        }
+        if( returnCode == 0 ){
+            etDebugMessage( etID_LEVEL_INFO, "Started...");
+            coCore::ptr->plugins->messageQueue->add( this,
+            coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Started..." );
+        }
+
+        return coPlugin::REPLY;
+    }
+
+
+    if( strncmp(msgCommand,"cmdStopAll",10) == 0 ){
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Stop requested, this can take a bit ..." );
+
+        commandsStopAllWait();
+
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Stopped" );
+
+        return coPlugin::REPLY;
+    }
+
+
+    if( strncmp(msgCommand,"cmdRunningGet",13) == 0 ){
+    // add the message to list
+        char cmdRunningChar[10] = "\0\0\0\0\0\0\0\0\0";
+        snprintf( cmdRunningChar, 10, "%d", this->cmdRunningCount );
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->hostNameGet(), "", "sysstate", "cmdRunning", cmdRunningChar );
+
+        return coPlugin::REPLY;
     }
 
 
@@ -542,35 +805,9 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 
 
     if( strncmp(msgCommand,"healthReset",11) == 0 ){
-        this->cmdHealth = 100;
+        this->cmdHealth = 101;
         return coPlugin::REPLY;
     }
-
-
-    if( strncmp(msgCommand,"cmdListGet",10) == 0 ){
-
-
-        jsonIterator = json_object_iter( this->jsonConfigObject );
-        while( jsonIterator != NULL ){
-            jsonValue = json_object_iter_value( jsonIterator );
-
-        // dump
-            jsonTempString = json_dumps( jsonValue, JSON_PRESERVE_ORDER | JSON_COMPACT );
-
-        // add the message to list
-            coCore::ptr->plugins->messageQueue->add( this,
-            msgTarget, msgSource, msgGroup, "cmdList", jsonTempString );
-
-        // cleanup
-            free( jsonTempString );
-
-            jsonIterator = json_object_iter_next( this->jsonConfigObject, jsonIterator );
-        }
-
-
-        return coPlugin::REPLY;
-    }
-
 
 
     return coPlugin::NO_REPLY;
