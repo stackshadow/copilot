@@ -60,6 +60,8 @@ class sslService : public coPlugin {
 		pthread_t			threadWaitForNewClients;
 
 
+
+
 // public functions
 	public:
 							sslService();

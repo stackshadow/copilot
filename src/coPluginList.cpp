@@ -48,6 +48,7 @@ coPluginList::				coPluginList(){
 
 // start thread
     this->boradcastThreadStart();
+    this->broadcastWatchdogThreadStart();
 
 }
 

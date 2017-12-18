@@ -27,6 +27,10 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 coCoreConfig::				coCoreConfig(){
 // init lock
 	this->threadLock = 0;
+
+// settings
+    etStringAlloc( this->configBasePath );
+    etStringCharSet( this->configBasePath, "/etc/copilot", -1 );
 }
 
 
@@ -43,9 +47,22 @@ bool coCoreConfig::			load( const char* myNodeName ){
 	lockMyPthread();
 
 // vars
+    const char*     baseConfigPath = NULL;
+    std::string     configFile;
     json_error_t    jsonError;
 	json_t*			jsonValue;
 	bool			saveToFile = false;
+
+// get config path
+    this->configPath( &baseConfigPath );
+    configFile  = baseConfigPath;
+    configFile += "/";
+    configFile += "core.json";
+
+// already loaded ? free it
+    if( this->jsonConfig != NULL ){
+        json_decref( this->jsonConfig );
+    }
 
 // clear
 	this->jsonConfig = NULL;
@@ -53,12 +70,14 @@ bool coCoreConfig::			load( const char* myNodeName ){
 	this->jsonNodesIterator = NULL;
 
 // check core-config path
-	if( access( baseFilePath, F_OK ) != 0 ){
-		system( "mkdir -p " baseFilePath );
+	if( access( baseConfigPath, F_OK ) != 0 ){
+        std::string createDirCmd = "mkdir -p ";
+        createDirCmd += baseConfigPath;
+		system( createDirCmd.c_str() );
 	}
 
 // open the file
-    this->jsonConfig = json_load_file( baseFilePath "core.json", JSON_PRESERVE_ORDER, &jsonError );
+    this->jsonConfig = json_load_file( configFile.c_str(), JSON_PRESERVE_ORDER, &jsonError );
     if( this->jsonConfig == NULL ){
         this->jsonConfig = json_object();
 		saveToFile = true;
@@ -80,9 +99,12 @@ bool coCoreConfig::			load( const char* myNodeName ){
         saveToFile = true;
     }
 
+
 // get our own node
-    if( this->nodeSelect(myNodeName) == false ){
-        saveToFile = true;
+    if( myNodeName != NULL ){
+        if( this->nodeSelect(myNodeName) == false ){
+            saveToFile = true;
+        }
     }
 
 
@@ -123,19 +145,20 @@ bool coCoreConfig::			save( const char* jsonString ){
 		this->jsonConfig = jsonObject;
 	}
 
-// get the "nodes" object
-	this->jsonNodes = json_object_get( this->jsonConfig, "nodes" );
-	if( this->jsonNodes == NULL ){
-        this->jsonNodes = json_object();
-        json_object_set_new( this->jsonConfig, "nodes", this->jsonNodes );
-    }
-
 // remove states
     this->nodeStatesRemove();
 
+// get config path
+    const char*     baseConfigPath = NULL;
+    std::string     configFile;
+    this->configPath( &baseConfigPath );
+    configFile  = baseConfigPath;
+    configFile += "/";
+    configFile += "core.json";
+
 // save the json to file
-	if( json_dump_file( this->jsonConfig, baseFilePath "core.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
-		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s%s", baseFilePath, "core.json" );
+	if( json_dump_file( this->jsonConfig, configFile.c_str(), JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
+		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s%s", configFile.c_str(), "core.json" );
 		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 		unlockMyPthread();
@@ -144,6 +167,41 @@ bool coCoreConfig::			save( const char* jsonString ){
 
 	unlockMyPthread();
 	return false;
+}
+
+
+json_t* coCoreConfig::      section( const char* sectionName ){
+
+// vars
+    json_t* jsonSection;
+
+// try to get section
+	jsonSection = json_object_get( this->jsonConfig, sectionName );
+	if( jsonSection == NULL ){
+		jsonSection = json_object();
+		json_object_set_new( this->jsonConfig, sectionName, jsonSection );
+	}
+
+// return
+    return jsonSection;
+}
+
+
+
+
+
+bool coCoreConfig::			configPath( const char** path ){
+    if( path == NULL ) return false;
+
+
+// set it
+    if( *path != NULL ){
+        etStringCharSet( this->configBasePath, *path, -1 );
+    } else {
+        __etStringCharGet( this->configBasePath, path );
+    }
+
+    return true;
 }
 
 

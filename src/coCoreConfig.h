@@ -38,9 +38,6 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-#ifndef baseFilePath
-#define baseFilePath "/etc/copilot/services/"
-#endif
 
 class coCoreConfig {
 
@@ -61,9 +58,10 @@ class coCoreConfig {
 		lockID				threadLock;
 
 	// settings
+        etString*           configBasePath = NULL;
 		json_t*				jsonConfig = NULL;
 		json_t*				jsonNodes = NULL;
-		void*				jsonNodesIterator;
+		void*				jsonNodesIterator = NULL;
 		json_t*				jsonNode = NULL;
 
 public:
@@ -73,6 +71,10 @@ public:
 	// config
 		bool				load( const char* myNodeName );
 		bool				save( const char* jsonString = NULL );
+        json_t*             section( const char* sectionName );
+
+    // core config
+        bool                configPath( const char** path );
 
 	// nodes
 		bool				nodesGet( json_t** jsonObject );

@@ -80,6 +80,7 @@ private:
 
     // cmd thread
         int                     commandsStartAll();
+        int                     commandsStopAll();
         int                     commandsStopAllWait();
         static void*		    cmdThread( void* void_service );
 

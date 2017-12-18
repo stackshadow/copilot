@@ -27,6 +27,7 @@ localhost:4567
 
 */
 
+
 #include "jansson.h"
 //#include "doDBDws.h"
 //#include "wsPlugins/doDBDPluginList.h"
@@ -53,24 +54,21 @@ localhost:4567
 //#include <QtCore/QCoreApplication>
 
 static struct option options[] = {
-    { "help",                   no_argument,        NULL, 'h' },
-    { "debug",                  no_argument,        NULL, 'd' },
-    { "hostname",               required_argument,  NULL, 'n' },
-	{ "setup",                  no_argument,        NULL, 's' },
-    { "createConnection",       required_argument,  NULL, 'c' },
+    { "help",                   no_argument,        NULL, 1 },
+    { "debug",                  no_argument,        NULL, 2 },
+    { "hostname",               required_argument,  NULL, 10 },
+    { "configpath",             required_argument,  NULL, 11 },
+	{ "setup",                  no_argument,        NULL, 20 },
+    { "createConnection",       required_argument,  NULL, 30 },
+    { "serve",                  required_argument,  NULL, 31 },
     #ifndef DISABLE_WEBSOCKET
-    { "websocket",              no_argument,        NULL, 'w' },
+    { "websocket",              no_argument,        NULL, 50 },
     #endif
-    { "nonft",                  no_argument,        NULL, 'a' },
+    { "nonft",                  no_argument,        NULL, 40 },
 
 
     { NULL, 0, 0, 0 }
 };
-
-
-#include <libssh/libssh.h>
-#include <libssh/server.h>
-#include <libssh/callbacks.h>
 
 
 
@@ -92,10 +90,17 @@ int main( int argc, char *argv[] ){
 
 // parse options
     int             optionSelected = 0;
+
     bool            connectToHost = false;
     const char*     connectToHostName = NULL;
     const char*     connectToPortString = NULL;
     int             connectToPort = 0;
+
+    bool            serveConnection = false;
+    const char*     serveHost = NULL;
+    const char*     servePortString = NULL;
+    int             servePort = 4567;
+
     bool            startWebSocket = false;
     bool            disablenft = false;
 
@@ -108,17 +113,19 @@ int main( int argc, char *argv[] ){
             case '?':
                 exit(1);
 
-            case 'd':
+            case 2:
                 etDebugLevelSet( etID_LEVEL_DETAIL_APP );
                 break;
 
-            case 'h':
-                fprintf( stdout, "Usage: %s\n", argv[0] );
+            case 1:
+                fprintf( stdout, _("Usage: %s\n"), argv[0] );
                 fprintf( stdout, "--help: Show this help\n" );
 				fprintf( stdout, "--debug: Enable debug messages\n" );
-                fprintf( stdout, "--hostname <hostname>: Set the hostname ( not detect it automatically )\n" );
+                fprintf( stdout, "--hostname <hostname>: Set the hostname ( if you dont set the hostname, it will be detected )\n" );
+                fprintf( stdout, "--configpath <path>: Path where all keys and config will be saved ( default to /etc/copilot )\n" );
                 fprintf( stdout, "--setup: Run setup of all plugins. \n" );
                 fprintf( stdout, "--createConnection <hostname:port>: Create a new client connection and exit \n" );
+                fprintf( stdout, "--serve <hostname:port>: Wait for incoming client \n" );
                 #ifndef DISABLE_WEBSOCKET
                 fprintf( stdout, "--websocket: start websocket-server \n" );
                 #endif
@@ -127,12 +134,18 @@ int main( int argc, char *argv[] ){
                 #endif
                 exit(1);
 
-            case 'n':
+            case 10:
                 printf ("Set hostname to '%s'\n", optarg);
                 core->setHostName( optarg );
                 break;
 
-            case 'c':
+            case 11:
+                printf ("Set config path to '%s'\n", optarg);
+                core->config->configPath( (const char**)&optarg );
+                core->config->load( core->nodeName() );
+                break;
+
+            case 30:
                 printf ("Try to connect to '%s'\n", optarg);
 
                 connectToHostName = strtok( optarg, ":" );
@@ -147,21 +160,40 @@ int main( int argc, char *argv[] ){
 
                 break;
 
+            case 31:
+                printf ("We serve '%s'\n", optarg);
+
+                serveHost = strtok( optarg, ":" );
+                servePortString = strtok(NULL, ":");
+
+                if( serveHost == NULL || servePortString == NULL ){
+                    fprintf( stderr, "Wrong command line passed" );
+                    exit(-1);
+                }
+                servePort = atoi(servePortString);
+                serveConnection = true;
+
+                break;
+
+
+
+                break;
+
             #ifndef DISABLE_WEBSOCKET
-            case 'w':
+            case 50:
                 printf ("Start Websocket server\n" );
                 startWebSocket = true;
                 break;
             #endif
 
             #ifndef DISABLE_NFT
-            case 'a':
+            case 40:
                 printf ("We dont apply nft-rules\n" );
                 disablenft = true;
                 break;
             #endif
 
-			case 's':
+			case 20:
 				coCore::setupMode = true;
 				break;
 
@@ -182,6 +214,17 @@ int main( int argc, char *argv[] ){
             coCore::ptr->config->nodeAppend(connectToHostName);
             coCore::ptr->config->nodeInfo( &connectToHostName, &connectNodeType, true );
             coCore::ptr->config->nodeConnInfo( &connectToHostName, &connectToPort, true );
+            coCore::ptr->config->save();
+            exit(0);
+        }
+    }
+
+    if( serveConnection == true ){
+        if( coCore::ptr->config->nodeSelectByHostName(serveHost) != true ){
+            coCoreConfig::nodeType serveNodeType = coCoreConfig::SERVER;
+            coCore::ptr->config->nodeAppend(serveHost);
+            coCore::ptr->config->nodeInfo( &serveHost, &serveNodeType, true );
+            coCore::ptr->config->nodeConnInfo( &serveHost, &servePort, true );
             coCore::ptr->config->save();
             exit(0);
         }
@@ -251,7 +294,7 @@ int main( int argc, char *argv[] ){
 
 
 
-
+    etDebugLevelSet( etID_LEVEL_CRITICAL );
     etDebugMessage( etID_LEVEL_WARNING, "Test" );
 }
 

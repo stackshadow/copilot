@@ -73,48 +73,13 @@ sysState::                          ~sysState(){
 
 
 bool sysState::                     load(){
-// vars
-    json_error_t    jsonError;
-	json_t*			jsonValue;
-	bool			saveToFile = false;
-
-// clear
-	this->jsonConfigObject = NULL;
-
-// check core-config path
-	if( access( baseFilePath, F_OK ) != 0 ){
-		system( "mkdir -p " baseFilePath );
-	}
-
-// open the file
-    this->jsonConfigObject = json_load_file( baseFilePath "sysstate.json", JSON_PRESERVE_ORDER, &jsonError );
-    if( this->jsonConfigObject == NULL ){
-        this->jsonConfigObject = json_object();
-		saveToFile = true;
-    }
-
-
-
-
-    if( saveToFile == true ){
-        this->save();
-    }
-
+    this->jsonConfigObject = coCore::ptr->config->section("sysstate");
     return true;
 }
 
 
 bool sysState::                     save(){
-
-// save the json to file
-	if( json_dump_file( this->jsonConfigObject, baseFilePath "sysstate.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
-		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s%s", baseFilePath, "sysstate.json" );
-		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-		return true;
-	}
-
-
-
+    return coCore::ptr->config->save();
 }
 
 
@@ -161,6 +126,16 @@ int sysState::                      running( int newCounter ){
         snprintf( cmdRunningChar, 10, "%d", this->cmdRunningCount );
         coCore::ptr->plugins->messageQueue->add( this,
         coCore::ptr->hostNameGet(), "", "sysstate", "cmdRunning", cmdRunningChar );
+    }
+
+
+    if( newCounter == 0 ){
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "sysState: Commands stopped" );
+    }
+    if( newCounter == 1 ){
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "sysState: Commands running" );
     }
 
     return this->cmdRunningCount;
@@ -477,6 +452,34 @@ int sysState::                      commandsStartAll(){
 }
 
 
+int sysState::                      commandsStopAll(){
+
+// vars
+    sysStateThreadData*     threadData = NULL;
+    int                     cmdArraysIndex = 0;
+    sysStateCmd*            command;
+    int                     commandIndex = 0;
+
+    for( cmdArraysIndex = 0; cmdArraysIndex < this->threadedDataArrayCount; cmdArraysIndex++ ){
+
+    // threaded data
+        threadData = this->threadedDataArray[cmdArraysIndex];
+        if( threadData == NULL ) continue;
+
+    // wait until thread finished
+        threadData->requestEnd = true;
+
+    }
+
+// cleanup
+    memset(this->threadedDataArray,0,this->threadedDataArrayCount+1);
+    free(this->threadedDataArray);
+    this->threadedDataArray = NULL;
+
+    return 0;
+}
+
+
 int sysState::                      commandsStopAllWait(){
 
 // vars
@@ -522,7 +525,7 @@ int sysState::                      commandsStopAllWait(){
 void* sysState::                    cmdThread( void* void_service ){
 
 //vars
-    sysStateCmd*           cmd = NULL;
+    sysStateCmd*            cmd = NULL;
     sysStateThreadData*     threadData = (sysStateThreadData*)void_service;
     int                     arrayIndex = 0;
     int                     delay;
@@ -554,8 +557,18 @@ void* sysState::                    cmdThread( void* void_service ){
 
     }
 
-// thread finished
-    threadData->running = false;
+// free memory
+    memset( threadData->cmdArray, 0, threadData->cmdArrayCount+1 );
+    free( threadData->cmdArray );
+    threadData->cmdArray = NULL;
+
+    memset( threadData, 0, sizeof(threadData) );
+    free( threadData );
+    threadData = NULL;
+
+
+// thread finished cleanup
+    sysState::ptr->running( sysState::ptr->running() - 1 );
 
     return NULL;
 }
@@ -760,7 +773,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         if( returnCode == 0 ){
             etDebugMessage( etID_LEVEL_INFO, "Started...");
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Started..." );
+            coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "sysState: Start reqest" );
         }
 
         return coPlugin::REPLY;
@@ -769,12 +782,9 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 
     if( strncmp(msgCommand,"cmdStopAll",10) == 0 ){
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Stop requested, this can take a bit ..." );
+        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "sysState: Request stop of commands.. this can take a bit" );
 
-        commandsStopAllWait();
-
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Stopped" );
+        commandsStopAll();
 
         return coPlugin::REPLY;
     }

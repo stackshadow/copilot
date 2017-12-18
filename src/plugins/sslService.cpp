@@ -35,8 +35,12 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 sslService::               			sslService() : coPlugin( "sslService", coCore::ptr->hostNameGet(), "cocom" ){
 
-
+// init keys
     sslSession::globalInit( coCore::ptr->hostNameGet() );
+
+
+
+
 
 // register plugin
 	coCore::ptr->plugins->append( this );
@@ -331,12 +335,19 @@ int sslService::                    maxConnection( int* setConnections ){
 unsigned int sslService::           reqKeysCount(){
 
 // vars
+    const char*         sslKeyPath = NULL;
     DIR*			    keyDir = NULL;
     dirent*			    keyDirEntry = NULL;
     unsigned int        keyDirCounter = 0;
 
+
+
+// get accepted key path
+    etStringCharGet( sslSession::pathRequestedKeys, sslKeyPath );
+
+
 // open directory
-    keyDir = opendir( sslAcceptedKeyPath );
+    keyDir = opendir( sslKeyPath );
     if( keyDir == NULL ){
         etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
         return UINT_MAX;
@@ -362,13 +373,19 @@ bool sslService::					reqKeysGet( json_t* jsonObject ){
     if( jsonObject == NULL ) return false;
 
 // vars
+    const char*     sslKeyPath = NULL;
     DIR*			keyDir = NULL;
     dirent*			keyDirEntry = NULL;
     json_t*         jsonKey = NULL;
     const char*     msgPayload = NULL;
 
+
+// get accepted key path
+    etStringCharGet( sslSession::pathRequestedKeys, sslKeyPath );
+
+
 // open directory
-    keyDir = opendir( sslKeyReqPath );
+    keyDir = opendir( sslKeyPath );
     if( keyDir == NULL ){
         etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
         return coPlugin::NO_REPLY;
@@ -396,17 +413,25 @@ bool sslService::					reqKeysGet( json_t* jsonObject ){
 
 bool sslService::					reqKeyRemove( const char* fingerprint ){
 
+// vars
+    const char*     sslKeyPath = NULL;
+
+// get accepted key path
+    etStringCharGet( sslSession::pathRequestedKeys, sslKeyPath );
+
+
 // we build the full path
-    etString* fullKeyPath; const char* keyPath;
+    etString* fullKeyPath;
     etStringAllocLen( fullKeyPath, 128 );
-    etStringCharSet( fullKeyPath, sslKeyReqPath, -1 );
+    etStringCharSet( fullKeyPath, sslKeyPath, -1 );
+    etStringCharSet( fullKeyPath, "/", -1 );
     etStringCharAdd( fullKeyPath, fingerprint );
-    etStringCharGet( fullKeyPath, keyPath );
+    etStringCharGet( fullKeyPath, sslKeyPath );
 
 // remove key
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove '%s'", keyPath );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove '%s'", sslKeyPath );
     etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-    unlink( keyPath );
+    unlink( sslKeyPath );
 
 // clean
     etStringFree( fullKeyPath );
@@ -423,14 +448,18 @@ bool sslService::					reqKeyAccept( const char* fingerprint ){
     const char*     targetPath = NULL;
 
 // source
+    etStringCharGet( sslSession::pathRequestedKeys, sourcePath );
     etStringAllocLen( sourceKeyPath, 128 );
-    etStringCharSet( sourceKeyPath, sslKeyReqPath, -1 );
+    etStringCharSet( sourceKeyPath, sourcePath, -1 );
+    etStringCharSet( sourceKeyPath, "/", -1 );
     etStringCharAdd( sourceKeyPath, fingerprint );
     etStringCharGet( sourceKeyPath, sourcePath );
 
 // target
+    etStringCharGet( sslSession::pathAcceptedKeys, targetPath );
     etStringAllocLen( targetKeyPath, 128 );
-    etStringCharSet( targetKeyPath, sslAcceptedKeyPath, -1 );
+    etStringCharSet( targetKeyPath, targetPath, -1 );
+    etStringCharSet( targetKeyPath, "/", -1 );
     etStringCharAdd( targetKeyPath, fingerprint );
     etStringCharGet( targetKeyPath, targetPath );
 
@@ -451,13 +480,18 @@ bool sslService::					acceptedKeysGet( json_t* jsonObject ){
     if( jsonObject == NULL ) return false;
 
 // vars
+    const char*     sslKeyPath = NULL;
     DIR*			keyDir = NULL;
     dirent*			keyDirEntry = NULL;
     json_t*         jsonKey = NULL;
     const char*     msgPayload = NULL;
 
+// get accepted key path
+    etStringCharGet( sslSession::pathAcceptedKeys, sslKeyPath );
+
+
 // open directory
-    keyDir = opendir( sslAcceptedKeyPath );
+    keyDir = opendir( sslKeyPath );
     if( keyDir == NULL ){
         etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
         return coPlugin::NO_REPLY;
@@ -485,17 +519,24 @@ bool sslService::					acceptedKeysGet( json_t* jsonObject ){
 
 bool sslService::					acceptedKeyRemove( const char* fingerprint ){
 
+// vars
+    const char*     sslKeyPath = NULL;
+
+// get accepted key path
+    etStringCharGet( sslSession::pathAcceptedKeys, sslKeyPath );
+
 // we build the full path
-    etString* fullKeyPath; const char* keyPath;
+    etString* fullKeyPath;
     etStringAllocLen( fullKeyPath, 128 );
-    etStringCharSet( fullKeyPath, sslAcceptedKeyPath, -1 );
+    etStringCharSet( fullKeyPath, sslKeyPath, -1 );
+    etStringCharSet( fullKeyPath, "/", -1 );
     etStringCharAdd( fullKeyPath, fingerprint );
-    etStringCharGet( fullKeyPath, keyPath );
+    etStringCharGet( fullKeyPath, sslKeyPath );
 
 // remove key
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove '%s'", keyPath );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Remove '%s'", sslKeyPath );
     etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-    unlink( keyPath );
+    unlink( sslKeyPath );
 
 // clean
     etStringFree( fullKeyPath );
@@ -546,7 +587,7 @@ void* sslService::					serveThread( void* void_service ){
     if( coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet()) != true ){
     // debugging message
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "No Server Configuration found, do nothing." );
-        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+        etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
         coCore::ptr->config->nodesIterateFinish();
 		return NULL;
@@ -726,9 +767,20 @@ void* sslService::					connectToClientThread( void* void_session ){
 
 
     // get ip-address
-        struct addrinfo* clientHostAddrInfo;
-        const char* hostName = session->host();
-        getaddrinfo( hostName, "4567", NULL, &clientHostAddrInfo );
+        struct addrinfo*    clientHostAddrInfo;
+        const char*         hostName = session->host();
+        int                 hostPort = session->port(-1);
+        char                hostPortString[10];
+        snprintf( hostPortString, 10, "%i", hostPort );
+
+        ret = getaddrinfo( hostName, hostPortString, NULL, &clientHostAddrInfo );
+        if( ret != 0 ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not get address of %s: %s", session->host(), gai_strerror(ret) );
+            etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+            sleep(10);
+            continue;
+        }
 
 
 
@@ -741,7 +793,7 @@ void* sslService::					connectToClientThread( void* void_session ){
 
             inetAddress = inet_ntoa( session->socketChannelAddress.sin_addr ),
 
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not connect to %s on %i: %s", session->host(), session->port(-1), strerror(errno) );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not connect to %s ( %s ) on %i: %s", session->host(), inetAddress, session->port(-1), strerror(errno) );
             etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
             sleep(10);

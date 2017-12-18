@@ -215,34 +215,12 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
 
 
 void nftService::               	load(){
-
-    json_error_t jsonError;
-    this->jsonRootObject = json_load_file( baseFilePath "nftrules.json", JSON_PRESERVE_ORDER, &jsonError );
-    if( jsonError.position == 0 || jsonError.line >= 0 ){
-
-    // report
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not load json-file: %s", jsonError.text );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-
-    // there is an error, we create an empty element
-        this->jsonRootObject = json_object();
-    }
-
-
-
-
+    this->jsonRootObject = coCore::ptr->config->section("nft");
 }
 
 
 bool nftService::               	save(){
-    int state = json_dump_file( this->jsonRootObject,
-                    baseFilePath "nftrules.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-
-    if( state == 0 ){
-        return true;
-    }
-
-    return false;
+    return coCore::ptr->config->save();
 }
 
 

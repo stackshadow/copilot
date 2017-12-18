@@ -31,9 +31,12 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
 // static stuff
-gnutls_priority_t sslSession::priorityCache;
-gnutls_certificate_credentials_t sslSession::myCerts;
-gnutls_certificate_credentials_t sslSession::clientCerts;
+gnutls_priority_t                   sslSession::priorityCache;
+gnutls_certificate_credentials_t    sslSession::myCerts;
+gnutls_certificate_credentials_t    sslSession::clientCerts;
+etString*                           sslSession::pathMyKeys = NULL;
+etString*                           sslSession::pathAcceptedKeys = NULL;
+etString*                           sslSession::pathRequestedKeys = NULL;
 
 //gnutls_global_deinit ();
 
@@ -188,8 +191,12 @@ sslSession::                ~sslSession(){
 
 bool sslSession::           globalInit( const char* myHostName ){
 
-// vars
-    int ret = -1;
+//
+    const char*         configPath = NULL;
+    int                 ret = -1;
+    std::string         mkdirCommand;
+    coCore::ptr->config->configPath( &configPath );
+
 
 // init tls
     gnutls_global_init();
@@ -198,19 +205,49 @@ bool sslSession::           globalInit( const char* myHostName ){
 // alloc priority cache
     gnutls_priority_init( &sslSession::priorityCache, "PFS", NULL);
 
-// create path if needed
-	if( access( sslKeyReqPath, F_OK ) != 0 ){
-		ret = system( "mkdir -p " sslKeyReqPath );
+
+// allocate paths
+    if( sslSession::pathMyKeys == NULL ){
+        etStringAllocLen( sslSession::pathMyKeys, 32 );
+        etStringCharSet( sslSession::pathMyKeys, configPath, -1 );
+        etStringCharAdd( sslSession::pathMyKeys, "/ssl_private" );
+    }
+    if( sslSession::pathAcceptedKeys == NULL ){
+        etStringAllocLen( sslSession::pathAcceptedKeys, 32 );
+        etStringCharSet( sslSession::pathAcceptedKeys, configPath, -1 );
+        etStringCharAdd( sslSession::pathAcceptedKeys, "/ssl_accepted" );
+    }
+    if( sslSession::pathRequestedKeys == NULL ){
+        etStringAllocLen( sslSession::pathRequestedKeys, 32 );
+        etStringCharSet( sslSession::pathRequestedKeys, configPath, -1 );
+        etStringCharAdd( sslSession::pathRequestedKeys, "/ssl_requested" );
+    }
+
+// my private keys
+    etStringCharGet( sslSession::pathMyKeys, configPath );
+	if( access( configPath, F_OK ) != 0 ){
+        mkdirCommand  = "mkdir -p ";
+        mkdirCommand += configPath;
+		ret = system( mkdirCommand.c_str() );
 	}
-	if( access( sslAcceptedKeyPath, F_OK ) != 0 ){
-		ret = system( "mkdir -p " sslAcceptedKeyPath );
+// accepted keys
+    etStringCharGet( sslSession::pathAcceptedKeys, configPath );
+	if( access( configPath, F_OK ) != 0 ){
+        mkdirCommand  = "mkdir -p ";
+        mkdirCommand += configPath;
+		ret = system( mkdirCommand.c_str() );
 	}
-	if( access( sslMyKeyPath, F_OK ) != 0 ){
-		ret = system( "mkdir -p " sslMyKeyPath );
+// requested keys
+    etStringCharGet( sslSession::pathRequestedKeys, configPath );
+	if( access( configPath, F_OK ) != 0 ){
+        mkdirCommand  = "mkdir -p ";
+        mkdirCommand += configPath;
+		ret = system( mkdirCommand.c_str() );
 	}
 
 // Hint: We use the same key, if we are server or if we are an client, we ( as node ) only have one !
 // generate keypair if needed
+    const char* sslMyKeyPath = NULL; etStringCharGet( sslSession::pathMyKeys, sslMyKeyPath );
     if( sslSession::generateKeyPair( myHostName, sslMyKeyPath ) != true ){
         return false;
     }
@@ -341,6 +378,7 @@ bool sslSession::           generateKeyPair( const char* name, const char* folde
 
 // ######################################### Pivate key #########################################
     tempFilePath  = folder;
+    tempFilePath += "/";
     tempFilePath += name;
     tempFilePath += "-key.pem";
     if( access( tempFilePath.c_str(), F_OK ) != 0 ){
@@ -390,6 +428,7 @@ bool sslSession::           generateKeyPair( const char* name, const char* folde
 
 // ######################################### public key #########################################
     tempFilePath  = folder;
+    tempFilePath += "/";
     tempFilePath += name;
     tempFilePath += "-pub.pem";
     if( access( tempFilePath.c_str(), F_OK ) != 0 ){
@@ -422,6 +461,7 @@ bool sslSession::           generateKeyPair( const char* name, const char* folde
 
 // ######################################### Template #########################################
     tempFilePath  = folder;
+    tempFilePath += "/";
     tempFilePath += name;
     tempFilePath += ".cfg";
     if( access( tempFilePath.c_str(), F_OK ) != 0 ){
@@ -454,6 +494,7 @@ bool sslSession::           generateKeyPair( const char* name, const char* folde
 
 // ######################################### Certificate #########################################
     tempFilePath  = folder;
+    tempFilePath += "/";
     tempFilePath += name;
     tempFilePath += "-cert.pem";
     if( access( tempFilePath.c_str(), F_OK ) != 0 ){
@@ -463,11 +504,13 @@ bool sslSession::           generateKeyPair( const char* name, const char* folde
 
         tempString += "--load-privkey ";
         tempString += folder;
+        tempString += "/";
         tempString += name;
         tempString += "-key.pem ";
 
         tempString += "--template ";
         tempString += folder;
+        tempString += "/";
         tempString += name;
         tempString += ".cfg ";
 
@@ -501,10 +544,12 @@ bool sslSession::           credCreate( gnutls_certificate_credentials_t* xcred,
 
 
     certFilePath  = folder;
+    certFilePath += "/";
     certFilePath += name;
     certFilePath += "-cert.pem";
 
     privKeyFilePath  = folder;
+    privKeyFilePath += "/";
     privKeyFilePath += name;
     privKeyFilePath += "-key.pem";
 
@@ -568,6 +613,7 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
     size_t          acceptedKeyBufferSizeOut = acceptedKeyBufferSize;
     char            acceptedKeyBuffer[acceptedKeyBufferSize];
     size_t          bufferIndex = 0;
+    const char*     sslKeyPath = NULL;
 
 // clean
     memset( publicKeyBuffer, 0, publicKeyBufferSize );
@@ -582,7 +628,10 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
 
 
 // generate full filename
-    fileName  = sslAcceptedKeyPath;
+// get accepted key path
+    etStringCharGet( sslSession::pathAcceptedKeys, sslKeyPath );
+    fileName  = sslKeyPath;
+    fileName += "/";
     fileName += peerHostName;
 
 // first check if the key exist
@@ -636,7 +685,9 @@ pinkey:
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
         return true;
     } else {
-        fileName  = sslKeyReqPath;
+        etStringCharGet( sslSession::pathRequestedKeys, sslKeyPath );
+        fileName  = sslKeyPath;
+        fileName += "/";
         fileName += peerHostName;
         file = fopen( fileName.c_str(), "w+" );
         fwrite( publicKeyBuffer, 1, publicKeyBufferSizeOut, file );

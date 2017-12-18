@@ -39,11 +39,7 @@ bool sslSessionInit();
 bool sslServerInit( const char* serverName );
 
 #define hostNameBufferSize 1024
-#define sslServerKeyPath baseFilePath "ssl_server_keys/"
-#define sslKeyReqPath baseFilePath "ssl_req_keys/"
-#define sslAcceptedKeyPath baseFilePath "ssl_accepted_keys/"
-#define sslClientKeyPath baseFilePath "ssl_client_keys/"
-#define sslMyKeyPath baseFilePath "ssl_my_keys/"
+
 
 class sslSession : public coPlugin {
 
@@ -72,6 +68,10 @@ class sslSession : public coPlugin {
         int                                 sessionPort = 4567;
 
     public:
+        static etString*    pathMyKeys;
+        static etString*    pathAcceptedKeys;
+        static etString*    pathRequestedKeys;
+
         int                                 socketChannel;
         struct sockaddr_in                  socketChannelAddress;
         socklen_t                           socketChannelAddressLen;

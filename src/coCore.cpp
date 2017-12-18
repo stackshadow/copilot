@@ -265,18 +265,26 @@ bool coCore::               jsonValue( json_t* jsonObject, const char* key, std:
 bool coCore::               passwordCheck( const char* user, const char* pass ){
 
 // vars
+    const char*     baseConfigPath = NULL;
+    std::string     configFile;
     json_t*         jsonAuthObject = NULL;
     json_t*         jsonUserObject = NULL;
     json_error_t    jsonError;
     const char*     jsonPassword = NULL;
     int             jsonPasswordLen = 0;
 
+// get config path
+    coCore::ptr->config->configPath( &baseConfigPath );
+    configFile  = baseConfigPath;
+    configFile += "/";
+    configFile += "auth.json";
+
 // open the file
-    jsonAuthObject = json_load_file( baseFilePath "auth.json", JSON_PRESERVE_ORDER, &jsonError );
+    jsonAuthObject = json_load_file( configFile.c_str(), JSON_PRESERVE_ORDER, &jsonError );
     if( jsonAuthObject == NULL ){
         jsonAuthObject = json_object();
         json_object_set_new( jsonAuthObject, "username", json_object() );
-        json_dump_file( jsonAuthObject, baseFilePath "auth.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        json_dump_file( jsonAuthObject, configFile.c_str(), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
     }
 
 // try to get the user
@@ -303,7 +311,7 @@ bool coCore::               passwordCheck( const char* user, const char* pass ){
         }
 
     // save the auth-file
-        json_dump_file( jsonAuthObject, baseFilePath "auth.json", JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        json_dump_file( jsonAuthObject, configFile.c_str(), JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     // recalc password-stuff
         jsonPassword = hashed_password;
