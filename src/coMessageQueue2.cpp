@@ -60,8 +60,11 @@ bool coMessageQueue2::           add( coPlugin* sourcePlugin, coMessage* message
     etListAppend( this->list, (void*)message );
 
 // debug
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%p: append message", message );
-    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen,
+    "[APPEND] [%s -> %s] [%s - %s]",
+    message->nodeNameSource(), message->nodeNameTarget(),
+    message->group(), message->command() );
+    etDebugMessage( etID_LEVEL_DETAIL_NET, etDebugTempMessage );
 
 // UnLock
     unlockPthread( this->messageFiFoLock );
@@ -69,7 +72,7 @@ bool coMessageQueue2::           add( coPlugin* sourcePlugin, coMessage* message
 }
 
 
-bool coMessageQueue2::           add(    coPlugin*   sourcePlugin,
+bool coMessageQueue2::           add(   coPlugin*   sourcePlugin,
                                         const char* nodeNameSource,
                                         const char* nodeNameTarget,
                                         const char* group,

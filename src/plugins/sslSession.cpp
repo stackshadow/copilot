@@ -1027,8 +1027,8 @@ coPlugin::t_state sslSession::onBroadcastMessage( coMessage* message ){
 
 // vars
     const char*     myHostName = coCore::ptr->hostNameGet();
-    const char*     msgTarget = message->nodeNameTarget();
     const char*     msgSource = message->nodeNameSource();
+    const char*     msgTarget = message->nodeNameTarget();
 	json_t*			jsonMessage = NULL;
 	char*			jsonString = NULL;
 
@@ -1047,9 +1047,13 @@ coPlugin::t_state sslSession::onBroadcastMessage( coMessage* message ){
 	jsonString = json_dumps( jsonMessage, JSON_PRESERVE_ORDER | JSON_COMPACT );
 	if( jsonString != NULL ){
 
-	// debugging message
-		snprintf( etDebugTempMessage, etDebugTempMessageLen, "[TLS] [try to send] [%s]", jsonString );
-		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen,
+        "[SEND] [%s -> %s] [%s - %s]",
+        msgSource, msgTarget,
+        message->group(), message->command() );
+        etDebugMessage( etID_LEVEL_DETAIL_NET, etDebugTempMessage );
+
 
         gnutls_record_send( this->tlsSession, jsonString, strlen(jsonString) );
 
