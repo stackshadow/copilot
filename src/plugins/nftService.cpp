@@ -54,14 +54,17 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     const char*			msgSource = message->nodeNameSource();
 	const char*			msgGroup = message->group();
 	const char*			msgCommand = message->command();
+    int                 msgCommandLen = 0;
 	const char*			msgPayload = message->payload();
 
-
+// check
+    if( msgCommand == NULL ) return coPlugin::NO_REPLY;
+    msgCommandLen = strlen(msgCommand);
 
     std::string     answerTopic;
 
 
-    if( strncmp( (char*)msgCommand, "chainsCountGet", 14 ) == 0 ){
+    if( coCore::strIsExact("chainsCountGet",msgCommand,msgCommandLen) == true ){
 
     // vars
         const char*     chainName = NULL;
@@ -93,7 +96,7 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-    if( strncmp( (char*)msgCommand, "chainsList", 10 ) == 0 ){
+    if( coCore::strIsExact("chainsList",msgCommand,msgCommandLen) == true ){
 
 
     // get the host
@@ -110,7 +113,7 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-    if( strncmp( (char*)msgCommand, "chainGet", 8 ) == 0 ){
+    if( coCore::strIsExact("chainGet",msgCommand,msgCommandLen) == true ){
 
     // vars
         json_t*         jsonChain = json_object();
@@ -142,7 +145,7 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-    if( strncmp( (char*)msgCommand, "chainSave", 9 ) == 0 ){
+    if( coCore::strIsExact("chainSave",msgCommand,msgCommandLen) == true ){
 
     // vars
         json_t*         jsonChain = NULL;
@@ -184,7 +187,7 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-    if( strncmp( (char*)msgCommand, "save", 4 ) == 0 ){
+    if( coCore::strIsExact("save",msgCommand,msgCommandLen) == true ){
 
     // save it to the file
         this->save();
@@ -195,7 +198,7 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
     }
 
 
-    if( strncmp( (char*)msgCommand, "apply", 4 ) == 0 ){
+    if( coCore::strIsExact("apply",msgCommand,msgCommandLen) == true ){
         if( this->applyRules(msgTarget, message) == false ){
 			return coPlugin::REPLY;
 		}
@@ -207,8 +210,6 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
 
 
     return coPlugin::NO_REPLY;
-
-
 }
 
 

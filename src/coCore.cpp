@@ -89,12 +89,18 @@ coCore::                    ~coCore(){
 
 
 
-const char* coCore::        nodeName(){
+const char* coCore::        nodeName( const char* newNodeName ){
 
-    // vars
+// vars
     const char*         myNodeNameCharArray = NULL;
-    etStringCharGet( this->myNodeName, myNodeNameCharArray );
 
+// set
+    if( newNodeName != NULL ){
+        etStringCharSet( this->myNodeName, newNodeName, -1 );
+    }
+
+// get
+    etStringCharGet( this->myNodeName, myNodeNameCharArray );
     return myNodeNameCharArray;
 }
 
@@ -198,6 +204,23 @@ bool coCore::               setTopic( coPluginElement* pluginElement, json_t* js
     return true;
 }
 */
+
+bool coCore::               strIsExact( const char* str1, const char* str2, int str2Len ){
+    if( str1 == NULL ) return false;
+    if( str2 == NULL ) return false;
+
+// vars
+    int str1Len = strlen(str1);
+
+    if( str1Len != str2Len ) return false;
+
+    if( strncmp(str1,str2,str1Len) == 0 ){
+        return true;
+    }
+
+    return false;
+}
+
 
 bool coCore::               jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson ){
 
