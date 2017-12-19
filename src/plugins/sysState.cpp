@@ -431,10 +431,6 @@ int sysState::                      commandsStartAll(){
             threadData->cmdArray[jsonCommandIndex] = new sysStateCmd( cmdUUID, cmd, cmdValueMin, cmdValueMax, sysState::updateHealthCallback );
             threadData->cmdArray[jsonCommandIndex+1] = NULL;
 
-        // count up
-            int cmdCounter = this->running() + 1;
-            this->running( cmdCounter );
-
             jsonCommandIterator = json_object_iter_next( jsonTime, jsonCommandIterator );
         }
 
@@ -453,6 +449,11 @@ int sysState::                      commandsStartAll(){
 
 
 int sysState::                      commandsStopAll(){
+
+// already stopped
+    if( threadedDataArray == NULL ){
+        return -1; // already running
+    }
 
 // vars
     sysStateThreadData*     threadData = NULL;
@@ -534,6 +535,9 @@ void* sysState::                    cmdThread( void* void_service ){
     threadData->running = true;
     threadData->requestEnd = false;
 
+// thread finished cleanup
+    sysState::ptr->running( sysState::ptr->running() + threadData->cmdArrayCount );
+
     while( threadData->requestEnd == false ){
         arrayIndex = 0;
 
@@ -557,6 +561,9 @@ void* sysState::                    cmdThread( void* void_service ){
 
     }
 
+// thread finished cleanup
+    sysState::ptr->running( sysState::ptr->running() - threadData->cmdArrayCount );
+
 // free memory
     memset( threadData->cmdArray, 0, threadData->cmdArrayCount+1 );
     free( threadData->cmdArray );
@@ -567,8 +574,6 @@ void* sysState::                    cmdThread( void* void_service ){
     threadData = NULL;
 
 
-// thread finished cleanup
-    sysState::ptr->running( sysState::ptr->running() - 1 );
 
     return NULL;
 }
