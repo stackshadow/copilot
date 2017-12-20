@@ -52,7 +52,8 @@ private:
     //
         lockID                  cmdHealthLock = 0;
         int                     cmdHealth = 100;
-        etString*               cmdHealthDescription = NULL;    /// decription of command which set the last worst value
+        void*                   cmdHealthCmd = NULL;            ///< sysStateCmd of worst health value; This is the only cmd which can increase health
+        etString*               cmdHealthDescription = NULL;    ///< decription of command which set the last worst value
 
         sysStateThreadData**    threadedDataArray = NULL;
         int                     threadedDataArrayCount = 0;
@@ -67,8 +68,8 @@ private:
         bool                    load();
         bool                    save();
 
-        int                     health( int newHealth = -1, const char* cmdDescription = NULL );
-        static void             updateHealthCallback( int newHealth ){ sysState::ptr->health(newHealth); };
+        int                     health( int newHealth = -1, void* cmd = NULL );
+        static void             updateHealthCallback( int newHealth, void* cmd ){ sysState::ptr->health(newHealth,cmd); };
 
         int                     running( int newCounter = -1 );
 

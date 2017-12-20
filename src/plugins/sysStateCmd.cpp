@@ -28,7 +28,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "core/etDebug.h"
 
-sysStateCmd::              sysStateCmd( const char* id, const char* command, int min, int max, sysHealthSetFct* updateHealthFunction ){
+sysStateCmd::                   sysStateCmd( const char* id, const char* command, const char* displayName, int min, int max, sysHealthSetFct* updateHealthFunction ){
 
 
 // init
@@ -42,26 +42,32 @@ sysStateCmd::              sysStateCmd( const char* id, const char* command, int
     etStringCharSet( this->uuid, id, -1 );
 
 // command
-    etStringAllocLen( this->cmd, 1024 );
+    etStringAllocLen( this->cmd, 128 );
     etStringCharSet( this->cmd, command, -1 );
 
+// displayName
+    etStringAllocLen( this->cmdDisplayName, 128 );
+    etStringCharSet( this->cmdDisplayName, displayName, -1 );
 
     this->updateHealth = updateHealthFunction;
 }
 
 
-sysStateCmd::              ~sysStateCmd(){
-
+sysStateCmd::                   ~sysStateCmd(){
+    etStringFree( this->uuid );
+    etStringFree( this->cmd );
+    etStringFree( this->cmdDisplayName );
 }
 
 
 
 
-bool sysStateCmd::         execute( char* commandOutput, int* commandOutputSize ){
+bool sysStateCmd::              execute( char* commandOutput, int* commandOutputSize ){
 
 
 // vars
     const char*     command = NULL;
+    const char*     displayName = NULL;
     int*            cmdOutSize = 0;
     char*           cmdOutChar = NULL;
     int             tmpCmdOutSize = 1024;
@@ -89,6 +95,8 @@ bool sysStateCmd::         execute( char* commandOutput, int* commandOutputSize 
     while( fgets(cmdOutChar, *cmdOutSize, pf) != NULL ){
         cmdOutChar[strlen(cmdOutChar)-1] = 0;
     }
+    fclose(pf);
+
 
 // rangeDiff == 100 %
 // health = ???? + min
@@ -97,21 +105,19 @@ bool sysStateCmd::         execute( char* commandOutput, int* commandOutputSize 
 // calculate percentage
     this->cmdHealth = (this->cmdRaw - this->cmdValueMin) * 100 / rangeDiff;
 
-// clean
-    fclose(pf);
-
 // health bigger
     if( this->cmdHealth > 100 ){
         this->cmdHealth = 100;
     }
 
 // debug
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Command: %s Result: %s Health: %d", this->cmd, cmdOutChar, this->cmdHealth );
-    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    etStringCharGet( this->cmdDisplayName, displayName );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Command: %s Result: %s Health: %d", displayName, cmdOutChar, this->cmdHealth );
+    etDebugMessage( etID_LEVEL_DETAIL_PROCESS, etDebugTempMessage );
 
 // update health if needed
     if( this->updateHealth != NULL ){
-        this->updateHealth( this->cmdHealth );
+        this->updateHealth( this->cmdHealth, this );
     }
 
 
@@ -119,6 +125,11 @@ bool sysStateCmd::         execute( char* commandOutput, int* commandOutputSize 
 }
 
 
+const char* sysStateCmd::       displayName(){
+    const char* displayNameChar = NULL;
+    etStringCharGet( this->cmdDisplayName, displayNameChar );
+    return displayNameChar;
+}
 
 
 #endif

@@ -55,7 +55,7 @@ sysState::                          sysState() : coPlugin( "sysstate", coCore::p
 
 
 // demo
-    sysStateCmd freeDisk( "", "df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//g'", 100, 0, NULL );
+    sysStateCmd freeDisk( "", "df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//g'", "free disc space", 100, 0, NULL );
     freeDisk.execute();
 
 
@@ -84,27 +84,43 @@ bool sysState::                     save(){
 
 
 
-int sysState::                      health( int newHealth, const char* cmdDescription ){
+int sysState::                      health( int newHealth, void* cmd ){
 
     if( newHealth >= 0 ){
         lockPthread( this->cmdHealthLock );
 
+        bool sendUpdate = false;
+
     // set health
         if( newHealth < this->cmdHealth /* - healthBand  || newHealth > this->cmdHealth + healthBand */ ){
             this->cmdHealth = newHealth;
+            this->cmdHealthCmd = cmd;
+            sendUpdate = true;
+        }
 
-            char healthChar[10] = "\0\0\0\0\0\0\0\0\0";
-            snprintf( healthChar, 10, "%d", this->cmdHealth );
+
+    // only the cmd which set the worst value can increase that
+        if( newHealth > this->cmdHealth && this->cmdHealthCmd == cmd ){
+            this->cmdHealth = newHealth;
+            this->cmdHealthCmd = cmd;
+            sendUpdate = true;
+        }
+
+
+    // send update ?
+        if( sendUpdate == true ){
+
+        // build json-answer-object
+            char jsonCharDump[2048];
+            snprintf( jsonCharDump, 2048, "{ \"health\": \"%d\", \"name\": \"%s\" }", this->cmdHealth, ((sysStateCmd*)this->cmdHealthCmd)->displayName() );
 
         // add the message to list
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "health", healthChar );
+            coCore::ptr->hostNameGet(), "", "sysstate", "health", jsonCharDump );
+
         }
 
-    // set description
-        if( cmdDescription != NULL ){
-            etStringCharSet( this->cmdHealthDescription, cmdDescription, -1 );
-        }
+
 
         unlockPthread( this->cmdHealthLock );
     }
@@ -369,6 +385,7 @@ int sysState::                      commandsStartAll(){
     json_t*         jsonCommand = NULL;
     const char*     cmdUUID = NULL;
     const char*     cmd = NULL;
+    const char*     cmdDisplayName = NULL;
     int             cmdValueMin;
     int             cmdValueMax;
     int             cmdDelay = 100;
@@ -417,6 +434,11 @@ int sysState::                      commandsStartAll(){
             if( jsonValue != NULL ) cmd = json_string_value(jsonValue);
             else { cmd = NULL; }
 
+        // display name
+            jsonValue = json_object_get( jsonCommand, "displayName" );
+            if( jsonValue != NULL ){ cmdDisplayName = json_string_value(jsonValue); }
+            else { cmdDisplayName = "unknown"; }
+
         // min
             jsonValue = json_object_get( jsonCommand, "min" );
             if( jsonValue != NULL ) cmdValueMin = json_integer_value(jsonValue);
@@ -428,7 +450,7 @@ int sysState::                      commandsStartAll(){
             else { cmdValueMax = 100; }
 
 
-            threadData->cmdArray[jsonCommandIndex] = new sysStateCmd( cmdUUID, cmd, cmdValueMin, cmdValueMax, sysState::updateHealthCallback );
+            threadData->cmdArray[jsonCommandIndex] = new sysStateCmd( cmdUUID, cmd, cmdDisplayName, cmdValueMin, cmdValueMax, sysState::updateHealthCallback );
             threadData->cmdArray[jsonCommandIndex+1] = NULL;
 
             jsonCommandIterator = json_object_iter_next( jsonTime, jsonCommandIterator );
@@ -530,6 +552,7 @@ void* sysState::                    cmdThread( void* void_service ){
     sysStateThreadData*     threadData = (sysStateThreadData*)void_service;
     int                     arrayIndex = 0;
     int                     delay;
+    bool                    firstRun = true;
 
 // set thread to running
     threadData->running = true;
@@ -550,14 +573,19 @@ void* sysState::                    cmdThread( void* void_service ){
 
         // run and delay
             cmd->execute();
-            usleep( 1000 * delay );
+
+        // delay
+            if( firstRun == false ){ usleep( 1000 * delay ); }
+            else { firstRun = false; usleep(100); }
 
             arrayIndex++;
             cmd = threadData->cmdArray[arrayIndex];
         }
 
     // sleep
-        usleep( 1000 * delay );
+        if( firstRun == false ){ usleep( 1000 * delay ); }
+        else { firstRun = false; usleep(100); }
+
 
     }
 
@@ -673,7 +701,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         commandMax = json_integer_value( jsonValue );
 
     // run
-        sysStateCmd freeDisk( "test", command, commandMin, commandMax );
+        sysStateCmd freeDisk( "test", command, "Test", commandMin, commandMax, NULL );
         freeDisk.execute( commandOut,  &commandOutSize );
         commandHealth = freeDisk.health();
 
@@ -808,12 +836,13 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 
     if( strncmp(msgCommand,"healthGet",9) == 0 ){
 
-        char healthChar[10] = "\0\0\0\0\0\0\0\0\0";
-        snprintf( healthChar, 10, "%d", this->health() );
+    // build json-answer-object
+        char jsonCharDump[2048];
+        snprintf( jsonCharDump, 2048, "{ \"health\": \"%d\", \"name\": \"%s\" }", this->cmdHealth, ((sysStateCmd*)this->cmdHealthCmd)->displayName() );
 
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, msgGroup, "health", healthChar );
+        coCore::ptr->hostNameGet(), "", "sysstate", "health", jsonCharDump );
 
         return coPlugin::REPLY;
     }

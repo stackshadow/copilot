@@ -26,7 +26,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "libio.h"
 
-typedef void sysHealthSetFct( int newHealth );
+typedef void sysHealthSetFct( int newHealth, void* cmd );
 
 class sysStateCmd
 {
@@ -34,6 +34,7 @@ class sysStateCmd
         sysHealthSetFct*    updateHealth = NULL;
         etString*           uuid = NULL;
         etString*           cmd = NULL;
+        etString*           cmdDisplayName = NULL;
         int                 cmdRaw;
         int                 cmdHealth;
         int                 cmdValueMin;
@@ -41,12 +42,13 @@ class sysStateCmd
 
 
     public:
-        sysStateCmd( const char* id, const char* command, int min = 0, int max = 100, sysHealthSetFct* updateHealthFunction = NULL );
+        sysStateCmd( const char* id, const char* command, const char* displayName, int min = 0, int max = 100, sysHealthSetFct* updateHealthFunction = NULL );
         ~sysStateCmd();
 
     public:
-        bool    execute( char* commandOutput = NULL, int* commandOutputSize = NULL );
-        int     health(){ return this->cmdHealth; };
+        bool            execute( char* commandOutput = NULL, int* commandOutputSize = NULL );
+        int             health(){ return this->cmdHealth; };
+        const char*     displayName();
 
 };
 
