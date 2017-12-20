@@ -97,16 +97,13 @@ CFLAGSREL   += -O2
 
 # search paths
 CLIBS       += -L/usr/local/lib
-
+CLIBS       += -lsodium
 CLIBS       += -ljansson
 CLIBS       += -lpthread
 CLIBS       += -lz
 CLIBS       += -luuid
 CLIBS       += -ldl
 
-# for testing
-CLIBS       += -lssh
-CLIBS       += -lssh_threads
 
 
 #CLIBS       += -luWS
@@ -114,11 +111,20 @@ CLIBS       += -lssh_threads
 CLIBS		+= $(shell pkg-config --libs libsodium)
 
 
+# localisation support
+ifndef DISABLE_INTL
+CFLAGS      += -DPACKAGE="\"copilotd\""
+CFLAGS      += -DLOCALEDIR="\"/usr/share/locale\""
+#CLIBS       += -lintl
+endif
+
 # use SSH or not
 ifdef DISABLE_SSH
 CFLAGS      += -DDISABLE_SSH
 else
 sources     += src/plugins/sshSession.cpp
+CLIBS       += -lssh
+CLIBS       += -lssh_threads
 endif
 
 # use wolfssl or not
@@ -184,6 +190,8 @@ endif
 default: binary-qt
 
 
+translation:
+	make -f locale/locale.mk
 
 /etc/copilot/services:
 	@mkdir -v -p /etc/copilot/services
@@ -193,10 +201,10 @@ default: binary-qt
 client:
 	make -f make/Makefile \
 	DISABLE_MQTT=1 \
-	DISABLE_SYSSTATE=1 \
-	MQTT_ONLY_LOCAL=1 \
 	DISABLE_SSH=1 \
-	binary-dbg
+	DISABLE_WEBSOCKET=1 \
+	DISABLE_LDAP=1 \
+	binary
 clientTargets = /etc/copilot/services
 
 
@@ -214,12 +222,12 @@ $(prefix)/lib/systemd/system/copilotd.service: src/client/copilotd.service
 	@cp -v $< $@
 
 install-client: client $(clientTargets)
-	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+	@id -u copilot && if [ "$?" != "0" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
 	@chown -R copilot:copilot /etc/copilot
 	systemctl daemon-reload
 
 uninstall-client:
-	@systemctl stop copilotd-ssh
+	@systemctl stop copilotd
 	@rm -v $(clientTargets)
 
 
@@ -227,7 +235,6 @@ uninstall-client:
 
 engineering: gitversion
 	make -f make/Makefile \
-	SSH_SERVER=1 \
 	DISABLE_MQTT=1 \
 	DISABLE_SSH=1 \
 	binary-dbg
@@ -239,55 +246,3 @@ install-engineering: engineering $(clientTargets)
 
 
 
-
-singlestation:
-	make -f make/Makefile \
-	DISABLE_MQTT=1 \
-	binary
-
-
-
-#### server
-server: src/server/sshd_hostkey_ed25519
-serverTargets = /etc/copilot/services
-
-serverTargets += $(prefix)/etc/copilot/mqtt-server.conf
-$(prefix)/etc/copilot/mqtt-server.conf: src/server/mqtt-server.conf
-	@cp -v $< $@
-
-serverTargets += $(prefix)/lib/systemd/system/copilotd-mqtt.service
-$(prefix)/lib/systemd/system/copilotd-mqtt.service: src/server/copilotd-mqtt.service
-	@cp -v $< $@
-
-serverTargets += $(prefix)/etc/copilot/sshd_copilotd.conf
-$(prefix)/etc/copilot/sshd_copilotd.conf: src/server/sshd_copilotd.conf
-	@cp -v $< $@
-
-serverTargets += $(prefix)/etc/copilot/sshd_authorized_keys
-$(prefix)/etc/copilot/sshd_authorized_keys:
-	touch $@
-
-serverTargets += $(prefix)/lib/systemd/system/copilotd-sshd-keygen.service
-$(prefix)/lib/systemd/system/copilotd-sshd-keygen.service: src/server/copilotd-sshd-keygen.service
-	@cp -v $< $@
-
-serverTargets += $(prefix)/lib/systemd/system/copilotd-sshd.service
-$(prefix)/lib/systemd/system/copilotd-sshd.service: src/server/copilotd-sshd.service
-	@cp -v $< $@
-
-install-server: $(serverTargets)
-	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
-	@chown -R copilot:copilot /etc/copilot
-	systemctl daemon-reload
-uninstall-server:
-	@systemctl stop copilotd-sshd
-	@systemctl stop copilotd-mqtt
-	@rm -v $(serverTargets)
-
-install:
-	cp $(buildPath)/app /usr/bin/copilotd
-	cp $(sourcePath)/copilotd.service /lib/systemd/system/copilotd.service
-	useradd -U -m -s /usr/bin/nologin copilot
-	mkdir -p /etc/copilot
-	chown -R copilot:copilot /etc/copilot
-	cp $(sourcePath)/sudoers /etc/sudoers.d/copilot
