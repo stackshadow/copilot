@@ -27,6 +27,7 @@ localhost:4567
 
 */
 
+#include "intl.h"
 
 #include "jansson.h"
 //#include "doDBDws.h"
@@ -56,6 +57,7 @@ localhost:4567
 static struct option options[] = {
     { "help",                   no_argument,        NULL, 1 },
     { "debug",                  no_argument,        NULL, 2 },
+    { "debugNet",               no_argument,        NULL, 3 },
     { "hostname",               required_argument,  NULL, 10 },
     { "configpath",             required_argument,  NULL, 11 },
 	{ "setup",                  no_argument,        NULL, 20 },
@@ -75,6 +77,10 @@ static struct option options[] = {
 
 int main( int argc, char *argv[] ){
 
+// locale
+  setlocale (LC_ALL, "");
+  bindtextdomain( PACKAGE, LOCALEDIR );
+  textdomain( PACKAGE );
 
 
     etInit(argc,(const char**)argv);
@@ -113,15 +119,12 @@ int main( int argc, char *argv[] ){
             case '?':
                 exit(1);
 
-            case 2:
-                etDebugLevelSet( etID_LEVEL_DETAIL_APP );
-                break;
-
             case 1:
                 fprintf( stdout, _("Usage: %s\n"), argv[0] );
-                fprintf( stdout, "--help: Show this help\n" );
-				fprintf( stdout, "--debug: Enable debug messages\n" );
-                fprintf( stdout, "--hostname <hostname>: Set the hostname ( if you dont set the hostname, it will be detected )\n" );
+                fprintf( stdout, _("--help: Show this help\n") );
+				fprintf( stdout, _("--debug: Enable debug messages\n") );
+                fprintf( stdout, _("--debugNet: Enable network debug messages\n") );
+                fprintf( stdout, _("--hostname <hostname>: Set the hostname ( if you dont set the hostname, it will be detected )\n") );
                 fprintf( stdout, "--configpath <path>: Path where all keys and config will be saved ( default to /etc/copilot )\n" );
                 fprintf( stdout, "--setup: Run setup of all plugins. \n" );
                 fprintf( stdout, "--createConnection <hostname:port>: Create a new client connection and exit \n" );
@@ -133,6 +136,14 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, "--nonft: Dont apply nft-rules on startup \n" );
                 #endif
                 exit(1);
+
+            case 2:
+                etDebugLevelSet( etID_LEVEL_DETAIL_APP );
+                break;
+
+            case 3:
+                etDebugLevelSet( etID_LEVEL_DETAIL_PROCESS );
+                break;
 
             case 10:
                 printf ("Set hostname to '%s'\n", optarg);
