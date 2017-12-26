@@ -40,6 +40,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <gnutls/x509.h>
 #include <gnutls/abstract.h>
 
+// journal
+#include <poll.h>
+#include <systemd/sd-journal.h>
 
 
 
@@ -95,6 +98,7 @@ class sslService : public coPlugin {
 // client ( we connect to servers )
 		void				connectAll();
 		static void*		connectToClientThread( void* void_session );
+
 
 
 };

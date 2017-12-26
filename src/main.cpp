@@ -51,7 +51,7 @@ localhost:4567
 #include "plugins/ldapService.h"
 //#include "plugins/mqttService.h"
 //#include "plugins/ldapService.h"
-
+#include "plugins/syslogd.h"
 //#include <QtCore/QCoreApplication>
 
 static struct option options[] = {
@@ -282,6 +282,11 @@ int main( int argc, char *argv[] ){
 // ldap
 #ifndef DISABLE_LDAP
     ldapService*    ldapPlugin = new ldapService();
+#endif
+
+
+#ifndef DISABLE_SYSTEMD
+    syslogd* syslogdService = new syslogd();
 #endif
 
     sysState*   state = new sysState();

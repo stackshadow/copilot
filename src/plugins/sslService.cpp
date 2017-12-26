@@ -40,8 +40,6 @@ sslService::               			sslService() : coPlugin( "sslService", coCore::ptr
 
 
 
-
-
 // register plugin
 	coCore::ptr->plugins->append( this );
 }
@@ -743,7 +741,6 @@ void sslService::					connectAll(){
 }
 
 
-
 void* sslService::					connectToClientThread( void* void_session ){
 
     int             ret = -1;
@@ -808,6 +805,7 @@ void* sslService::					connectToClientThread( void* void_session ){
 
 
 }
+
 
 
 

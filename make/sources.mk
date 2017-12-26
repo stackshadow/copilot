@@ -181,6 +181,12 @@ sources     += src/plugins/ldapService.cpp
 CLIBS		+= -lldap
 endif
 
+ifdef DISABLE_SYSTEMD
+else
+sources     += src/plugins/syslogd.cpp
+CLIBS		+= $(shell pkg-config --cflags --libs libsystemd)
+endif
+
 ifdef _DEBUG
 CFLAGS      += -D_DEBUG
 endif
@@ -198,6 +204,27 @@ translation:
 	@chown -R copilot:copilot /etc/copilot
 
 
+copilot-user:
+	@if [ "$(shell id -u)" != "0" ]; then echo "Yo are not root"; exit 0; fi
+	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+
+copilotd: $(prefix)/usr/bin/copilotd
+$(prefix)/usr/bin/copilotd: $(buildPath)/app
+	@cp -v $< $@
+
+sudoers: $(prefix)/etc/sudoers.d/copilot
+$(prefix)/etc/sudoers.d/copilot: src/files/sudoers
+	@cp -v $< $@
+
+copilotd-client.service: $(prefix)/lib/systemd/system/copilotd-client.service
+$(prefix)/lib/systemd/system/copilotd-client.service: src/files/copilotd-client.service
+	@cp -v $< $@
+
+copilotd-engineering.service: $(prefix)/lib/systemd/system/copilotd-engineering.service
+$(prefix)/lib/systemd/system/copilotd-engineering.service: src/files/copilotd-engineering.service
+	@cp -v $< $@
+
+
 client:
 	make -f make/Makefile \
 	DISABLE_MQTT=1 \
@@ -205,32 +232,10 @@ client:
 	DISABLE_WEBSOCKET=1 \
 	DISABLE_LDAP=1 \
 	binary
-clientTargets = /etc/copilot/services
 
-
-
-clientTargets += $(prefix)/usr/bin/copilotd
-$(prefix)/usr/bin/copilotd: $(buildPath)/app
-	@cp -v $< $@
-
-clientTargets += $(prefix)/etc/sudoers.d/copilot
-$(prefix)/etc/sudoers.d/copilot: src/client/sudoers
-	@cp -v $< $@
-
-clientTargets += $(prefix)/lib/systemd/system/copilotd.service
-$(prefix)/lib/systemd/system/copilotd.service: src/client/copilotd.service
-	@cp -v $< $@
-
-install-client: client $(clientTargets)
-	@id -u copilot && if [ "$?" != "0" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+client-install: client copilot-user copilotd copilotd-client.service sudoers
 	@chown -R copilot:copilot /etc/copilot
 	systemctl daemon-reload
-
-uninstall-client:
-	@systemctl stop copilotd
-	@rm -v $(clientTargets)
-
-
 
 
 engineering: gitversion
@@ -239,10 +244,15 @@ engineering: gitversion
 	DISABLE_SSH=1 \
 	binary-dbg
 
-install-engineering: engineering $(clientTargets)
-	@if [ "$(shell id -u copilot)" == "" ]; then useradd -U -m -s /usr/bin/nologin copilot; fi
+engineering-install: engineering copilot-user copilotd copilotd-engineering.service sudoers
 	@chown -R copilot:copilot /etc/copilot
 	systemctl daemon-reload
 
 
+
+uninstall:
+	@systemctl stop copilotd*
+	@rm -fv $(prefix)/usr/bin/copilotd
+	@rm -fv $(prefix)/etc/sudoers.d/copilot
+	@rm -fv $(prefix)/lib/systemd/system/copilotd*
 
