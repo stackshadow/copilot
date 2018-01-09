@@ -36,6 +36,7 @@ class syslogd : public coPlugin {
     public:
         bool                    messageThreadRunning = false;
         bool                    messageThreadStopReq = false;
+        bool                    messageThreadGetPrevMsg = false;
 
 // public functions
 	public:

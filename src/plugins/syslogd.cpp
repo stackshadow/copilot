@@ -72,6 +72,8 @@ coPlugin::t_state syslogd::	            onBroadcastMessage( coMessage* message )
 
 
     if( coCore::strIsExact("start",msgCommand,msgCommandLen) == true ){
+
+        this->messageThreadGetPrevMsg = true;
         returnValue = this->messageThreadStart();
         if( returnValue == 1 ){
             etDebugMessage( etID_LEVEL_WARNING, "Already running...");
@@ -86,6 +88,13 @@ coPlugin::t_state syslogd::	            onBroadcastMessage( coMessage* message )
         returnValue = this->messageThreadStop();
         return coPlugin::REPLY;
     }
+
+
+    if( coCore::strIsExact("refresh",msgCommand,msgCommandLen) == true ){
+        this->messageThreadGetPrevMsg = true;
+        return coPlugin::REPLY;
+    }
+
 
 }
 
@@ -128,7 +137,7 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
 
 // go to the end
     sd_journal_seek_tail( journal );
-    sd_journal_previous_skip( journal, 10 );
+    //sd_journal_previous_skip( journal, 10 );
 
 // started
     syslogdInstance->messageThreadRunning = true;
@@ -137,6 +146,12 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
 
 // loop
     while( syslogdInstance->messageThreadStopReq == false ) {
+
+        if( syslogdInstance->messageThreadGetPrevMsg == true ){
+            sd_journal_seek_tail( journal );
+            sd_journal_previous_skip( journal, 10 );
+            syslogdInstance->messageThreadGetPrevMsg = false;
+        }
 
         returnVal = sd_journal_next( journal );
         while( returnVal > 0 ){
@@ -160,9 +175,10 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
             returnVal = sd_journal_get_data( journal, "_CMDLINE", (const void **)&cmdLineString, &cmdLineStringLen );
             if( returnVal < 0 ) {
                 fprintf( stderr, "Failed to read message field: %s\n", strerror(returnVal) );
-                continue;
+                //continue;
             }
             if( cmdLineString != NULL ) cmdLineString = &cmdLineString[9];
+            else cmdLineString = "unknow";
 
 
 
@@ -184,7 +200,7 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
             int jsonCharDumpIndex = 0;
             for( jsonCharDumpIndex = 0; jsonCharDumpIndex < 2048; jsonCharDumpIndex++ ){
                 char testChar = jsonCharDump[jsonCharDumpIndex];
-                if( jsonCharDump[jsonCharDumpIndex] == '\\' ){
+                if( jsonCharDump[jsonCharDumpIndex] == '\\' || jsonCharDump[jsonCharDumpIndex] == '\u0003' ){
                     jsonCharDump[jsonCharDumpIndex] = ' ';
                 }
                 if( jsonCharDump[jsonCharDumpIndex] == 0 ){
