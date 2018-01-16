@@ -79,8 +79,8 @@ class coCore {
 
 	// helper functions
         static bool         strIsExact( const char* str1, const char* str2, int str2Len );
-		static bool  		jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson );
-		static bool  		jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson );
+		static int  		jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson );
+		static int  		jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson );
 
 	// login / auth / permissions
 		static bool  		passwordCheck( const char* user, const char* pass );

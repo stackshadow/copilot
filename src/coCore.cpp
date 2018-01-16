@@ -221,8 +221,13 @@ bool coCore::               strIsExact( const char* str1, const char* str2, int 
     return false;
 }
 
-
-bool coCore::               jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson ){
+/**
+@return
+ - 1: Value was added to jsonObject
+ - 2: key was found in jsonObject, and value was set from jsonValue
+ - 3: key was not found in jsonObject, new jsonValue was created with defaultValue and value is set do defaultValue
+*/
+int coCore::                jsonValue( json_t* jsonObject, const char* key, char* value, int valueMax, const char* defaultValue, bool toJson ){
 
 // vars
     json_t*     jsonValue = NULL;
@@ -230,6 +235,7 @@ bool coCore::               jsonValue( json_t* jsonObject, const char* key, char
 // from value to json
     if( toJson == true ){
         json_object_set_new( jsonObject, key, json_string(value) );
+        return 1;
     }
 
 // from json to value
@@ -242,18 +248,20 @@ bool coCore::               jsonValue( json_t* jsonObject, const char* key, char
         jsonValue = json_object_get( jsonObject, key );
         if( jsonValue != NULL ) {
             strncat( value, json_string_value(jsonValue), valueMax );
+            return 2;
         } else {
             strncat( value, defaultValue, valueMax );
             json_object_set_new( jsonObject, key, json_string(defaultValue) );
+            return 3;
         }
 
     }
 
-    return true;
+    return 0;
 }
 
 
-bool coCore::               jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson ){
+int coCore::                jsonValue( json_t* jsonObject, const char* key, std::string* value, const char* defaultValue, bool toJson ){
 
 // vars
     json_t*     jsonValue = NULL;
@@ -261,6 +269,7 @@ bool coCore::               jsonValue( json_t* jsonObject, const char* key, std:
 // from value to json
     if( toJson == true ){
         json_object_set_new( jsonObject, key, json_string(value->c_str()) );
+        return 1;
     }
 
 // from json to value
@@ -274,14 +283,16 @@ bool coCore::               jsonValue( json_t* jsonObject, const char* key, std:
         jsonValue = json_object_get( jsonObject, key );
         if( jsonValue != NULL ) {
             value->assign( json_string_value(jsonValue) );
+            return 2;
         } else {
             value->assign( defaultValue );
             json_object_set_new( jsonObject, key, json_string(defaultValue) );
+            return 3;
         }
 
     }
 
-    return true;
+    return 0;
 }
 
 
