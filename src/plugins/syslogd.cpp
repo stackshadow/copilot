@@ -101,6 +101,24 @@ coPlugin::t_state syslogd::	            onBroadcastMessage( coMessage* message )
 
 
 
+void syslogd::                          filter( char* string ){
+
+    int cmdLineStringLen = strlen( string );
+    int jsonCharDumpIndex = 0;
+    for( jsonCharDumpIndex = 0; jsonCharDumpIndex < cmdLineStringLen; jsonCharDumpIndex++ ){
+        char testChar = string[jsonCharDumpIndex];
+        if( testChar == '\\' || testChar == '\u0003' || testChar == '\u0001' || testChar == '\"' ){
+            string[jsonCharDumpIndex] = ' ';
+        }
+        if( string[jsonCharDumpIndex] == 0 ){
+            break;
+        }
+    }
+
+}
+
+
+
 int syslogd::                           messageThreadStart(){
 
 // already running ?
@@ -149,7 +167,7 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
 
         if( syslogdInstance->messageThreadGetPrevMsg == true ){
             sd_journal_seek_tail( journal );
-            sd_journal_previous_skip( journal, 10 );
+            sd_journal_previous_skip( journal, 30 );
             syslogdInstance->messageThreadGetPrevMsg = false;
         }
 
@@ -163,6 +181,12 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
             time_t          jTimestamp;
             struct tm*      jTimestampLocal;
             char            jTimestampString[80];
+            int             jsonCharDumpIndex = 0;
+            char*           journalMessage;
+            size_t          journalMessageLen;
+            char*           journalCmd;
+            char*           journalText;
+
 
             sd_journal_get_realtime_usec( journal, &jTimestampMicrosecond );
             jTimestamp = jTimestampMicrosecond / 1000 / 1000;
@@ -170,43 +194,43 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
             strftime( jTimestampString, 80, "%Y-%m-%d %H:%M:%S", jTimestampLocal);
 
         // command
-            char*           cmdLineString;
-            size_t          cmdLineStringLen;
-            returnVal = sd_journal_get_data( journal, "_CMDLINE", (const void **)&cmdLineString, &cmdLineStringLen );
+            returnVal = sd_journal_get_data( journal, "_CMDLINE", (const void **)&journalMessage, &journalMessageLen );
             if( returnVal < 0 ) {
                 fprintf( stderr, "Failed to read message field: %s\n", strerror(returnVal) );
                 //continue;
             }
-            if( cmdLineString != NULL ) cmdLineString = &cmdLineString[9];
-            else cmdLineString = "unknow";
+            if( journalMessage != NULL ){
+                journalCmd = (char*)malloc( journalMessageLen * sizeof(char) );
+                memcpy( journalCmd, &journalMessage[9], (journalMessageLen-10) * sizeof(char) );
+                syslogd::filter( journalCmd );
+            } else {
+                journalCmd = "unknow";
+            }
 
 
 
         // message
-            char*           messageString;
-            size_t          messageStringLen;
-            returnVal = sd_journal_get_data( journal, "MESSAGE", (const void **)&messageString, &messageStringLen );
+            returnVal = sd_journal_get_data( journal, "MESSAGE", (const void **)&journalMessage, &journalMessageLen );
             if( returnVal < 0 ) {
                 fprintf( stderr, "Failed to read message field: %s\n", strerror(returnVal) );
                 continue;
             }
-            if( messageString != NULL ) messageString = &messageString[8];
+            if( journalMessage != NULL ){
+                journalText = (char*)malloc( journalMessageLen * sizeof(char) );
+                memcpy( journalText, &journalMessage[9], (journalMessageLen-10) * sizeof(char) );
+                syslogd::filter( journalText );
+            } else {
+                journalText = "unknow";
+            }
 
 
         // build json-answer-object
             char jsonCharDump[2048];
-            snprintf( jsonCharDump, 2048, "{ \"dt\": \"%s\", \"cmd\": \"%s\", \"msg\": \"%s\" }", jTimestampString, cmdLineString, messageString );
+            snprintf( jsonCharDump, 2048, "{ \"dt\": \"%s\", \"cmd\": \"%s\", \"msg\": \"%s\" }", jTimestampString, journalCmd, journalText );
+            free(journalCmd);
+            free(journalText);
 
-            int jsonCharDumpIndex = 0;
-            for( jsonCharDumpIndex = 0; jsonCharDumpIndex < 2048; jsonCharDumpIndex++ ){
-                char testChar = jsonCharDump[jsonCharDumpIndex];
-                if( jsonCharDump[jsonCharDumpIndex] == '\\' || jsonCharDump[jsonCharDumpIndex] == '\u0003' ){
-                    jsonCharDump[jsonCharDumpIndex] = ' ';
-                }
-                if( jsonCharDump[jsonCharDumpIndex] == 0 ){
-                    break;
-                }
-            }
+
 
 
         // add the message to list

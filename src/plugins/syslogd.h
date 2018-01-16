@@ -44,6 +44,9 @@ class syslogd : public coPlugin {
                                 ~syslogd();
         static syslogd*         ptr;
 
+// helper
+    public:
+        static void             filter( char* string );
 
     public:
 // API
