@@ -41,7 +41,9 @@ public:
 	typedef enum e_state {
 		NO_REPLY = -1,
 		REPLY = 0,
-		BREAK = 1
+		BREAK = 1,
+        MESSAGE_FINISHED,       ///< Finished with message, Messagehandler can delete this message
+        MESSAGE_UNKNOWN,        ///< Plugin Dont know what to do with this message
 	} t_state;
 
 
