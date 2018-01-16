@@ -836,9 +836,20 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 
     if( strncmp(msgCommand,"healthGet",9) == 0 ){
 
+    // get command which was set the health
+        sysStateCmd* lastHealthCommand = (sysStateCmd*)this->cmdHealthCmd;
+
+    // if no command was set the health yet
+        if( lastHealthCommand == NULL ){
+        // add the message to list
+            coCore::ptr->plugins->messageQueue->add( this,
+            coCore::ptr->hostNameGet(), "", "sysstate", "health", "-1" );
+            return coPlugin::MESSAGE_FINISHED;
+        }
+
     // build json-answer-object
         char jsonCharDump[2048];
-        snprintf( jsonCharDump, 2048, "{ \"health\": \"%d\", \"name\": \"%s\" }", this->cmdHealth, ((sysStateCmd*)this->cmdHealthCmd)->displayName() );
+        snprintf( jsonCharDump, 2048, "{ \"health\": \"%d\", \"name\": \"%s\" }", lastHealthCommand->health(), lastHealthCommand->displayName() );
 
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
