@@ -48,7 +48,7 @@ coPluginList::				coPluginList(){
 
 // start thread
     this->boradcastThreadStart();
-    this->broadcastWatchdogThreadStart();
+    //this->broadcastWatchdogThreadStart();
 
 }
 
@@ -203,15 +203,20 @@ void* coPluginList::        broadcastThread( void* userdata ){
                 if( tempPlugin->filterCheck( msgNodeNameTarget, msgGroup ) == false ) continue;
 
             // call plugin-function
-                tempPlugin->onBroadcastMessage( message );
+                coPlugin::t_state returnState = tempPlugin->onBroadcastMessage( message );
 
             // ping if needed
                 if( pluginList->boradcastThreadPing == true ){ pluginList->boradcastThreadPing = false; }
+
+                if( returnState == coPlugin::MESSAGE_FINISHED ) break;
 
                 usleep( 1000L );
             }
             pluginList->iterateFinish();
             pluginList->messageQueue->release();
+
+        // free message memory
+            delete message;
 
         } else {
         // ping if needed
