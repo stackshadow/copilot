@@ -263,49 +263,83 @@ bool sslService:: 					onSetup(){
 	fprintf( stdout, "Copilot Node-Connection-Setup \n" );
 
 ask:
-	fprintf( stdout, "1.) Accept Connection from another node ( aka training-mode ) \n" );
-	fprintf( stdout, "2.) Connect to another node \n" );
-	fprintf( stdout, "What would you like to do ? (1/2) \n" );
+	fprintf( stdout, "Please choose:\n" );
+	fprintf( stdout, "1.) Create an listener to accept Connection from another node \n" );
+	fprintf( stdout, "2.) Creata a connection to another node \n" );
+    fprintf( stdout, "9.) Finished, do nothing \n" );
+    fprintf( stdout, "What would you like to do ? (1/2/9) \n" );
 	fflush( stdout );
 	read( STDIN_FILENO, answer, 512 );
-	fprintf( stdout, "\n" );
 
-	if( answer[0] != '1' && answer[0] != '2' ) goto ask;
+// wrong answer
+	if( answer[0] != '1' && answer[0] != '2' && answer[0] != '9' ) goto ask;
 
-	if( answer[0] == '1' ){
-
-		coCore::ptr->config->nodesIterate();
-
-	// default server / port
-		answer[0] = ':'; answer[1] = ':'; answer[2] = '\0';
-		serverType = coCoreConfig::SERVER;
-		serverPort = 4567;
-
-	// read hostname
-		fprintf( stdout, "Enter host/IP to bind. ( user :: for IPv6 and IPv4 ) " );
-		fflush( stdout );
-		read( STDIN_FILENO, answer, 512 );
-		fprintf( stdout, "\n" );
-	// remove 0
-		answerLen = strlen(answer);
-		if( answerLen > 0 ) answerLen--;
-		answer[answerLen] = '\0';
-
-	// save
-		coCore::ptr->config->nodeSelect(coCore::ptr->hostNameGet());
-		coCore::ptr->config->nodeInfo( NULL, &serverType, true );
-		coCore::ptr->config->nodeConnInfo( (const char**)&pAnswer, &serverPort, true );
-		coCore::ptr->config->nodesIterateFinish();
-
-	// save it
-		coCore::ptr->config->save();
-
-	// serve connection
-		this->serve();
-
-	}
+// do nothing
+	if( answer[0] == '9' ){
+        return true;
+    }
 
 
+// lock
+    coCore::ptr->config->nodesIterate();
+
+// default server / port
+    answer[0] = ':'; answer[1] = ':'; answer[2] = '\0';
+    serverPort = 4567;
+
+// server or client ?
+    if( answer[0] == '1' ){
+        serverType = coCoreConfig::SERVER;
+    }
+    if( answer[0] == '2' ){
+        serverType = coCoreConfig::CLIENT;
+    }
+
+// read port
+    fprintf( stdout, "Enter port ( Default is 4567, must have min 4 digits ): " );
+    fflush( stdout );
+    read( STDIN_FILENO, answer, 512 );
+    fprintf( stdout, "\n" );
+
+    answerLen = strlen( answer );
+    if( answerLen > 3 && answer != NULL ){
+        serverPort = atoi(answer);
+    }
+
+
+// read hostname
+    if( answer[0] == '1' ){
+        fprintf( stdout, "Enter host/IP to bind. ( user :: for IPv6 and IPv4 ) " );
+    }
+    if( answer[0] == '2' ){
+        fprintf( stdout, "Enter host/IP to connect to." );
+    }
+    fflush( stdout );
+    read( STDIN_FILENO, answer, 512 );
+    fprintf( stdout, "\n" );
+// remove 0
+    answerLen = strlen(answer);
+    if( answerLen > 0 ) answerLen--;
+    answer[answerLen] = '\0';
+
+
+
+// save
+    if( coCore::ptr->config->nodeSelectByHostName( answer ) == false ){
+        if( coCore::ptr->config->nodeAppend( answer ) == false ){
+            coCore::ptr->config->nodesIterateFinish();
+            return false;
+        }
+    }
+    coCore::ptr->config->nodeInfo( NULL, &serverType, true );
+    coCore::ptr->config->nodeConnInfo( (const char**)&pAnswer, &serverPort, true );
+    coCore::ptr->config->nodesIterateFinish();
+
+// save it
+    coCore::ptr->config->save();
+
+
+    goto ask;
 }
 
 
