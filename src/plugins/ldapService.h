@@ -86,13 +86,16 @@ private:
 
     bool                exist( LDAP* connection, const char* dn );
     bool                find( LDAP* connection, const char* searchBase, const char* attribute, const char* value, std::string* dn );
+    bool                removeDN( const char* dn );
     bool                iterate( const char* searchBase );
     bool                dumpElement( LDAP* connection, LDAPMessage* actualMessage, json_t* jsonObjectOutput = NULL );
     bool                dumpAll( LDAP* connection, const char* basedn );
     bool                dumpChilds( LDAP* connection, const char* basedn, json_t* jsonObjectOutput );
     bool                dumpDBs( LDAP* connection, json_t* jsonObjectOutput );
+    bool                dump( json_t* jsonObjectOutput, const char **attributes, const char* searchDN, bool singleDN = false );
     bool                dumpUsers( LDAP* connection, json_t* jsonObjectOutput );
-    bool                dumpGroups( LDAP* connection, json_t* jsonObjectOutput );
+    bool                dumpGroups( json_t* jsonObjectOutput );
+    bool                dumpGroupMembers( const char* groupName, json_t* jsonObjectOutput );
 
 
     bool                purge();
@@ -104,12 +107,15 @@ private:
     bool                dbRemove( const char* configdn );
 
     bool                orgaAdd( const char* basedn );
-    bool                orgaUnitAdd( const char *name, const char* base = NULL );
+    bool                orgaUnitAdd( const char* name, const char* base = NULL );
 
-    bool                groupAdd( const char *name, const char* description );
+    bool                groupAdd( const char* name );
+    bool                groupChange( const char* name, const char* description );
+    bool                groupAddMember( const char* groupName, const char* memberUserName );
+    bool                groupRemoveMember( const char* groupName, const char* memberUserName );
 
-    bool                userAdd( const char *name );
-    bool                userPasswordSet( const char* username, const char* password );
+    bool                userAdd( const char* accountName );
+    bool                userChange( const char* accountName, const char* passwordClearText, const char* mail = NULL );
 
 
 
