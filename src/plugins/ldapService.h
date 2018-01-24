@@ -93,9 +93,7 @@ private:
     bool                dumpChilds( LDAP* connection, const char* basedn, json_t* jsonObjectOutput );
     bool                dumpDBs( LDAP* connection, json_t* jsonObjectOutput );
     bool                dump( json_t* jsonObjectOutput, const char **attributes, const char* searchDN, bool singleDN = false );
-    bool                dumpUsers( LDAP* connection, json_t* jsonObjectOutput );
-    bool                dumpGroups( json_t* jsonObjectOutput );
-    bool                dumpGroupMembers( const char* groupName, json_t* jsonObjectOutput );
+
 
 
     bool                purge();
@@ -104,16 +102,20 @@ private:
 
     bool                dbAdd( const char* suffix, const char* dbType = "bdb" );
     bool                dbChangeCreds( const char* suffix, const char* username, const char* password );
+    bool                dbAddHash( const char* hash );
     bool                dbRemove( const char* configdn );
 
     bool                orgaAdd( const char* basedn );
     bool                orgaUnitAdd( const char* name, const char* base = NULL );
 
+    bool                groupDump( json_t* jsonObjectOutput );
+    bool                groupMembersDump( const char* groupName, json_t* jsonObjectOutput );
     bool                groupAdd( const char* name );
     bool                groupChange( const char* name, const char* description );
     bool                groupAddMember( const char* groupName, const char* memberUserName );
     bool                groupRemoveMember( const char* groupName, const char* memberUserName );
 
+    bool                userDump( LDAP* connection, json_t* jsonObjectOutput );
     bool                userAdd( const char* accountName );
     bool                userChange( const char* accountName, const char* passwordClearText, const char* mail = NULL );
 

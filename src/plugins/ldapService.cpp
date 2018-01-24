@@ -203,6 +203,9 @@ coPlugin::t_state ldapService::		onBroadcastMessage( coMessage* message ){
     // change
         this->dbChangeCreds( this->basedn.c_str(), this->logindn.c_str(), this->loginpass.c_str() );
 
+    // add hashing type
+        this->dbAddHash( "{SSHA}" );
+
     // add orga if needed
         this->orgaAdd( this->basedn.c_str() );
     // create user-tree
@@ -261,7 +264,7 @@ connstate:
         json_t*     jsonUserlist = json_object();
 
     // add users to json
-        this->dumpUsers( this->ldapConnection, jsonUserlist );
+        this->userDump( this->ldapConnection, jsonUserlist );
 
     // dump
         jsonTempString = json_dumps( jsonUserlist, JSON_PRESERVE_ORDER | JSON_COMPACT );
@@ -289,7 +292,7 @@ connstate:
         json_t*     jsonUserlist = json_object();
 
     // add the message to list
-        const char* attributes[] = { "sn", "cn", "uid", "mail", NULL };
+        const char* attributes[] = { "uid", "mail", NULL };
         this->dump( jsonUserlist, attributes, msgPayload, true );
 
     // dump
@@ -319,7 +322,7 @@ connstate:
         json_t*     jsonGrouplist = json_object();
 
     // add users to json
-        this->dumpGroups( jsonGrouplist );
+        this->groupDump( jsonGrouplist );
 
     // dump
         jsonTempString = json_dumps( jsonGrouplist, JSON_PRESERVE_ORDER | JSON_COMPACT );
@@ -327,6 +330,36 @@ connstate:
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
         msgTarget, msgSource, "ldap", "groups", jsonTempString );
+
+    // cleanup
+        free( jsonTempString );
+        json_decref( jsonGrouplist );
+
+        return coPlugin::MESSAGE_FINISHED;
+    }
+
+
+    if( coCore::strIsExact("groupGet",msgCommand,msgCommandLen) == true ){
+
+    // connected ?
+        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
+            return coPlugin::MESSAGE_UNKNOWN;
+        }
+
+    // vars
+        json_t*     jsonGrouplist = json_object();
+
+
+    // dump ldap to json
+        const char* attributes[] = { "cn", "description", NULL };
+        this->dump( jsonGrouplist, attributes, msgPayload, true );
+
+    // dump json to string
+        jsonTempString = json_dumps( jsonGrouplist, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this,
+        msgTarget, msgSource, "ldap", "group", jsonTempString );
 
     // cleanup
         free( jsonTempString );
@@ -347,7 +380,7 @@ connstate:
         json_t*     jsonMemberList = json_object();
 
     // add users to json
-        this->dumpGroupMembers( msgPayload, jsonMemberList );
+        this->groupMembersDump( msgPayload, jsonMemberList );
 
     // dump
         jsonTempString = json_dumps( jsonMemberList, JSON_PRESERVE_ORDER | JSON_COMPACT );
@@ -1189,69 +1222,6 @@ bool ldapService::                  dump( json_t* jsonObjectOutput, const char *
 }
 
 
-bool ldapService::                  dumpUsers( LDAP* connection, json_t* jsonObjectOutput ){
-    if( connection == NULL ) return false;
-
-// vars
-    std::string         fullDN;
-
-// build dn
-    fullDN  = this->userdn;
-    fullDN += ",";
-    fullDN += this->basedn;
-
-    const char* attributes[] = { "sn", "cn", "uid", "mail", NULL };
-    this->dump( jsonObjectOutput, attributes, fullDN.c_str() );
-
-
-    return true;
-}
-
-
-bool ldapService::                  dumpGroups( json_t* jsonObjectOutput ){
-// not connected
-    if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
-
-// vars
-    std::string         fullDN;
-
-// build dn
-    fullDN  = this->groupdn;
-    fullDN += ",";
-    fullDN += this->basedn;
-
-    const char* attributes[] = { "cn", "description", NULL };
-    this->dump( jsonObjectOutput, attributes, fullDN.c_str() );
-
-
-    return true;
-}
-
-
-bool ldapService::                  dumpGroupMembers( const char* groupName, json_t* jsonObjectOutput ){
-// not connected
-    if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
-
-// vars
-    std::string         fullDN;
-
-// build dn
-    fullDN  = "cn=";
-    fullDN += groupName;
-    fullDN += ",";
-    fullDN += this->groupdn;
-    fullDN += ",";
-    fullDN += this->basedn;
-
-
-    const char* attributes[] = { "member", NULL };
-    this->dump( jsonObjectOutput, attributes, fullDN.c_str() );
-
-
-    return true;
-}
-
-
 
 
 // admin server tasks
@@ -1392,6 +1362,40 @@ olcRootPW: secret
         return false;
     }
 
+    return true;
+}
+
+
+bool ldapService::                  dbAddHash( const char* hash ){
+// not connected
+    if( this->ldapConnectionAdminActive == false || this->ldapConnectionAdmin == NULL ) return false;
+
+
+
+// create account-group
+    LDAPMod**       mods = NULL;
+    int             modsLen = 0;
+    int             returnCode;
+    std::string     fullDN;
+
+
+// Required Attributes
+    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_REPLACE, "olcPasswordHash", hash );
+
+
+// build dn
+    fullDN  = "olcDatabase={-1}frontend,cn=config";
+
+// call
+    returnCode = ldap_modify_ext_s( this->ldapConnectionAdmin, fullDN.c_str(), mods, NULL, NULL );
+    if( returnCode != LDAP_SUCCESS ){
+        char *errorMessage = ldap_err2string( returnCode );
+        etDebugMessage( etID_LEVEL_ERR, errorMessage );
+        this->ldapModMemFree( &mods );
+        return false;
+    }
+
+    this->ldapModMemFree( &mods );
     return true;
 }
 
@@ -1601,6 +1605,50 @@ bool ldapService::                  orgaUnitAdd( const char* orgaName, const cha
 
 
 
+bool ldapService::                  groupDump( json_t* jsonObjectOutput ){
+// not connected
+    if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
+
+// vars
+    std::string         fullDN;
+
+// build dn
+    fullDN  = this->groupdn;
+    fullDN += ",";
+    fullDN += this->basedn;
+
+    const char* attributes[] = { "cn", "description", NULL };
+    this->dump( jsonObjectOutput, attributes, fullDN.c_str() );
+
+
+    return true;
+}
+
+
+bool ldapService::                  groupMembersDump( const char* groupName, json_t* jsonObjectOutput ){
+// not connected
+    if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
+
+// vars
+    std::string         fullDN;
+
+// build dn
+    fullDN  = "cn=";
+    fullDN += groupName;
+    fullDN += ",";
+    fullDN += this->groupdn;
+    fullDN += ",";
+    fullDN += this->basedn;
+
+
+    const char* attributes[] = { "member", NULL };
+    this->dump( jsonObjectOutput, attributes, fullDN.c_str() );
+
+
+    return true;
+}
+
+
 bool ldapService::                  groupAdd( const char* name ){
 // not connected
     if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
@@ -1621,6 +1669,7 @@ bool ldapService::                  groupAdd( const char* name ){
     dummyMemberDN += ",";
     dummyMemberDN += this->basedn;
 
+// Required Attributes
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "objectClass", "groupOfNames" );
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "cn", name );
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "member", dummyMemberDN.c_str() );
@@ -1669,8 +1718,8 @@ bool ldapService::                  groupChange( const char* name, const char* d
     fullDN += this->basedn;
 
 // check if orga already exist
-    if( this->exist( this->ldapConnection, fullDN.c_str() ) == true ){
-        return true;
+    if( this->exist( this->ldapConnection, fullDN.c_str() ) != true ){
+        return false;
     }
 
 // change description
@@ -1679,7 +1728,7 @@ bool ldapService::                  groupChange( const char* name, const char* d
     }
 
 // call
-    returnCode = ldap_add_ext_s( this->ldapConnection, fullDN.c_str(), mods, NULL, NULL );
+    returnCode = ldap_modify_ext_s( this->ldapConnection, fullDN.c_str(), mods, NULL, NULL );
     if( returnCode != LDAP_SUCCESS ){
         char *errorMessage = ldap_err2string( returnCode );
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
@@ -1801,6 +1850,26 @@ bool ldapService::                  groupRemoveMember( const char* groupName, co
 
 
 
+
+bool ldapService::                  userDump( LDAP* connection, json_t* jsonObjectOutput ){
+    if( connection == NULL ) return false;
+
+// vars
+    std::string         fullDN;
+
+// build dn
+    fullDN  = this->userdn;
+    fullDN += ",";
+    fullDN += this->basedn;
+
+    const char* attributes[] = { "sn", "cn", "uid", "mail", NULL };
+    this->dump( jsonObjectOutput, attributes, fullDN.c_str() );
+
+
+    return true;
+}
+
+
 bool ldapService::                  userAdd( const char* accountName ){
 // not connected
     if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
@@ -1826,11 +1895,12 @@ bool ldapService::                  userAdd( const char* accountName ){
         return true;
     }
 
-
+// Required Attributes
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "objectClass", "person", "inetOrgPerson" );
+    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "uid", accountName );
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "sn", "unknown" );
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "cn", "unknown" );
-    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "uid", accountName );
+
 
 
 // call
@@ -1868,8 +1938,8 @@ bool ldapService::                  userChange( const char* accountName, const c
     fullDN += this->basedn;
 
 // check if orga already exist
-    if( this->exist( this->ldapConnection, fullDN.c_str() ) == true ){
-        return true;
+    if( this->exist( this->ldapConnection, fullDN.c_str() ) != true ){
+        return false;
     }
 
 // change password
@@ -1883,7 +1953,7 @@ bool ldapService::                  userChange( const char* accountName, const c
     }
 
 // call
-    returnCode = ldap_add_ext_s( this->ldapConnection, fullDN.c_str(), mods, NULL, NULL );
+    returnCode = ldap_modify_ext_s( this->ldapConnection, fullDN.c_str(), mods, NULL, NULL );
     if( returnCode != LDAP_SUCCESS ){
         char *errorMessage = ldap_err2string( returnCode );
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
