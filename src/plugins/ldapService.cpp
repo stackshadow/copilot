@@ -253,6 +253,8 @@ connstate:
     }
 
 
+
+// user stuff
     if( coCore::strIsExact("userlist",msgCommand,msgCommandLen) == true ){
 
     // connected ?
@@ -289,11 +291,20 @@ connstate:
         }
 
     // vars
-        json_t*     jsonUserlist = json_object();
+        json_t*         jsonUserlist = json_object();
+        std::string     fullDN;
+
+    // build dn
+        fullDN  = "uid=";
+        fullDN += msgPayload;
+        fullDN += ",";
+        fullDN += this->userdn;
+        fullDN += ",";
+        fullDN += this->basedn;
 
     // add the message to list
         const char* attributes[] = { "uid", "mail", NULL };
-        this->dump( jsonUserlist, attributes, msgPayload, true );
+        this->dump( jsonUserlist, attributes, fullDN.c_str(), true );
 
     // dump
         jsonTempString = json_dumps( jsonUserlist, JSON_PRESERVE_ORDER | JSON_COMPACT );
@@ -309,8 +320,152 @@ connstate:
         return coPlugin::MESSAGE_FINISHED;
     }
 
+// modificate a user ( add / change / delete )
+    if( coCore::strIsExact("userMod",msgCommand,msgCommandLen) == true ){
+    // connected ?
+        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
+            return coPlugin::MESSAGE_UNKNOWN;
+        }
+
+    // vars
+        json_error_t    jsonError;
+        json_t*         jsonNewValues = NULL;
+        void*           jsonIterator = NULL;
+        const char*     jsonKey = NULL;
+        json_t*         jsonValue = NULL;
+
+	// parse json
+		jsonNewValues = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
+		if( jsonNewValues == NULL || jsonError.line > -1 ){
+			return coPlugin::NO_REPLY;
+		}
+
+    // action ( 1=add, 2=change, 3=delete )
+        int action = 0;
+        jsonValue = json_object_get( jsonNewValues, "action" );
+        if( jsonValue == NULL ){
+            json_decref( jsonNewValues );
+            return coPlugin::NO_REPLY;
+        }
+        action = json_integer_value( jsonValue );
 
 
+    // username
+        const char* userName = NULL;
+        jsonValue = json_object_get( jsonNewValues, "uid" );
+        if( jsonValue == NULL ){
+            json_decref( jsonNewValues );
+            return coPlugin::NO_REPLY;
+        }
+        userName = json_string_value( jsonValue );
+
+
+    // add
+        if( action == 1 ){
+            if( this->userAdd( userName ) == true ){
+
+            // we change to command to user-change, to add additional values ( if possible )
+            // we also dont return from this function !
+                action = 2;
+
+                coCore::ptr->plugins->messageQueue->add( this,
+                coCore::ptr->nodeName(), "", "ldap", "userAdded", userName );
+            } else {
+                coCore::ptr->plugins->messageQueue->add( this,
+                coCore::ptr->nodeName(), "", "ldap", "userNotAdded", userName );
+
+                json_decref( jsonNewValues );
+                return coPlugin::MESSAGE_FINISHED;
+            }
+        }
+
+    // change
+        if( action == 2 ){
+
+        // password
+            const char* userPassword = NULL;
+            jsonValue = json_object_get( jsonNewValues, "pw" );
+            if( jsonValue != NULL ){
+                userPassword = json_string_value( jsonValue );
+            }
+
+        // mail
+            const char* userMail = NULL;
+            jsonValue = json_object_get( jsonNewValues, "mail" );
+            if( jsonValue != NULL ){
+                userMail = json_string_value( jsonValue );
+            }
+
+            if( this->userChange( userName, userPassword, userMail ) ){
+                coCore::ptr->plugins->messageQueue->add( this,
+                coCore::ptr->nodeName(), "", "ldap", "userChanged", userName );
+            } else {
+                coCore::ptr->plugins->messageQueue->add( this,
+                coCore::ptr->nodeName(), "", "ldap", "userNotChanged", userName );
+            }
+
+            json_decref( jsonNewValues );
+            return coPlugin::MESSAGE_FINISHED;
+        }
+
+    // delete
+        if( action == 3 ){
+
+        // we can not delete dummyMember !
+            if( strncmp( "uid=dummyMember",userName, 14 ) == 0 ){
+                coCore::ptr->plugins->messageQueue->add( this,
+                coCore::ptr->nodeName(), "", "ldap", "userNotDeleted", userName );
+
+                json_decref( jsonNewValues );
+                return coPlugin::MESSAGE_FINISHED;
+            }
+
+        // here the userName is DN
+        ///@todo Check if its an DN !
+
+        // try to remove it
+            if( this->removeDN( userName ) == true ){
+                coCore::ptr->plugins->messageQueue->add( this,
+                coCore::ptr->nodeName(), "", "ldap", "userDeleted", userName );
+            } else {
+                coCore::ptr->plugins->messageQueue->add( this,
+                coCore::ptr->nodeName(), "", "ldap", "userNotDeleted", userName );
+            }
+        }
+
+        json_decref( jsonNewValues );
+        return coPlugin::MESSAGE_FINISHED;
+    }
+
+
+    if( coCore::strIsExact("userMembersGet",msgCommand,msgCommandLen) == true ){
+    // connected ?
+        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
+            return coPlugin::MESSAGE_UNKNOWN;
+        }
+
+    // vars
+        json_t*         jsonGroups = json_object();
+        std::string     fullDN;
+
+
+    // add the message to list
+        this->userDumpMembership( msgPayload, jsonGroups );
+
+    // dump
+        jsonTempString = json_dumps( jsonGroups, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this,
+        msgTarget, msgSource, "ldap", "userMembers", jsonTempString );
+
+    // cleanup
+        free( jsonTempString );
+        json_decref(jsonGroups);
+        return coPlugin::MESSAGE_FINISHED;
+    }
+
+// group get
     if( coCore::strIsExact("grouplist",msgCommand,msgCommandLen) == true ){
 
     // connected ?
@@ -396,119 +551,6 @@ connstate:
         return coPlugin::MESSAGE_FINISHED;
     }
 
-
-// modificate a user ( add / change / delete )
-    if( coCore::strIsExact("userMod",msgCommand,msgCommandLen) == true ){
-    // vars
-        json_error_t    jsonError;
-        json_t*         jsonNewValues = NULL;
-        void*           jsonIterator = NULL;
-        const char*     jsonKey = NULL;
-        json_t*         jsonValue = NULL;
-
-	// parse json
-		jsonNewValues = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
-		if( jsonNewValues == NULL || jsonError.line > -1 ){
-			return coPlugin::NO_REPLY;
-		}
-
-    // action ( 1=add, 2=change, 3=delete )
-        int action = 0;
-        jsonValue = json_object_get( jsonNewValues, "action" );
-        if( jsonValue == NULL ){
-            json_decref( jsonNewValues );
-            return coPlugin::NO_REPLY;
-        }
-        action = json_integer_value( jsonValue );
-
-
-    // username
-        const char* userName = NULL;
-        jsonValue = json_object_get( jsonNewValues, "name" );
-        if( jsonValue == NULL ){
-            json_decref( jsonNewValues );
-            return coPlugin::NO_REPLY;
-        }
-        userName = json_string_value( jsonValue );
-
-
-    // add
-        if( action == 1 ){
-            if( this->userAdd( userName ) == true ){
-
-            // we change to command to user-change, to add additional values ( if possible )
-            // we also dont return from this function !
-                action = 2;
-
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userAdded", userName );
-            } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userNotAdded", userName );
-
-                json_decref( jsonNewValues );
-                return coPlugin::MESSAGE_FINISHED;
-            }
-        }
-
-    // change
-        if( action == 2 ){
-
-        // password
-            const char* userPassword = NULL;
-            jsonValue = json_object_get( jsonNewValues, "pw" );
-            if( jsonValue != NULL ){
-                userPassword = json_string_value( jsonValue );
-            }
-
-        // mail
-            const char* userMail = NULL;
-            jsonValue = json_object_get( jsonNewValues, "mail" );
-            if( jsonValue != NULL ){
-                userMail = json_string_value( jsonValue );
-            }
-
-            if( this->userChange( userName, userPassword, userMail ) ){
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userChanged", userName );
-            } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userNotChanged", userName );
-            }
-
-            json_decref( jsonNewValues );
-            return coPlugin::MESSAGE_FINISHED;
-        }
-
-    // delete
-        if( action == 3 ){
-
-        // we can not delete dummyMember !
-            if( strncmp( "uid=dummyMember",userName, 14 ) == 0 ){
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userNotDeleted", userName );
-
-                json_decref( jsonNewValues );
-                return coPlugin::MESSAGE_FINISHED;
-            }
-
-        // here the userName is DN
-        ///@todo Check if its an DN !
-
-        // try to remove it
-            if( this->removeDN( userName ) == true ){
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userDeleted", userName );
-            } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userNotDeleted", userName );
-            }
-        }
-
-        json_decref( jsonNewValues );
-        return coPlugin::MESSAGE_FINISHED;
-    }
-
 // modificate a user ( add / change / delete )
     if( coCore::strIsExact("groupMod",msgCommand,msgCommandLen) == true ){
     // vars
@@ -534,7 +576,7 @@ connstate:
         action = json_integer_value( jsonValue );
 
 
-    // username
+    // groupname
         const char* groupName = NULL;
         jsonValue = json_object_get( jsonNewValues, "name" );
         if( jsonValue == NULL ){
@@ -801,27 +843,35 @@ bool ldapService::                  ldapModAppend( LDAPMod*** mod, int* LDAPModL
         newModLen = 2;
     }
 
-// allocate
+// allocate modification struct
     newMod = (LDAPMod**)malloc( newModSize );
-    newModAttrValues = (const char**)malloc( newModAttrValuesSize );
 
-// copy old pointer addr
-    if( *mod != NULL ){
-        memcpy( newMod, *mod, *LDAPModLen * sizeof(LDAPMod*) );
+// if not delete, we create the attributes
+    if( op != LDAP_MOD_DELETE ){
+
+    // allocate
+        newModAttrValues = (const char**)malloc( newModAttrValuesSize );
+
+    // copy old pointer addr
+        if( *mod != NULL ){
+            memcpy( newMod, *mod, *LDAPModLen * sizeof(LDAPMod*) );
+        }
+
+    // values
+        newModAttrValues[0] = value1;
+        newModAttrValues[1] = value2;
+        newModAttrValues[2] = NULL;
+
     }
-
-// values
-    newModAttrValues[0] = value1;
-    newModAttrValues[1] = value2;
-    newModAttrValues[2] = NULL;
-
 // mod
-    newMod[newModLen-2] = (LDAPMod*)malloc(sizeof(LDAPMod));
+    newMod[newModLen-2] = (LDAPMod*)malloc(sizeof(LDAPMod)); memset( newMod[newModLen-2], 0, sizeof(LDAPMod) );
     newMod[newModLen-2]->mod_op = op;
     newMod[newModLen-2]->mod_type = (char*)property;
-    newMod[newModLen-2]->mod_vals.modv_strvals = (char**)newModAttrValues;
     newMod[newModLen-1] = NULL;
 
+    if( op != LDAP_MOD_DELETE ){
+        newMod[newModLen-2]->mod_vals.modv_strvals = (char**)newModAttrValues;
+    }
 
     *mod = newMod;
     *LDAPModLen = newModLen;
@@ -842,8 +892,10 @@ bool ldapService::                  ldapModMemFree( LDAPMod*** mod ){
     while( actualMod != NULL ){
 
     // free values
-        free(actualMod->mod_vals.modv_strvals);
-        actualMod->mod_vals.modv_strvals = NULL;
+        if( actualMod->mod_vals.modv_strvals != NULL ){
+            free(actualMod->mod_vals.modv_strvals);
+            actualMod->mod_vals.modv_strvals = NULL;
+        }
 
     // free mod
         free(actualMod);
@@ -1130,8 +1182,7 @@ bool ldapService::                  dumpDBs( LDAP* connection, json_t* jsonObjec
 }
 
 
-bool ldapService::                  dump( json_t* jsonObjectOutput, const char **attributes, const char* searchDN, bool singleDN ){
-    if( attributes == NULL ) return false;
+bool ldapService::                  dump( json_t* jsonObjectOutput, const char **attributes, const char* searchDN, bool singleDN, const char* LDAPFilter ){
 
 // vars
     const char*         attributeName = NULL;
@@ -1152,7 +1203,7 @@ bool ldapService::                  dump( json_t* jsonObjectOutput, const char *
     }
 
 // iterate
-    ldap_search_ext_s( this->ldapConnection, searchDN, searchScope, NULL, NULL, 0, NULL, NULL, &this->searchTimeout, 1024, &actualMessageArray );
+    ldap_search_ext_s( this->ldapConnection, searchDN, searchScope, LDAPFilter, NULL, 0, NULL, NULL, &this->searchTimeout, 1024, &actualMessageArray );
 
 // iterate over messages
     actualMessage = ldap_first_entry( this->ldapConnection, actualMessageArray );
@@ -1166,48 +1217,50 @@ bool ldapService::                  dump( json_t* jsonObjectOutput, const char *
         json_object_set_new( jsonDN, "dn", json_string(entryDN) );
 
     // iterate over attributes
-        attributeName = attributes[attributeIndex];
-        while( attributeName != NULL ){
+        if( attributes != NULL ){
+            attributeIndex = 0;
+            attributeName = attributes[attributeIndex];
+            while( attributeName != NULL ){
 
-        // get attribute array
-            attributeValueArray = ldap_get_values_len( this->ldapConnection, actualMessage, attributeName );
-            attributeValuesCount = ldap_count_values_len( attributeValueArray );
-            if( attributeValuesCount > 0 ){
+            // get attribute array
+                attributeValueArray = ldap_get_values_len( this->ldapConnection, actualMessage, attributeName );
+                attributeValuesCount = ldap_count_values_len( attributeValueArray );
+                if( attributeValuesCount > 0 ){
 
-            // the value object
-                json_t* jsonValueAObject = NULL;
+                // the value object
+                    json_t* jsonValueAObject = NULL;
 
-            // if attribute has only one value, a string is enough
-                if( attributeValuesCount == 1 ){
+                // if attribute has only one value, a string is enough
+                    if( attributeValuesCount == 1 ){
 
-                    attributeValue = attributeValueArray[0];
-                    jsonValueAObject = json_string( attributeValue->bv_val );
+                        attributeValue = attributeValueArray[0];
+                        jsonValueAObject = json_string( attributeValue->bv_val );
 
-                }
-
-            // an array
-                if( attributeValuesCount > 1 ){
-
-                    jsonValueAObject = json_array();
-
-                    attributeValuesIndex = 0;
-                    for( attributeValuesIndex = 0; attributeValuesIndex < attributeValuesCount; attributeValuesIndex++ ){
-                        attributeValue = attributeValueArray[attributeValuesIndex];
-                        json_array_append( jsonValueAObject, json_string(attributeValue->bv_val) );
                     }
 
+                // an array
+                    if( attributeValuesCount > 1 ){
+
+                        jsonValueAObject = json_array();
+
+                        attributeValuesIndex = 0;
+                        for( attributeValuesIndex = 0; attributeValuesIndex < attributeValuesCount; attributeValuesIndex++ ){
+                            attributeValue = attributeValueArray[attributeValuesIndex];
+                            json_array_append( jsonValueAObject, json_string(attributeValue->bv_val) );
+                        }
+
+                    }
+
+                    json_object_set_new( jsonDN, attributeName, jsonValueAObject );
+
                 }
+                ldap_value_free_len( attributeValueArray );
 
-                json_object_set_new( jsonDN, attributeName, jsonValueAObject );
-
+            // next attribute
+                attributeIndex++;
+                attributeName = attributes[attributeIndex];
             }
-            ldap_value_free_len( attributeValueArray );
-
-        // next attribute
-            attributeIndex++;
-            attributeName = attributes[attributeIndex];
         }
-
 
     // add it to parent object
         json_object_set_new( jsonObjectOutput, entryDN, jsonDN );
@@ -1703,6 +1756,7 @@ bool ldapService::                  groupChange( const char* name, const char* d
     if( name == NULL && description == NULL ) return false;
 
 
+
 // create account-group
     LDAPMod**       mods;
     int             modsLen = 0;
@@ -1724,7 +1778,12 @@ bool ldapService::                  groupChange( const char* name, const char* d
 
 // change description
     if( description != NULL ){
-        this->ldapModAppend( &mods, &modsLen, LDAP_MOD_REPLACE, "description", description );
+    // we can not set an empty description
+        if( description[0] == '\0' ){
+            this->ldapModAppend( &mods, &modsLen, LDAP_MOD_DELETE, "description", description );
+        } else {
+            this->ldapModAppend( &mods, &modsLen, LDAP_MOD_REPLACE, "description", description );
+        }
     }
 
 // call
@@ -1870,6 +1929,33 @@ bool ldapService::                  userDump( LDAP* connection, json_t* jsonObje
 }
 
 
+bool ldapService::                  userDumpMembership( const char* uid, json_t* jsonObjectOutput ){
+
+// vars
+    std::string         filter;
+    std::string         searchBase;
+
+// build dn
+    searchBase  = this->groupdn;
+    searchBase += ",";
+    searchBase += this->basedn;
+
+// build filter
+    filter  = "(&(member=uid=";
+    filter += uid;
+    filter += ",";
+    filter += this->userdn;
+    filter += ",";
+    filter += this->basedn;
+    filter += "))";
+
+    const char* attributes[] = { "cn", NULL };
+    this->dump( jsonObjectOutput, attributes, searchBase.c_str(), false, filter.c_str() );
+
+    return true;
+}
+
+
 bool ldapService::                  userAdd( const char* accountName ){
 // not connected
     if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
@@ -1965,7 +2051,6 @@ bool ldapService::                  userChange( const char* accountName, const c
     return true;
 
 }
-
 
 
 

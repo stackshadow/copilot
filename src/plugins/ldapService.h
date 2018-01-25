@@ -92,7 +92,7 @@ private:
     bool                dumpAll( LDAP* connection, const char* basedn );
     bool                dumpChilds( LDAP* connection, const char* basedn, json_t* jsonObjectOutput );
     bool                dumpDBs( LDAP* connection, json_t* jsonObjectOutput );
-    bool                dump( json_t* jsonObjectOutput, const char **attributes, const char* searchDN, bool singleDN = false );
+    bool                dump( json_t* jsonObjectOutput, const char **attributes, const char* searchDN, bool singleDN = false, const char* LDAPFilter = NULL );
 
 
 
@@ -116,6 +116,7 @@ private:
     bool                groupRemoveMember( const char* groupName, const char* memberUserName );
 
     bool                userDump( LDAP* connection, json_t* jsonObjectOutput );
+    bool                userDumpMembership( const char* uid, json_t* jsonObjectOutput );
     bool                userAdd( const char* accountName );
     bool                userChange( const char* accountName, const char* passwordClearText, const char* mail = NULL );
 
