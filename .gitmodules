@@ -1,6 +1,7 @@
 [submodule "libs/evillib"]
 	path = libs/evillib
-	url = https://github.com/stackshadow/copilotc-web.git
+	url = https://github.com/stackshadow/evillib.git
+    branch = master
 [submodule "libs/util-linux"]
 	path = libs/util-linux
 	url = https://git.kernel.org/pub/scm/utils/util-linux/util-linux.git
