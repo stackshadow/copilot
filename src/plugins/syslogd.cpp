@@ -201,10 +201,10 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
             }
             if( journalMessage != NULL ){
                 journalCmd = (char*)malloc( journalMessageLen * sizeof(char) );
-                memcpy( journalCmd, &journalMessage[9], (journalMessageLen-10) * sizeof(char) );
+                memcpy( journalCmd, &journalMessage[8], (journalMessageLen-8) * sizeof(char) );
                 syslogd::filter( journalCmd );
             } else {
-                journalCmd = "unknow";
+                memcpy( journalCmd, "unknown\0", 8 );
             }
 
 
@@ -217,10 +217,10 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
             }
             if( journalMessage != NULL ){
                 journalText = (char*)malloc( journalMessageLen * sizeof(char) );
-                memcpy( journalText, &journalMessage[9], (journalMessageLen-10) * sizeof(char) );
+                memcpy( journalText, &journalMessage[8], (journalMessageLen-8) * sizeof(char) );
                 syslogd::filter( journalText );
             } else {
-                journalText = "unknow";
+                memcpy( journalText, "unknown\0", 8 );
             }
 
 

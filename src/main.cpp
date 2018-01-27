@@ -61,8 +61,9 @@ static struct option options[] = {
     { "hostname",               required_argument,  NULL, 10 },
     { "configpath",             required_argument,  NULL, 11 },
 	{ "setup",                  no_argument,        NULL, 20 },
-    { "createConnection",       required_argument,  NULL, 30 },
-    { "serve",                  required_argument,  NULL, 31 },
+    { "listConections",         no_argument,        NULL, 30 },
+    { "createConnection",       required_argument,  NULL, 31 },
+    { "createServe",            required_argument,  NULL, 32 },
     #ifndef DISABLE_WEBSOCKET
     { "websocket",              no_argument,        NULL, 50 },
     #endif
@@ -127,8 +128,9 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, _("--hostname <hostname>: Set the hostname ( if you dont set the hostname, it will be detected )\n") );
                 fprintf( stdout, "--configpath <path>: Path where all keys and config will be saved ( default to /etc/copilot )\n" );
                 fprintf( stdout, "--setup: Run setup of all plugins. \n" );
+                fprintf( stdout, "--listConections: List all connections \n" );
                 fprintf( stdout, "--createConnection <hostname:port>: Create a new client connection and exit \n" );
-                fprintf( stdout, "--serve <hostname:port>: Wait for incoming client \n" );
+                fprintf( stdout, "--createServe <hostname:port>: Create a new server connection and exist \n" );
                 #ifndef DISABLE_WEBSOCKET
                 fprintf( stdout, "--websocket: start websocket-server \n" );
                 #endif
@@ -157,6 +159,10 @@ int main( int argc, char *argv[] ){
                 break;
 
             case 30:
+                printf ("Not implemented yet\n");
+                break;
+
+            case 31:
                 printf ("Try to connect to '%s'\n", optarg);
 
                 connectToHostName = strtok( optarg, ":" );
@@ -171,7 +177,7 @@ int main( int argc, char *argv[] ){
 
                 break;
 
-            case 31:
+            case 32:
                 printf ("We serve '%s'\n", optarg);
 
                 serveHost = strtok( optarg, ":" );
@@ -221,24 +227,26 @@ int main( int argc, char *argv[] ){
 
     if( connectToHost == true ){
         if( coCore::ptr->config->nodeSelectByHostName(connectToHostName) != true ){
-            coCoreConfig::nodeType connectNodeType = coCoreConfig::CLIENT;
             coCore::ptr->config->nodeAppend(connectToHostName);
-            coCore::ptr->config->nodeInfo( &connectToHostName, &connectNodeType, true );
-            coCore::ptr->config->nodeConnInfo( &connectToHostName, &connectToPort, true );
-            coCore::ptr->config->save();
-            exit(0);
         }
+
+        coCoreConfig::nodeType connectNodeType = coCoreConfig::CLIENT;
+        coCore::ptr->config->nodeInfo( &connectToHostName, &connectNodeType, true );
+        coCore::ptr->config->nodeConnInfo( &connectToHostName, &connectToPort, true );
+        coCore::ptr->config->save();
+        exit(0);
     }
 
     if( serveConnection == true ){
         if( coCore::ptr->config->nodeSelectByHostName(serveHost) != true ){
-            coCoreConfig::nodeType serveNodeType = coCoreConfig::SERVER;
             coCore::ptr->config->nodeAppend(serveHost);
-            coCore::ptr->config->nodeInfo( &serveHost, &serveNodeType, true );
-            coCore::ptr->config->nodeConnInfo( &serveHost, &servePort, true );
-            coCore::ptr->config->save();
-            exit(0);
         }
+
+        coCoreConfig::nodeType serveNodeType = coCoreConfig::SERVER;
+        coCore::ptr->config->nodeInfo( &serveHost, &serveNodeType, true );
+        coCore::ptr->config->nodeConnInfo( &serveHost, &servePort, true );
+        coCore::ptr->config->save();
+        exit(0);
     }
 
     ssl->serve();

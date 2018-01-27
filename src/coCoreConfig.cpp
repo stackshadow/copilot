@@ -156,6 +156,10 @@ bool coCoreConfig::			save( const char* jsonString ){
     configFile += "/";
     configFile += "core.json";
 
+
+/// @todo Copy the old config-file with timestamp as a backup
+
+
 // save the json to file
 	if( json_dump_file( this->jsonConfig, configFile.c_str(), JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
 		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s%s", configFile.c_str(), "core.json" );
@@ -331,13 +335,15 @@ bool coCoreConfig::		    nodeSelectByHostName( const char* hostName ){
 
     // get the host
         jsonString = json_object_get( node, "host" );
-        if( jsonString == NULL ) return false;
+        if( jsonString != NULL ) {
 
-    // compare to parameter
-        jsonStringChar = json_string_value(jsonString);
-        if( strncmp(hostName,jsonStringChar,strlen(hostName)) == 0 ){
-            this->jsonNode = node;
-            return true;
+        // compare to parameter
+            jsonStringChar = json_string_value(jsonString);
+            if( strncmp(hostName,jsonStringChar,strlen(hostName)) == 0 ){
+                this->jsonNode = node;
+                return true;
+            }
+
         }
 
     // next
