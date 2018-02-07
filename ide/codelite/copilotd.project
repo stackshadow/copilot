@@ -47,10 +47,6 @@
       <File Name="../../src/plugins/coreService.h"/>
       <File Name="../../src/plugins/nftService.cpp"/>
       <File Name="../../src/plugins/nftService.h"/>
-      <File Name="../../src/plugins/sshService.cpp"/>
-      <File Name="../../src/plugins/sshService.h"/>
-      <File Name="../../src/plugins/sshSession.cpp"/>
-      <File Name="../../src/plugins/sshSession.h"/>
       <File Name="../../src/plugins/websocket.cpp"/>
       <File Name="../../src/plugins/websocket.h"/>
       <File Name="../../src/plugins/ldapService.cpp"/>
@@ -65,6 +61,7 @@
       <File Name="../../src/plugins/sysStateCmd.h"/>
       <File Name="../../src/plugins/syslogd.h"/>
       <File Name="../../src/plugins/syslogd.cpp"/>
+      <File Name="../../src/main.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="server"/>
     <File Name="../../src/coCore.cpp"/>
@@ -78,7 +75,6 @@
     <File Name="../../src/coPluginList.cpp"/>
     <File Name="../../src/coPluginList.h"/>
     <File Name="../../src/evillib.c"/>
-    <File Name="../../src/main.cpp"/>
     <File Name="../../src/version.h"/>
     <VirtualDirectory Name="classes">
       <File Name="../../src/classes/doDBDConnection.cpp"/>
@@ -146,7 +142,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--debugNet --nonft --websocket" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--nodename hacktop7 --debugNet --nonft --websocket" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
