@@ -86,7 +86,7 @@ class sslSession : public coPlugin {
 
 //
     public:
-        static bool         globalInit(  const char* myHostName  );
+        static bool         globalInit(  const char* myNodeName  );
         static bool         globalServerInit( const char* serverName );
 
 

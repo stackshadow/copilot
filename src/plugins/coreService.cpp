@@ -43,37 +43,52 @@ coreService::                   		~coreService(){
 
 
 
-#ifndef MQTT_ONLY_LOCAL
-void coreService:: 						appendKnownNodes( const char* hostName ){
-    if( hostName == NULL ) return;
+//#ifndef MQTT_ONLY_LOCAL
+void coreService:: 						appendKnownNodes( const char* nodeName ){
+    if( nodeName == NULL ) return;
 
     coCore::ptr->config->nodesIterate();
-    if( coCore::ptr->config->nodeSelectByHostName( hostName ) == false ){
+    if( coCore::ptr->config->nodeSelect( nodeName ) == false ){
+
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Host '%s' unknown, append it.", nodeName );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
     // append the host
-        coCore::ptr->config->nodeSelect( hostName );
         coCoreConfig::nodeType hostType = coCoreConfig::CLIENT_IN;
+
+        coCore::ptr->config->nodeAppend( nodeName );
         coCore::ptr->config->nodeInfo( NULL, &hostType, true );
-        coCore::ptr->config->nodeConnInfo( &hostName, NULL, true );
+        coCore::ptr->config->nodeConnInfo( &nodeName, NULL, true );
         coCore::ptr->config->nodesIterateFinish();
 
         coCore::ptr->config->save();
         return;
+    } else {
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Host '%s' known.", nodeName );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
     }
     coCore::ptr->config->nodesIterateFinish();
 }
-#endif
+//#endif
 
 
 coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
 // vars
-    const char*         myHostName = coCore::ptr->hostNameGet();
+    const char*         myNodeName = coCore::ptr->nodeName();
 	const char*			msgSource = message->nodeNameSource();
     const char*			msgTarget = message->nodeNameTarget();
 	const char*			msgGroup = message->group();
 	const char*			msgCommand = message->command();
+    int                 msgCommandLen = 0;
 	const char*			msgPayload = message->payload();
+
+// check
+    if( msgCommand == NULL ) return coPlugin::NO_REPLY;
+    msgCommandLen = strlen(msgCommand);
+
 
 // to all hosts
     if( strncmp( (char*)msgTarget, "all", 3 ) == 0 ){
@@ -81,12 +96,9 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
     // ping
         if( strncmp(msgCommand,"ping",4) == 0 ){
 
-			const char* tempHostName = NULL;
-			coCore::ptr->hostNameGet( &tempHostName, NULL );
-
         // add the message to list
             coCore::ptr->plugins->messageQueue->add( this,
-            myHostName, msgSource,
+            myNodeName, msgSource,
             msgGroup, "pong", "" );
 
 
@@ -98,34 +110,36 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 // pong
     if( strncmp(msgCommand,"pong",4) == 0 ){
 
-    #ifndef MQTT_ONLY_LOCAL
+//    #ifndef MQTT_ONLY_LOCAL
     // append hostname to known hosts
         this->appendKnownNodes( msgSource );
-    #endif
+//    #endif
 
     }
 
 // to "localhost" or to the nodename-host
     if( strncmp(msgTarget,"localhost",9) != 0 &&
-	coCore::ptr->isHostName(msgTarget) == false ){
+	coCore::ptr->isNodeName(msgTarget) == false ){
         return coPlugin::NO_REPLY;
     }
 
 
 
 // get version
-    if( strncmp( (char*)msgCommand, "versionGet", 10 ) == 0 ){
+    if( coCore::strIsExact("versionGet",msgCommand,msgCommandLen) == true ){
 
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
-        myHostName, msgSource,
+        myNodeName, msgSource,
         msgGroup, "version", copilotVersion );
 
         return coPlugin::REPLY;
     }
 
+
+
 // get hosts
-    if( strncmp( (char*)msgCommand, "nodesGet", 8 ) == 0 ){
+    if( coCore::strIsExact("nodesGet",msgCommand,msgCommandLen) == true ){
         nodesGet:
 	// vars
 		//json_t*			jsonArray = json_array();
@@ -137,7 +151,7 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
-        myHostName, msgSource,
+        myNodeName, msgSource,
         msgGroup, "nodes", jsonArrayChar );
 
 	// free
@@ -148,13 +162,52 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
     }
 
 
-	if( strncmp( (char*)msgCommand, "nodeRemove", 10 ) == 0 ){
-        coCore::ptr->config->nodeRemove( msgPayload );
-        goto nodesGet;
+    if( coCore::strIsExact("nodeForEditGet",msgCommand,msgCommandLen) == true ){
+
+	// vars
+		//json_t*			jsonArray = json_array();
+		json_t*			jsonObject = NULL;
+		char*			jsonArrayChar = NULL;
+
+
+        coCore::ptr->config->nodesIterate();
+		if( coCore::ptr->config->nodeSelect( msgPayload ) == false ){
+            coCore::ptr->config->nodesIterateFinish();
+            return coPlugin::REPLY;
+        }
+        coCore::ptr->config->nodeGet( &jsonObject );
+
+    // add jsonNode
+        json_object_set( jsonObject, "nodename", json_string(msgPayload) );
+		jsonArrayChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+        json_object_del( jsonObject, "nodename" );
+
+        coCore::ptr->config->nodesIterateFinish();
+
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this, myNodeName, msgSource, msgGroup, "nodeForEdit", jsonArrayChar );
+
+	// free
+		free(jsonArrayChar);
+
+        return coPlugin::REPLY;
     }
 
 
-	if( strncmp( (char*)msgCommand, "nodeClientAdd", 13 ) == 0 ){
+	if( coCore::strIsExact("nodeRemove",msgCommand,msgCommandLen) == true ){
+        coCore::ptr->config->nodeRemove( msgPayload );
+        coCore::ptr->config->save();
+
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this,
+        myNodeName, msgSource,
+        msgGroup, "nodeRemoved", "" );
+
+        return coPlugin::MESSAGE_FINISHED;
+    }
+
+
+	if( coCore::strIsExact("nodeSave",msgCommand,msgCommandLen) == true ){
 
     // vars
         json_error_t                jsonError;
@@ -179,6 +232,11 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 		jsonValue = json_object_get( jsonPayload, "node" );
         nodeName = json_string_value( jsonValue );
 
+        jsonValue = json_object_get( jsonPayload, "type" );
+        if( jsonValue != NULL ){
+            nodeType = (coCoreConfig::nodeType)json_integer_value( jsonValue );
+        }
+
 		jsonValue = json_object_get( jsonPayload, "host" );
         nodeHostName = json_string_value( jsonValue );
 
@@ -193,13 +251,16 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
         coCore::ptr->config->save();
         coCore::ptr->config->nodesIterateFinish();
 
-        goto nodesGet;
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this,
+        myNodeName, msgSource,
+        msgGroup, "nodeSaved", "" );
+
+        return coPlugin::MESSAGE_FINISHED;
     }
 
 
-	if( strncmp( (char*)msgCommand, "nodesSave", 9 ) == 0 ){
-        coCore::ptr->config->save();
-    }
+
 
 
     return coPlugin::NO_REPLY;

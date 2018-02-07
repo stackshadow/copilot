@@ -87,6 +87,7 @@ public:
         bool                nodeRemove( const char* name );
 		bool				nodeSelect( const char* name );
         bool                nodeSelectByHostName( const char* hostName );
+        bool                nodeGet( json_t** jsonNode );
 		bool				nodeNext();
 		bool				nodeInfo( const char** name, coCoreConfig::nodeType* type, bool set = false );
 		bool				nodeConnInfo( const char** host, int* port, bool set = false );

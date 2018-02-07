@@ -75,6 +75,7 @@ class coCore {
 		bool				hostNameGet( const char** hostName, int* hostNameChars );
 		const char*			hostNameGet();
 		bool				isHostName( const char* hostNameToCheck );
+        bool                isNodeName( const char* nodeNameToCheck );
 
 
 	// helper functions

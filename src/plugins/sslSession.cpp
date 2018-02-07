@@ -189,7 +189,7 @@ sslSession::                ~sslSession(){
 
 
 
-bool sslSession::           globalInit( const char* myHostName ){
+bool sslSession::           globalInit( const char* myNodeName ){
 
 //
     const char*         configPath = NULL;
@@ -248,15 +248,15 @@ bool sslSession::           globalInit( const char* myHostName ){
 // Hint: We use the same key, if we are server or if we are an client, we ( as node ) only have one !
 // generate keypair if needed
     const char* sslMyKeyPath = NULL; etStringCharGet( sslSession::pathMyKeys, sslMyKeyPath );
-    if( sslSession::generateKeyPair( myHostName, sslMyKeyPath ) != true ){
+    if( sslSession::generateKeyPair( myNodeName, sslMyKeyPath ) != true ){
         return false;
     }
 
 // load credentials ( keys )
     gnutls_certificate_allocate_credentials( &sslSession::myCerts );
     gnutls_certificate_allocate_credentials( &sslSession::clientCerts );
-    sslSession::credCreate( &sslSession::myCerts, myHostName, sslMyKeyPath, sslSession::verifyPublikKeyOnServerCallback );
-    sslSession::credCreate( &sslSession::clientCerts, myHostName, sslMyKeyPath, sslSession::verifyPublikKeyOnClientCallback );
+    sslSession::credCreate( &sslSession::myCerts, myNodeName, sslMyKeyPath, sslSession::verifyPublikKeyOnServerCallback );
+    sslSession::credCreate( &sslSession::clientCerts, myNodeName, sslMyKeyPath, sslSession::verifyPublikKeyOnClientCallback );
 
 
     return true;
@@ -965,7 +965,7 @@ bool sslSession::           communicate(){
 
     for (;;){
 
-    // recieve data
+    // recieve data ( unblocked
         memset( buffer, 0, MAX_BUF + 1 );
         ret = gnutls_record_recv( this->tlsSession, buffer, MAX_BUF );
 
@@ -1026,14 +1026,14 @@ coPlugin::t_state sslSession::onBroadcastMessage( coMessage* message ){
     if( this->sessionState < sslSession::CONNECTED ) return NO_REPLY;
 
 // vars
-    const char*     myHostName = coCore::ptr->hostNameGet();
+    const char*     myNodeName = coCore::ptr->nodeName();
     const char*     msgSource = message->nodeNameSource();
     const char*     msgTarget = message->nodeNameTarget();
 	json_t*			jsonMessage = NULL;
 	char*			jsonString = NULL;
 
 // if there is a message for myHost we dont need to send it out to the world
-    if( strncmp(msgTarget,myHostName,strlen(myHostName)) == 0 ){
+    if( strncmp(msgTarget,myNodeName,strlen(myNodeName)) == 0 ){
         return NO_REPLY;
     }
 

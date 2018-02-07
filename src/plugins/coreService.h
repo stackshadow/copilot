@@ -106,9 +106,9 @@ class coreService : public coPlugin
 
 
 private:
-#ifndef MQTT_ONLY_LOCAL
-	void						appendKnownNodes( const char* hostName );
-#endif
+//#ifndef MQTT_ONLY_LOCAL
+	void						appendKnownNodes( const char* nodeName );
+//#endif
 
 public:
 // handlers

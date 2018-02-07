@@ -39,7 +39,7 @@ df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//
 
 sysState* sysState::ptr = NULL;
 
-sysState::                          sysState() : coPlugin( "sysstate", coCore::ptr->hostNameGet(), "sysstate" ) {
+sysState::                          sysState() : coPlugin( "sysstate", coCore::ptr->nodeName(), "sysstate" ) {
 
 // remember pointer
     sysState::ptr = this;
@@ -116,7 +116,7 @@ int sysState::                      health( int newHealth, void* cmd ){
 
         // add the message to list
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "health", jsonCharDump );
+            coCore::ptr->nodeName(), "", "sysstate", "health", jsonCharDump );
 
         }
 
@@ -141,17 +141,17 @@ int sysState::                      running( int newCounter ){
         char cmdRunningChar[10] = "         ";
         snprintf( cmdRunningChar, 10, "%d", this->cmdRunningCount );
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "cmdRunning", cmdRunningChar );
+        coCore::ptr->nodeName(), "", "sysstate", "cmdRunning", cmdRunningChar );
     }
 
 
     if( newCounter == 0 ){
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "sysState: Commands stopped" );
+        coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "sysState: Commands stopped" );
     }
     if( newCounter == 1 ){
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "sysState: Commands running" );
+        coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "sysState: Commands running" );
     }
 
     return this->cmdRunningCount;
@@ -745,7 +745,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         this->save();
 
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Saved" );
+        coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "Saved" );
 
         return coPlugin::REPLY;
     }
@@ -756,11 +756,11 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
     // remove id
         if( this->cmdRemove( msgPayload ) == true ){
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "Deleted" );
+            coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "Deleted" );
             this->save();
         } else {
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "msgError", "Could not delete..." );
+            coCore::ptr->nodeName(), "", "sysstate", "msgError", "Could not delete..." );
         }
 
 
@@ -773,7 +773,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         if( jsonCmd == NULL ){
             etDebugMessage( etID_LEVEL_WARNING, "Command not found");
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "msgError", "Command not found" );
+            coCore::ptr->nodeName(), "", "sysstate", "msgError", "Command not found" );
         }
 
     // dump
@@ -796,17 +796,17 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         if( returnCode == -1 ){
             etDebugMessage( etID_LEVEL_WARNING, "Commands already started, you need to stop it first!");
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "msgError", "Already running..." );
+            coCore::ptr->nodeName(), "", "sysstate", "msgError", "Already running..." );
         }
         if( returnCode == -2 ){
             etDebugMessage( etID_LEVEL_WARNING, "No commands aviable.");
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "msgError", "No commands aviable." );
+            coCore::ptr->nodeName(), "", "sysstate", "msgError", "No commands aviable." );
         }
         if( returnCode == 0 ){
             etDebugMessage( etID_LEVEL_INFO, "Started...");
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "sysState: Start reqest" );
+            coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "sysState: Start reqest" );
         }
 
         return coPlugin::REPLY;
@@ -815,7 +815,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 
     if( strncmp(msgCommand,"cmdStopAll",10) == 0 ){
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "msgSuccess", "sysState: Request stop of commands.. this can take a bit" );
+        coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "sysState: Request stop of commands.. this can take a bit" );
 
         commandsStopAll();
 
@@ -828,7 +828,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         char cmdRunningChar[10] = "\0\0\0\0\0\0\0\0\0";
         snprintf( cmdRunningChar, 10, "%d", this->cmdRunningCount );
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "cmdRunning", cmdRunningChar );
+        coCore::ptr->nodeName(), "", "sysstate", "cmdRunning", cmdRunningChar );
 
         return coPlugin::REPLY;
     }
@@ -843,7 +843,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         if( lastHealthCommand == NULL ){
         // add the message to list
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "sysstate", "health", "-1" );
+            coCore::ptr->nodeName(), "", "sysstate", "health", "-1" );
             return coPlugin::MESSAGE_FINISHED;
         }
 
@@ -853,7 +853,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), "", "sysstate", "health", jsonCharDump );
+        coCore::ptr->nodeName(), "", "sysstate", "health", jsonCharDump );
 
         return coPlugin::REPLY;
     }

@@ -355,6 +355,14 @@ bool coCoreConfig::		    nodeSelectByHostName( const char* hostName ){
 }
 
 
+bool coCoreConfig::			nodeGet( json_t** jsonNode ){
+    if( jsonNode == NULL ) return false;
+
+    *jsonNode = this->jsonNode;
+    return true;
+}
+
+
 bool coCoreConfig::			nodeNext(){
 	if( this->jsonNodes == NULL ) return false;
 

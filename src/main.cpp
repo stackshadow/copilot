@@ -58,7 +58,7 @@ static struct option options[] = {
     { "help",                   no_argument,        NULL, 1 },
     { "debug",                  no_argument,        NULL, 2 },
     { "debugNet",               no_argument,        NULL, 3 },
-    { "hostname",               required_argument,  NULL, 10 },
+    { "nodename",               required_argument,  NULL, 10 },
     { "configpath",             required_argument,  NULL, 11 },
 	{ "setup",                  no_argument,        NULL, 20 },
     { "listConections",         no_argument,        NULL, 30 },
@@ -125,7 +125,7 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, _("--help: Show this help\n") );
 				fprintf( stdout, _("--debug: Enable debug messages\n") );
                 fprintf( stdout, _("--debugNet: Enable network debug messages\n") );
-                fprintf( stdout, _("--hostname <hostname>: Set the hostname ( if you dont set the hostname, it will be detected )\n") );
+                fprintf( stdout, _("--nodename <nodename>: Set the nodename ( if you dont set the nodename, your hostname will be used )\n") );
                 fprintf( stdout, "--configpath <path>: Path where all keys and config will be saved ( default to /etc/copilot )\n" );
                 fprintf( stdout, "--setup: Run setup of all plugins. \n" );
                 fprintf( stdout, "--listConections: List all connections \n" );
@@ -148,8 +148,8 @@ int main( int argc, char *argv[] ){
                 break;
 
             case 10:
-                printf ("Set hostname to '%s'\n", optarg);
-                core->setHostName( optarg );
+                printf ("Set nodename to '%s'\n", optarg);
+                core->nodeName( optarg );
                 break;
 
             case 11:

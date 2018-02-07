@@ -93,7 +93,6 @@ class sslService : public coPlugin {
 		static void*		serveThread( void* void_service );
 		static void*		serverHandleClientThread( void* void_sslSession );
 
-		static int          serveOnNewPeer( void* userdata );
 
 // client ( we connect to servers )
 		void				connectAll();

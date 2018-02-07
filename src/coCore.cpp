@@ -63,7 +63,8 @@ coCore::                    coCore(){
 
 // because ssh-configuration is based on our hostname, we print it out for debugging
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "My hostname: %s", tempHostInfo.nodename );
-    etDebugMessage( etID_LEVEL_DETAIL, etDebugTempMessage );
+    etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
+
 
 // init libsodium
     if (sodium_init() == -1) {
@@ -154,7 +155,20 @@ bool coCore::				isHostName( const char* hostNameToCheck ){
 }
 
 
+bool coCore::				isNodeName( const char* nodeNameToCheck ){
 
+// vars
+	const char*		tempCharArray = NULL;
+	if( etStringCharGet( this->myNodeName, tempCharArray ) != etID_YES ){
+		return NULL;
+	}
+
+	if( strncmp( nodeNameToCheck, tempCharArray, strlen(tempCharArray) ) == 0 ){
+		return true;
+	}
+	return false;
+
+}
 
 
 

@@ -61,10 +61,10 @@ coPlugin::t_state syslogd::	            onBroadcastMessage( coMessage* message )
 
         if( this->messageThreadRunning == true ){
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "syslogd", "state", "1" );
+            coCore::ptr->nodeName(), "", "syslogd", "state", "1" );
         } else {
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "syslogd", "state", "0" );
+            coCore::ptr->nodeName(), "", "syslogd", "state", "0" );
         }
 
         return coPlugin::REPLY;
@@ -78,7 +78,7 @@ coPlugin::t_state syslogd::	            onBroadcastMessage( coMessage* message )
         if( returnValue == 1 ){
             etDebugMessage( etID_LEVEL_WARNING, "Already running...");
             coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->hostNameGet(), "", "syslogd", "msgError", "Already running..." );
+            coCore::ptr->nodeName(), "", "syslogd", "msgError", "Already running..." );
         }
         return coPlugin::REPLY;
     }
@@ -184,8 +184,8 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
             int             jsonCharDumpIndex = 0;
             char*           journalMessage;
             size_t          journalMessageLen;
-            char*           journalCmd;
-            char*           journalText;
+            char*           journalCmd = NULL;
+            char*           journalText = NULL;
 
 
             sd_journal_get_realtime_usec( journal, &jTimestampMicrosecond );
@@ -198,13 +198,14 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
             if( returnVal < 0 ) {
                 fprintf( stderr, "Failed to read message field: %s\n", strerror(returnVal) );
                 //continue;
-            }
-            if( journalMessage != NULL ){
-                journalCmd = (char*)malloc( journalMessageLen * sizeof(char) );
-                memcpy( journalCmd, &journalMessage[8], (journalMessageLen-8) * sizeof(char) );
-                syslogd::filter( journalCmd );
             } else {
-                memcpy( journalCmd, "unknown\0", 8 );
+                if( journalMessage != NULL ){
+                    journalCmd = (char*)malloc( journalMessageLen * sizeof(char) );
+                    memcpy( journalCmd, &journalMessage[8], (journalMessageLen-8) * sizeof(char) );
+                    syslogd::filter( journalCmd );
+                } else {
+                    memcpy( journalCmd, "unknown\0", 8 );
+                }
             }
 
 
@@ -227,15 +228,15 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
         // build json-answer-object
             char jsonCharDump[2048];
             snprintf( jsonCharDump, 2048, "{ \"dt\": \"%s\", \"cmd\": \"%s\", \"msg\": \"%s\" }", jTimestampString, journalCmd, journalText );
-            free(journalCmd);
-            free(journalText);
+            if( journalCmd != NULL ) free( journalCmd );
+            if( journalText != NULL ) free( journalText );
 
 
 
 
         // add the message to list
             coCore::ptr->plugins->messageQueue->add( syslogd::ptr,
-            coCore::ptr->hostNameGet(), "", "syslogd", "entry", jsonCharDump );
+            coCore::ptr->nodeName(), "", "syslogd", "entry", jsonCharDump );
 
 
             returnVal = sd_journal_next( journal );

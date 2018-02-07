@@ -162,25 +162,22 @@ void websocket::            		wsOnMessage( const char* message, int messageLen )
 	coMessage* tempMessage = new coMessage();
 	tempMessage->fromJson( jsonObject );
 
-    const char*         myHostName = coCore::ptr->hostNameGet();
-    const char*			msgSource = myHostName;
+    const char*         myNodeName = coCore::ptr->nodeName();
+    const char*			msgSource = myNodeName;
     const char*			msgTarget = tempMessage->nodeNameTarget();
     const char*			msgGroup = tempMessage->group();
     const char*			msgCommad = tempMessage->command();
 	const char*			msgPayload = tempMessage->payload();
 
 // websocket only message
-    if( strncmp((char*)msgCommad, "hostNameGet", 11) == 0 ){
+    if( strncmp((char*)msgCommad, "nodeNameGet", 11) == 0 ){
 
     // json
         json_t* jsonAnswerObject = json_object();
 
-	// get the hostname
-		coCore::ptr->hostNameGet( &msgPayload, NULL );
-
     // set values
-        tempMessage->command( "hostName" );
-        tempMessage->payload( msgPayload );
+        tempMessage->command( "nodeName" );
+        tempMessage->payload( coCore::ptr->nodeName() );
 
     // reply
 		tempMessage->toJson( jsonAnswerObject );

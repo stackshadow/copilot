@@ -24,7 +24,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "plugins/nftService.h"
 
 
-nftService::                    	nftService() : coPlugin( "nft", coCore::ptr->hostNameGet(), "nft" ) {
+nftService::                    	nftService() : coPlugin( "nft", coCore::ptr->nodeName(), "nft" ) {
 
     this->jsonRootObject = NULL;
 
@@ -363,8 +363,8 @@ bool nftService::               	selectHost( const char* hostName ){
 	not use only the local hostname.
 	*/
 	// vars
-		const char* localHostName = NULL;
-		coCore::ptr->hostNameGet( &localHostName, NULL );
+		const char* localHostName = coCore::ptr->nodeName();
+
 
     // add the host
         json_object_set_new( this->jsonRootObject, localHostName, this->jsonHostObject );
@@ -615,8 +615,7 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
 
 
 bool nftService::               	applyRules(){
-	const char* hostName = NULL;
-	coCore::ptr->hostNameGet( &hostName, NULL );
+	const char* hostName = coCore::ptr->nodeName();
 	this->applyRules( hostName );
 }
 

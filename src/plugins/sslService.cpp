@@ -33,10 +33,10 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "limits.h"     // for UINT_MAX
 
 
-sslService::               			sslService() : coPlugin( "sslService", coCore::ptr->hostNameGet(), "cocom" ){
+sslService::               			sslService() : coPlugin( "sslService", coCore::ptr->nodeName(), "cocom" ){
 
 // init keys
-    sslSession::globalInit( coCore::ptr->hostNameGet() );
+    sslSession::globalInit( coCore::ptr->nodeName() );
 
 
 
@@ -71,49 +71,6 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
 
 
 
-	if( strncmp(msgCommand,"serverConfigGet",15) == 0 ){
-        serverConfigGet:
-
-    // lock
-        coCore::ptr->config->nodesIterate();
-
-    // build the respond-object
-        jsonPayload = json_object();
-
-    // read infos
-        if( coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet()) == true ){
-            coCore::ptr->config->nodeInfo( NULL, &type );
-            coCore::ptr->config->nodeConnInfo( &hostName, &hostPort );
-            json_object_set_new( jsonPayload, "enabled", json_integer(1) );
-            json_object_set_new( jsonPayload, "host", json_string(hostName) );
-            json_object_set_new( jsonPayload, "port", json_integer(hostPort) );
-        } else {
-            coCore::ptr->config->nodeAppend( coCore::ptr->hostNameGet() );
-            json_object_set_new( jsonPayload, "enabled", json_integer(0) );
-            json_object_set_new( jsonPayload, "host", json_string(coCore::ptr->hostNameGet()) );
-            json_object_set_new( jsonPayload, "port", json_integer(4567) );
-            coCore::ptr->config->save();
-        }
-
-    // unlock
-        coCore::ptr->config->nodesIterateFinish();
-
-
-    // set the message
-        msgPayload = json_dumps( jsonPayload, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-
-    // message send back so source
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), msgSource,
-        msgGroup, "serverConfig", msgPayload );
-
-
-    // cleanup and return
-        free((void*)msgPayload);
-        json_decref(jsonPayload);
-        return coPlugin::REPLY;
-    }
-
 
 	if( strncmp(msgCommand,"serverSave",10) == 0 ){
 
@@ -138,7 +95,7 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
         coCore::ptr->config->nodesIterate();
 
     // read infos
-        coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet());
+        coCore::ptr->config->nodeSelectByHostName(coCore::ptr->nodeName());
         if( serverEnabled == 1 ){
             type = coCoreConfig::SERVER;
         } else {
@@ -153,7 +110,6 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
 
 	// cleanup
 		json_decref(jsonPayload);
-        goto serverConfigGet;
 		return coPlugin::NO_REPLY;
 	}
 
@@ -171,7 +127,7 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
 
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), msgSource,
+        coCore::ptr->nodeName(), msgSource,
         msgGroup, "requestKeys", msgPayload );
 
 
@@ -215,7 +171,7 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
 
     // add the message to list
         coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->hostNameGet(), msgSource,
+        coCore::ptr->nodeName(), msgSource,
         msgGroup, "acceptedKeys", msgPayload );
 
     // cleanup and return
@@ -561,7 +517,7 @@ bool sslService::					acceptedKeyRemove( const char* fingerprint ){
     etString* fullKeyPath;
     etStringAllocLen( fullKeyPath, 128 );
     etStringCharSet( fullKeyPath, sslKeyPath, -1 );
-    etStringCharSet( fullKeyPath, "/", -1 );
+    etStringCharAdd( fullKeyPath, "/" );
     etStringCharAdd( fullKeyPath, fingerprint );
     etStringCharGet( fullKeyPath, sslKeyPath );
 
@@ -589,15 +545,6 @@ void sslService::					serve(){
 }
 
 
-int sslService::                    serveOnNewPeer( void* userdata ){
-
-// vars
-	sslService*     service = (sslService*)userdata;
-
-    return 0;
-}
-
-
 void* sslService::					serveThread( void* void_service ){
 
 // vars
@@ -616,7 +563,7 @@ void* sslService::					serveThread( void* void_service ){
 
 // get the server infos
     coCore::ptr->config->nodesIterate();
-    if( coCore::ptr->config->nodeSelectByHostName(coCore::ptr->hostNameGet()) != true ){
+    if( coCore::ptr->config->nodeSelectByHostName(coCore::ptr->nodeName()) != true ){
     // debugging message
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "No Server Configuration found, do nothing." );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
@@ -628,7 +575,7 @@ void* sslService::					serveThread( void* void_service ){
     coCore::ptr->config->nodesIterateFinish();
 
 // init server certs
-    sslSession::globalServerInit( coCore::ptr->hostNameGet() );
+    sslSession::globalServerInit( coCore::ptr->nodeName() );
 
 
 // create address description
@@ -673,7 +620,7 @@ void* sslService::					serveThread( void* void_service ){
 
     // send it out that we have an new client
         coCore::ptr->plugins->messageQueue->add(
-            newSession, coCore::ptr->hostNameGet(), coCore::ptr->hostNameGet(),
+            newSession, coCore::ptr->nodeName(), coCore::ptr->nodeName(),
             "cocom", "onNewInClient", clientHostName
         );
 
@@ -698,7 +645,7 @@ void* sslService::					serverHandleClientThread( void* void_sslSession ){
 
 // send it out that we have an new client
     coCore::ptr->plugins->messageQueue->add(
-        session, coCore::ptr->hostNameGet(), coCore::ptr->hostNameGet(),
+        session, coCore::ptr->nodeName(), coCore::ptr->nodeName(),
         "cocom", "onDisconnectClient", session->host()
     );
 
