@@ -439,7 +439,7 @@ bool sslService::					reqKeyAccept( const char* fingerprint ){
     etStringCharGet( sslSession::pathRequestedKeys, sourcePath );
     etStringAllocLen( sourceKeyPath, 128 );
     etStringCharSet( sourceKeyPath, sourcePath, -1 );
-    etStringCharSet( sourceKeyPath, "/", -1 );
+    etStringCharAdd( sourceKeyPath, "/" );
     etStringCharAdd( sourceKeyPath, fingerprint );
     etStringCharGet( sourceKeyPath, sourcePath );
 
@@ -447,11 +447,14 @@ bool sslService::					reqKeyAccept( const char* fingerprint ){
     etStringCharGet( sslSession::pathAcceptedKeys, targetPath );
     etStringAllocLen( targetKeyPath, 128 );
     etStringCharSet( targetKeyPath, targetPath, -1 );
-    etStringCharSet( targetKeyPath, "/", -1 );
+    etStringCharAdd( targetKeyPath, "/" );
     etStringCharAdd( targetKeyPath, fingerprint );
     etStringCharGet( targetKeyPath, targetPath );
 
 // move
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Rename '%s' to '%s'", sourcePath, targetPath );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
     if( rename( sourcePath, targetPath ) == 0 ){
         etStringFree( sourceKeyPath );
         etStringFree( targetKeyPath );
@@ -563,7 +566,7 @@ void* sslService::					serveThread( void* void_service ){
 
 // get the server infos
     coCore::ptr->config->nodesIterate();
-    if( coCore::ptr->config->nodeSelectByHostName(coCore::ptr->nodeName()) != true ){
+    if( coCore::ptr->config->nodeSelect(coCore::ptr->nodeName()) != true ){
     // debugging message
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "No Server Configuration found, do nothing." );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
@@ -605,9 +608,8 @@ void* sslService::					serveThread( void* void_service ){
         memset( clientHostName, 0, clientHostNameSize );
         if( getnameinfo( (struct sockaddr *)&clientSocketAddress, sizeof(clientSocketAddress), clientHostName, clientHostNameSize, NULL, 0, 0 ) == 0 ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "got connection from %s on port %d", clientHostName, ntohs (clientSocketAddress.sin_port) );
-            etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
+            etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
         }
-
 
 
     // create a new session

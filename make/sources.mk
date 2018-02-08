@@ -63,13 +63,13 @@ targetPath  = /tmp/copilotd/target
 sources     += src/evillib.c
 sources     += src/main.cpp
 
-sources     += src/coCore.cpp
-sources     += src/coCoreConfig.cpp
-sources     += src/coMessageQueue.cpp
-sources     += src/coMessageQueue2.cpp
-sources     += src/coPlugin.cpp
-sources     += src/coPluginList.cpp
-sources     += src/coMessage.cpp
+sources     += src/core/coCore.cpp
+sources     += src/core/coCoreConfig.cpp
+sources     += src/core/coMessageQueue.cpp
+sources     += src/core/coMessageQueue2.cpp
+sources     += src/core/coPlugin.cpp
+sources     += src/core/coPluginList.cpp
+sources     += src/core/coMessage.cpp
 
 # plugins
 sources     += src/plugins/sslService.cpp
@@ -85,6 +85,7 @@ CFLAGS      += -pie -fPIE -fPIC
 CFLAGS      += -I/usr/include
 CFLAGS      += -I/usr/include/qt
 CFLAGS      += -I$(sourcePath)/src
+CFLAGS      += -I$(sourcePath)/src/core
 CFLAGS      += -I$(sourcePath)/libs/evillib/core
 CFLAGS      += -I$(sourcePath)/libs/evillib/extra
 CFLAGS      += -I$(sourcePath)/libs/util-linux/libuuid/src
@@ -184,7 +185,7 @@ endif
 ifdef DISABLE_SYSTEMD
 else
 sources     += src/plugins/syslogd.cpp
-CLIBS		+= $(shell pkg-config --cflags --libs libsystemd)
+CLIBS		+= -lsystemd
 endif
 
 ifdef _DEBUG
@@ -210,6 +211,7 @@ copilot-user:
 
 copilotd: $(prefix)/usr/bin/copilotd
 $(prefix)/usr/bin/copilotd: $(buildPath)/app
+	mkdir -p /etc/copilot
 	@cp -v $< $@
 
 sudoers: $(prefix)/etc/sudoers.d/copilot
@@ -230,7 +232,6 @@ client:
 	DISABLE_MQTT=1 \
 	DISABLE_SSH=1 \
 	DISABLE_WEBSOCKET=1 \
-	DISABLE_LDAP=1 \
 	binary
 
 client-install: client copilot-user copilotd copilotd-client.service sudoers

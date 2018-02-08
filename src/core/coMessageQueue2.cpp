@@ -79,6 +79,8 @@ bool coMessageQueue2::           add(   coPlugin*   sourcePlugin,
                                         const char* command,
                                         const char* payload ){
 
+// Lock
+    lockPthread( this->messageFiFoLock );
 
 // vars
     coMessage*      message = NULL;
@@ -93,7 +95,18 @@ bool coMessageQueue2::           add(   coPlugin*   sourcePlugin,
     message->payload( payload );
 
 // add it to the list
-    return this->add( sourcePlugin, message );
+    etListAppend( this->list, (void*)message );
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen,
+    "[APPEND] [%s -> %s] [%s - %s]",
+    message->nodeNameSource(), message->nodeNameTarget(),
+    message->group(), message->command() );
+    etDebugMessage( etID_LEVEL_DETAIL_NET, etDebugTempMessage );
+
+// UnLock
+    unlockPthread( this->messageFiFoLock );
+    return true;
 }
 
 

@@ -717,7 +717,7 @@ int sslSession::            verifyPublikKeyCallback( gnutls_session_t session, b
     const char *hostname;
 
 /* read hostname */
-    hostname = (const char*)gnutls_session_get_ptr (session);
+    hostname = (const char*)gnutls_session_get_ptr( session );
     if( hostname == NULL ){
         etDebugMessage( etID_LEVEL_ERR, "No hostname was provided" );
         return GNUTLS_E_CERTIFICATE_ERROR;
@@ -866,7 +866,7 @@ bool sslSession::           handleClient(){
         this->newPeerCallbackFunct( this->userdata );
     }
 
- // save info
+ // set pointer for session to hostname
     clientHostName = this->host(NULL);
     gnutls_session_set_ptr( this->tlsSession, (void*)clientHostName );
 
@@ -902,7 +902,7 @@ bool sslSession::           client(){
     struct sockaddr_in                      clientSocketAddress;
     const char*                             clientHostName;
 
-// init gnutls
+// init gnutls  with client certificates
     gnutls_init( &this->tlsSession, GNUTLS_CLIENT );
     gnutls_priority_set( this->tlsSession, sslSession::priorityCache );
     gnutls_credentials_set( this->tlsSession, GNUTLS_CRD_CERTIFICATE, sslSession::clientCerts );

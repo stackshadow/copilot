@@ -64,10 +64,12 @@ static struct option options[] = {
     { "listConections",         no_argument,        NULL, 30 },
     { "createConnection",       required_argument,  NULL, 31 },
     { "createServe",            required_argument,  NULL, 32 },
+    { "keyReqList",             no_argument,        NULL, 40 },
+    { "keyAccept",              required_argument,  NULL, 41 },
     #ifndef DISABLE_WEBSOCKET
     { "websocket",              no_argument,        NULL, 50 },
     #endif
-    { "nonft",                  no_argument,        NULL, 40 },
+    { "nonft",                  no_argument,        NULL, 60 },
 
 
     { NULL, 0, 0, 0 }
@@ -108,6 +110,11 @@ int main( int argc, char *argv[] ){
     const char*     servePortString = NULL;
     int             servePort = 4567;
 
+    bool            reqKeysList = false;
+    bool            reqKeyAccept = false;
+    bool            reqKeyCler = false;
+    const char*     keyName = NULL;
+
     bool            startWebSocket = false;
     bool            disablenft = false;
 
@@ -131,6 +138,8 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, "--listConections: List all connections \n" );
                 fprintf( stdout, "--createConnection <hostname:port>: Create a new client connection and exit \n" );
                 fprintf( stdout, "--createServe <hostname:port>: Create a new server connection and exist \n" );
+                fprintf( stdout, "--keyReqList List keys which request an connection \n" );
+                fprintf( stdout, "--keyAccept <name> Accept an requested key \n" );
                 #ifndef DISABLE_WEBSOCKET
                 fprintf( stdout, "--websocket: start websocket-server \n" );
                 #endif
@@ -150,6 +159,7 @@ int main( int argc, char *argv[] ){
             case 10:
                 printf ("Set nodename to '%s'\n", optarg);
                 core->nodeName( optarg );
+                exit(0);
                 break;
 
             case 11:
@@ -192,8 +202,13 @@ int main( int argc, char *argv[] ){
 
                 break;
 
+            case 40:
+                reqKeysList = true;
+                break;
 
-
+            case 41:
+                reqKeyAccept = true;
+                keyName = optarg;
                 break;
 
             #ifndef DISABLE_WEBSOCKET
@@ -204,7 +219,7 @@ int main( int argc, char *argv[] ){
             #endif
 
             #ifndef DISABLE_NFT
-            case 40:
+            case 60:
                 printf ("We dont apply nft-rules\n" );
                 disablenft = true;
                 break;
@@ -248,6 +263,30 @@ int main( int argc, char *argv[] ){
         coCore::ptr->config->save();
         exit(0);
     }
+
+// list keys
+    if( reqKeysList == true ){
+        json_t* jsonReqKeyList = json_object();
+        ssl->reqKeysGet( jsonReqKeyList );
+        json_dumpf( jsonReqKeyList, stdout, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        json_decref( jsonReqKeyList );
+        fprintf( stdout, "\n" );
+        fflush(stdout);
+        exit(0);
+    }
+
+// accept key
+    if( reqKeyAccept == true ){
+        if( ssl->reqKeyAccept( keyName ) == true ){
+            fprintf( stdout, "Key accepted: '%s'\n", keyName );
+        } else {
+            fprintf( stdout, "Key not accepted: '%s'\n", keyName );
+        }
+        fflush(stdout);
+        exit(0);
+    }
+
+
 
     ssl->serve();
     ssl->connectAll();

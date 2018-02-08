@@ -155,7 +155,7 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
 
 // go to the end
     sd_journal_seek_tail( journal );
-    //sd_journal_previous_skip( journal, 10 );
+    sd_journal_previous_skip( journal, 1 );
 
 // started
     syslogdInstance->messageThreadRunning = true;
@@ -167,7 +167,7 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
 
         if( syslogdInstance->messageThreadGetPrevMsg == true ){
             sd_journal_seek_tail( journal );
-            sd_journal_previous_skip( journal, 30 );
+            sd_journal_previous_skip( journal, 10 );
             syslogdInstance->messageThreadGetPrevMsg = false;
         }
 
@@ -237,6 +237,8 @@ void* syslogd::		                    messageThread( void* void_syslogd ){
         // add the message to list
             coCore::ptr->plugins->messageQueue->add( syslogd::ptr,
             coCore::ptr->nodeName(), "", "syslogd", "entry", jsonCharDump );
+
+            sleep(1);
 
 
             returnVal = sd_journal_next( journal );

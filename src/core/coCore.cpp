@@ -52,7 +52,11 @@ coCore::                    coCore(){
 
 // create config-object
 	this->config = new coCoreConfig();
-	this->config->load( this->nodeName() );
+	this->config->load( tempHostInfo.nodename );
+// get my node name
+    const char* tempNodeName = NULL;
+    this->config->myNodeName( &tempNodeName );
+    etStringCharSet( this->myNodeName, tempNodeName, -1 );
 
 // create plugin list
 	this->plugins = new coPluginList();
@@ -97,7 +101,9 @@ const char* coCore::        nodeName( const char* newNodeName ){
 
 // set
     if( newNodeName != NULL ){
+        this->config->myNodeName( &newNodeName );
         etStringCharSet( this->myNodeName, newNodeName, -1 );
+        this->config->save();
     }
 
 // get

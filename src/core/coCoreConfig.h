@@ -75,6 +75,7 @@ public:
 
     // core config
         bool                configPath( const char** path );
+        bool                myNodeName( const char** nodeName );
 
 	// nodes
 		bool				nodesGet( json_t** jsonObject );

@@ -5,6 +5,15 @@
       <![CDATA[00050001N0006Client0000000000000001N0005Debug0000000000000001N0012Debug Client0000000000000001N0012Debug Server0000000000000001N0005Setup000000000000]]>
     </Plugin>
   </Plugins>
+  <Reconciliation>
+    <Regexes/>
+    <Excludepaths/>
+    <Ignorefiles/>
+    <Extensions>
+      <![CDATA[cpp;c;h;hpp;xrc;wxcp;fbp]]>
+    </Extensions>
+    <Topleveldir>../codelite</Topleveldir>
+  </Reconciliation>
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="doc">
@@ -61,19 +70,8 @@
       <File Name="../../src/plugins/sysStateCmd.h"/>
       <File Name="../../src/plugins/syslogd.h"/>
       <File Name="../../src/plugins/syslogd.cpp"/>
-      <File Name="../../src/main.cpp"/>
     </VirtualDirectory>
     <VirtualDirectory Name="server"/>
-    <File Name="../../src/coCore.cpp"/>
-    <File Name="../../src/coCore.h"/>
-    <File Name="../../src/coCoreConfig.cpp"/>
-    <File Name="../../src/coCoreConfig.h"/>
-    <File Name="../../src/coMessage.cpp"/>
-    <File Name="../../src/coMessage.h"/>
-    <File Name="../../src/coPlugin.cpp"/>
-    <File Name="../../src/coPlugin.h"/>
-    <File Name="../../src/coPluginList.cpp"/>
-    <File Name="../../src/coPluginList.h"/>
     <File Name="../../src/evillib.c"/>
     <File Name="../../src/version.h"/>
     <VirtualDirectory Name="classes">
@@ -91,11 +89,24 @@
       <File Name="../../src/deprecated/doDBDws.cpp"/>
       <File Name="../../src/deprecated/doDBDws.qt.h"/>
     </VirtualDirectory>
-    <File Name="../../src/coMessageQueue.h"/>
-    <File Name="../../src/coMessageQueue.cpp"/>
     <File Name="../../src/lockPthread.h"/>
-    <File Name="../../src/coMessageQueue2.h"/>
-    <File Name="../../src/coMessageQueue2.cpp"/>
+    <File Name="../../src/main.cpp"/>
+    <VirtualDirectory Name="core">
+      <File Name="../../src/core/coCore.cpp"/>
+      <File Name="../../src/core/coCore.h"/>
+      <File Name="../../src/core/coCoreConfig.cpp"/>
+      <File Name="../../src/core/coCoreConfig.h"/>
+      <File Name="../../src/core/coMessage.cpp"/>
+      <File Name="../../src/core/coMessage.h"/>
+      <File Name="../../src/core/coMessageQueue.cpp"/>
+      <File Name="../../src/core/coMessageQueue.h"/>
+      <File Name="../../src/core/coMessageQueue2.cpp"/>
+      <File Name="../../src/core/coMessageQueue2.h"/>
+      <File Name="../../src/core/coPlugin.cpp"/>
+      <File Name="../../src/core/coPlugin.h"/>
+      <File Name="../../src/core/coPluginList.cpp"/>
+      <File Name="../../src/core/coPluginList.h"/>
+    </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="make">
     <VirtualDirectory Name="generic">
@@ -142,7 +153,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--nodename hacktop7 --debugNet --nonft --websocket" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--nonft --websocket --debug" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>

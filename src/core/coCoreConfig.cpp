@@ -99,15 +99,24 @@ bool coCoreConfig::			load( const char* myNodeName ){
         saveToFile = true;
     }
 
+// get node from config
+    const char* configMyNodeName = NULL;
+    if( this->myNodeName( &configMyNodeName ) == true ){
+        myNodeName = configMyNodeName;
+    } else {
+        this->myNodeName( &myNodeName );
+        saveToFile = true;
+    }
 
-// get our own node
+// select our own node and create it if missing
     if( myNodeName != NULL ){
         if( this->nodeSelect(myNodeName) == false ){
+            this->nodeAppend(myNodeName);
             saveToFile = true;
         }
     }
 
-
+// save if needed
 	if( saveToFile == true ){
 		this->save(NULL);
 	}
@@ -207,6 +216,36 @@ bool coCoreConfig::			configPath( const char** path ){
 
     return true;
 }
+
+
+bool coCoreConfig::			myNodeName( const char** nodeName ){
+    if( nodeName == NULL ) return false;
+
+// Set
+    if( *nodeName == NULL ){
+
+    // try to get the nodeName
+        json_t* jsonNodeName = json_object_get( this->jsonConfig, "nodeName" );
+
+    // not found
+        if( jsonNodeName == NULL ) return false;
+
+    // found, return it
+        *nodeName = json_string_value(jsonNodeName);
+
+        return true;
+
+    }
+
+// get
+    else {
+        json_object_set_new( this->jsonConfig, "nodeName", json_string(*nodeName) );
+        return true;
+    }
+
+    return false;
+}
+
 
 
 
