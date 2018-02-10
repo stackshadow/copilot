@@ -224,7 +224,10 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 	// parse json
 		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
 		if( jsonPayload == NULL || jsonError.line > -1 ){
-			return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+			return coPlugin::MESSAGE_FINISHED;
 		}
 
         nodeType = coCoreConfig::CLIENT;

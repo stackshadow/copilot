@@ -1,2 +1,5 @@
 copilot ALL=(ALL) NOPASSWD: /usr/sbin/nft
+copilot ALL=(ALL) NOPASSWD: /usr/bin/btrfs
+
 stackshadow ALL=(ALL) NOPASSWD: /usr/sbin/nft
+stackshadow ALL=(ALL) NOPASSWD: /usr/bin/btrfs
