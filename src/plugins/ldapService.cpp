@@ -149,7 +149,10 @@ coPlugin::t_state ldapService::		onBroadcastMessage( coMessage* message ){
 	// parse json
 		jsonNewValues = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
 		if( jsonNewValues == NULL || jsonError.line > -1 ){
-			return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+			return coPlugin::MESSAGE_FINISHED;
 		}
 
     // iterate values and update internal config
@@ -324,6 +327,8 @@ connstate:
     if( coCore::strIsExact("userMod",msgCommand,msgCommandLen) == true ){
     // connected ?
         if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
+            coCore::ptr->plugins->messageQueue->add( this,
+            msgTarget, msgSource, "ldap", "userNotChanged", "no connection" );
             return coPlugin::MESSAGE_UNKNOWN;
         }
 
@@ -337,7 +342,10 @@ connstate:
 	// parse json
 		jsonNewValues = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
 		if( jsonNewValues == NULL || jsonError.line > -1 ){
-			return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+			return coPlugin::MESSAGE_FINISHED;
 		}
 
     // action ( 1=add, 2=change, 3=delete )
@@ -345,7 +353,9 @@ connstate:
         jsonValue = json_object_get( jsonNewValues, "action" );
         if( jsonValue == NULL ){
             json_decref( jsonNewValues );
-            return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'action' in json-object", __PRETTY_FUNCTION__ );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            return coPlugin::MESSAGE_UNKNOWN;
         }
         action = json_integer_value( jsonValue );
 
@@ -355,7 +365,10 @@ connstate:
         jsonValue = json_object_get( jsonNewValues, "uid" );
         if( jsonValue == NULL ){
             json_decref( jsonNewValues );
-            return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'uid' in json-object", __PRETTY_FUNCTION__ );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            return coPlugin::MESSAGE_UNKNOWN;
+
         }
         userName = json_string_value( jsonValue );
 
@@ -563,7 +576,10 @@ connstate:
 	// parse json
 		jsonNewValues = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
 		if( jsonNewValues == NULL || jsonError.line > -1 ){
-			return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+			return coPlugin::MESSAGE_FINISHED;
 		}
 
     // action ( 1=add, 2=change, 3=delete )
@@ -571,17 +587,22 @@ connstate:
         jsonValue = json_object_get( jsonNewValues, "action" );
         if( jsonValue == NULL ){
             json_decref( jsonNewValues );
-            return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'action' in json-object", __PRETTY_FUNCTION__ );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            return coPlugin::MESSAGE_UNKNOWN;
         }
         action = json_integer_value( jsonValue );
-
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: got action '%i'", __PRETTY_FUNCTION__, action );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
     // groupname
         const char* groupName = NULL;
         jsonValue = json_object_get( jsonNewValues, "name" );
         if( jsonValue == NULL ){
             json_decref( jsonNewValues );
-            return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'name' in json-object", __PRETTY_FUNCTION__ );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            return coPlugin::MESSAGE_UNKNOWN;
         }
         groupName = json_string_value( jsonValue );
 
@@ -648,9 +669,13 @@ connstate:
         // password
             const char* memberUserName = NULL;
             jsonValue = json_object_get( jsonNewValues, "member" );
-            if( jsonValue != NULL ){
-                memberUserName = json_string_value( jsonValue );
+            if( jsonValue == NULL ){
+                json_decref( jsonNewValues );
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'member' in json-object", __PRETTY_FUNCTION__ );
+                etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+                return coPlugin::MESSAGE_UNKNOWN;
             }
+            memberUserName = json_string_value( jsonValue );
 
         // add user to group
             if( action == 4 ){
@@ -678,7 +703,8 @@ connstate:
             return coPlugin::MESSAGE_FINISHED;
         }
 
-    // remove member
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: Action '%i' is not defined ", action );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
         json_decref( jsonNewValues );
         return coPlugin::MESSAGE_FINISHED;
@@ -829,14 +855,14 @@ bool ldapService::                  connect( LDAP** connection, int* ldapVersion
 
 
 
-bool ldapService::                  ldapModAppend( LDAPMod*** mod, int* LDAPModLen, int op, const char* property, const char* value1, const char* value2 ){
+bool ldapService::                  ldapModAppend( LDAPMod*** mod, int* LDAPModLen, int op, const char* property, const char* value1, const char* value2, const char* value3 ){
 
 // vars
     int             newModLen = *LDAPModLen + 1;
     size_t          newModSize = sizeof(LDAPMod*) * newModLen;
     LDAPMod**       newMod = NULL;
     const char**    newModAttrValues = NULL;
-    size_t          newModAttrValuesSize = sizeof(char*) * 3;
+    size_t          newModAttrValuesSize = sizeof(char*) * 4;
 
 // initial mod
     if( *LDAPModLen == 0 ){
@@ -860,7 +886,8 @@ bool ldapService::                  ldapModAppend( LDAPMod*** mod, int* LDAPModL
     // values
         newModAttrValues[0] = value1;
         newModAttrValues[1] = value2;
-        newModAttrValues[2] = NULL;
+        newModAttrValues[2] = value3;
+        newModAttrValues[3] = NULL;
 
     }
 // mod
@@ -1830,11 +1857,11 @@ bool ldapService::                  groupAddMember( const char* groupName, const
     userDN += this->basedn;
 
 // check if orga already exist
-    if( this->exist( this->ldapConnection, groupDN.c_str() ) == true ){
-        return true;
+    if( this->exist( this->ldapConnection, groupDN.c_str() ) != true ){
+        return false;
     }
-    if( this->exist( this->ldapConnection, userDN.c_str() ) == true ){
-        return true;
+    if( this->exist( this->ldapConnection, userDN.c_str() ) != true ){
+        return false;
     }
 
 // change description
@@ -1842,7 +1869,7 @@ bool ldapService::                  groupAddMember( const char* groupName, const
 
 
 // call
-    returnCode = ldap_add_ext_s( this->ldapConnection, groupDN.c_str(), mods, NULL, NULL );
+    returnCode = ldap_modify_ext_s( this->ldapConnection, groupDN.c_str(), mods, NULL, NULL );
     if( returnCode != LDAP_SUCCESS ){
         char *errorMessage = ldap_err2string( returnCode );
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
@@ -1885,8 +1912,8 @@ bool ldapService::                  groupRemoveMember( const char* groupName, co
     userDN += this->basedn;
 
 // check if orga already exist
-    if( this->exist( this->ldapConnection, groupDN.c_str() ) == true ){
-        return true;
+    if( this->exist( this->ldapConnection, userDN.c_str() ) != true ){
+        return false;
     }
 
 // change description
@@ -1894,7 +1921,7 @@ bool ldapService::                  groupRemoveMember( const char* groupName, co
 
 
 // call
-    returnCode = ldap_add_ext_s( this->ldapConnection, groupDN.c_str(), mods, NULL, NULL );
+    returnCode = ldap_modify_ext_s( this->ldapConnection, groupDN.c_str(), mods, NULL, NULL );
     if( returnCode != LDAP_SUCCESS ){
         char *errorMessage = ldap_err2string( returnCode );
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
@@ -1982,7 +2009,7 @@ bool ldapService::                  userAdd( const char* accountName ){
     }
 
 // Required Attributes
-    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "objectClass", "person", "inetOrgPerson" );
+    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "objectClass", "top", "person", "inetOrgPerson" );
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "uid", accountName );
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "sn", "unknown" );
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "cn", "unknown" );

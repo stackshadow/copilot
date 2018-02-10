@@ -81,7 +81,7 @@ private:
     //bool            disconnect();
 
 // ldap
-    bool                ldapModAppend( LDAPMod*** mod, int* LDAPModLen, int op, const char* property, const char* value1, const char* value2 = NULL );
+    bool                ldapModAppend( LDAPMod*** mod, int* LDAPModLen, int op, const char* property, const char* value1, const char* value2 = NULL, const char* value3 = NULL );
     bool                ldapModMemFree( LDAPMod*** mod );
 
     bool                exist( LDAP* connection, const char* dn );
