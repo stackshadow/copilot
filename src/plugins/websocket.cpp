@@ -37,6 +37,9 @@ websocket::							websocket( int wsPort ) : coPlugin( "websocketClient", "", "" 
 
     this->wsThreadRun = 1;
     pthread_create( &this->thread, NULL, &websocket::wsThread, this );
+    char threadName[16] = { '\0' };
+    snprintf( threadName, 16, "websocket\0" );
+    pthread_setname_np( this->thread, threadName );
     pthread_detach( this->thread );
 
 // register plugin

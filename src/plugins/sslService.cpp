@@ -77,7 +77,10 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
 	// parse json
 		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
 		if( jsonPayload == NULL || jsonError.line > -1 ){
-			return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+			return coPlugin::MESSAGE_FINISHED;
 		}
 
     // get host / port
@@ -543,6 +546,7 @@ void sslService::					serve(){
 // start the thread which wait for clients
 	pthread_t thread;
 	pthread_create( &thread, NULL, sslService::serveThread, this );
+    pthread_setname_np( thread, "ssl-server\0" );
 	pthread_detach( thread );
 
 }
@@ -628,7 +632,10 @@ void* sslService::					serveThread( void* void_service ){
 
     // client communication will be handled inside an thread
         pthread_t thread;
+        char threadName[16] = { '\0' };
+        snprintf( threadName, 16, "client-%s\0", clientHostName );
         pthread_create( &thread, NULL, sslService::serverHandleClientThread, newSession );
+        pthread_setname_np( thread, threadName );
         pthread_detach( thread );
 
 
@@ -713,6 +720,9 @@ void sslService::					connectAll(){
     // client communication will be handled inside an thread
         pthread_t thread;
         pthread_create( &thread, NULL, sslService::connectToClientThread, newSession );
+        char threadName[16] = { '\0' };
+        snprintf( threadName, 16, "client-%s\0", clientHost );
+        pthread_setname_np( thread, threadName );
         pthread_detach( thread );
 
 

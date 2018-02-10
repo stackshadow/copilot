@@ -129,6 +129,9 @@ int syslogd::                           messageThreadStart(){
 // start the thread which wait for clients
 	pthread_t thread;
 	pthread_create( &thread, NULL, syslogd::messageThread, this );
+    char threadName[16] = { '\0' };
+    snprintf( threadName, 16, "syslogd\0" );
+    pthread_setname_np( thread, threadName );
 	pthread_detach( thread );
 
     return 0;

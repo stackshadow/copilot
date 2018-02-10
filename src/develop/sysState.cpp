@@ -46,7 +46,7 @@ sysState::         							sysState() : coPlugin( "sysState", "", "sýstate" ){
 // run threads
 	this->stateThreadRun = sysState::THREAD_LOOP;
     pthread_create( &this->stateThread, NULL, sysState::stateRefreshThread, this );
-
+    pthread_setname_np( this->stateThread, "sysState\0" );
 
 // register plugin
 	coCore::ptr->plugins->append( this );

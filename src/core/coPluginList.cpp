@@ -155,6 +155,7 @@ void coPluginList::         boradcastThreadStart(){
 
 // start the thread which wait for clients
     pthread_create( &this->broadcastThread_i, NULL, coPluginList::broadcastThread, this );
+    pthread_setname_np( this->broadcastThread_i, "broadcast\0" );
     pthread_detach( this->broadcastThread_i );
 
 
@@ -238,6 +239,7 @@ void coPluginList::         broadcastWatchdogThreadStart(){
 // start the watchdog
     pthread_t threadWatchdog;
     pthread_create( &threadWatchdog, NULL, coPluginList::broadcastWatchdogThread, this );
+    pthread_setname_np( threadWatchdog, "broadcastWD\0" );
     pthread_detach( threadWatchdog );
 
 }
@@ -264,6 +266,7 @@ void* coPluginList::        broadcastWatchdogThread( void* userdata ){
 
         // start the thread which wait for clients
             pthread_create( &pluginList->broadcastThread_i, NULL, coPluginList::broadcastThread, pluginList );
+            pthread_setname_np( pluginList->broadcastThread_i, "broadcastWD\0" );
             pthread_detach( pluginList->broadcastThread_i );
 
 

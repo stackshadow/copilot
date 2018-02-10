@@ -458,6 +458,9 @@ int sysState::                      commandsStartAll(){
 
     // okay, we now have all infos for the thread :D
         pthread_create( &threadData->thread, NULL, sysState::cmdThread, threadData );
+        char threadName[16] = { '\0' };
+        snprintf( threadName, 16, "sysstate-%s\0", timeChar );
+        pthread_setname_np( threadData->thread, threadName );
         pthread_detach( threadData->thread );
 
 
@@ -675,7 +678,10 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 	// parse json
 		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
 		if( jsonPayload == NULL || jsonError.line > -1 ){
-			return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+			return coPlugin::MESSAGE_FINISHED;
 		}
 
         const char*         command;
@@ -738,7 +744,10 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 	// parse json
 		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
 		if( jsonPayload == NULL || jsonError.line > -1 ){
-			return coPlugin::NO_REPLY;
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+			return coPlugin::MESSAGE_FINISHED;
 		}
 
         this->commandAppend( jsonPayload );

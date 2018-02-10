@@ -654,6 +654,10 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
     fileSizeReaded = fread( acceptedKeyBuffer, 1, fileSize, file );
     fclose( file );
 
+// print file size
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s fileSize %l", fileName.c_str(), fileSize );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
 // compare buffer size
     if( fileSizeReaded != publicKeyBufferSizeOut ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s keysize is different: %i <> %i", peerHostName, fileSizeReaded, publicKeyBufferSizeOut );
