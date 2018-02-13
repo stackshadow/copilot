@@ -1,0 +1,47 @@
+# $Id: PKGBUILD 294869 2017-04-27 03:06:45Z foutrelis $
+# Contributor: Andreas Radke <andyrtr@archlinux.org>
+# build it with makepkg
+
+pkgbase=copilot
+pkgname=(copilotd)
+pkgver=18.07
+pkgrel=1
+pkgdesc="Small decentral server management"
+arch=(i686 x86_64)
+url="https://evilbrain.de/"
+license=(custom)
+depends=(jansson libwebsockets libsodium sudo systemd)
+makedepends=(jansson libwebsockets libsodium)
+optdepends=('gst-plugins-base: free media decoding'
+            'gst-plugins-good: media decoding'
+            'gst-libav: nonfree media decoding')
+options=(!emptydirs)
+#install=webkitgtk.install
+source=( https://github.com/stackshadow/copilot/archive/master.zip )
+sha256sums=( SKIP )
+
+prepare() {
+  mkdir -p build-gtk{,2} path
+
+}
+
+_build() (
+  _ver="$1"; shift
+  cd build-${_ver}
+)
+
+build() {
+    echo ""
+}
+
+package_copilotd() {
+  pkgdesc+=", server daemon"
+#  depends+=(gtk3)
+#  optdepends+=('gtk2: Netscape plugin support')
+  provides=("copilotd=${pkgver}")
+
+
+    make -C copilot-master -j1 prefix="$pkgdir" -f make/Makefile engineering-deploy
+
+}
+

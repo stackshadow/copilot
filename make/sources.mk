@@ -200,9 +200,9 @@ default: binary-qt
 translation:
 	make -f locale/locale.mk
 
-/etc/copilot/services:
-	@mkdir -v -p /etc/copilot/services
-	@chown -R copilot:copilot /etc/copilot
+#/etc/copilot/services:
+#	@mkdir -v -p $(prefix)/etc/copilot/services
+#	@chown -R copilot:copilot $(prefix)/etc/copilot
 
 
 copilot-user:
@@ -211,31 +211,35 @@ copilot-user:
 
 copilotd: $(prefix)/usr/bin/copilotd
 $(prefix)/usr/bin/copilotd: $(buildPath)/app
-	mkdir -p /etc/copilot
+	mkdir -p $(prefix)/usr/bin
 	@cp -v $< $@
 
 sudoers: $(prefix)/etc/sudoers.d/copilot
 $(prefix)/etc/sudoers.d/copilot: src/files/sudoers
+	mkdir -p $(prefix)/etc/sudoers.d
 	@cp -v $< $@
 
 copilotd-client.service: $(prefix)/lib/systemd/system/copilotd-client.service
 $(prefix)/lib/systemd/system/copilotd-client.service: src/files/copilotd-client.service
+	mkdir -p $(prefix)/lib/systemd/system
 	@cp -v $< $@
 
 copilotd-engineering.service: $(prefix)/lib/systemd/system/copilotd-engineering.service
 $(prefix)/lib/systemd/system/copilotd-engineering.service: src/files/copilotd-engineering.service
+	mkdir -p $(prefix)/lib/systemd/system
 	@cp -v $< $@
 
 
-client:
+client: gitversion
 	make -f make/Makefile \
 	DISABLE_MQTT=1 \
 	DISABLE_SSH=1 \
 	DISABLE_WEBSOCKET=1 \
 	binary
 
-client-install: client copilot-user copilotd copilotd-client.service sudoers
-	@chown -R copilot:copilot /etc/copilot
+client-deploy: client copilot-user copilotd copilotd-client.service sudoers
+client-install: client-deploy
+	@chown -R copilot:copilot $(prefix)/etc/copilot
 	systemctl daemon-reload
 
 
@@ -245,8 +249,9 @@ engineering: gitversion
 	DISABLE_SSH=1 \
 	binary-dbg
 
-engineering-install: engineering copilot-user copilotd copilotd-engineering.service sudoers
-	@chown -R copilot:copilot /etc/copilot
+engineering-deploy: engineering copilot-user copilotd copilotd-engineering.service sudoers
+engineering-install: engineering-deploy
+	@chown -R copilot:copilot $(prefix)/etc/copilot
 	systemctl daemon-reload
 
 
