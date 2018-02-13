@@ -579,16 +579,20 @@ void* sysState::                    cmdThread( void* void_service ){
 
         // delay
             if( firstRun == false ){ usleep( 1000 * delay ); }
-            else { firstRun = false; usleep(100); }
+            else { /*firstRun = false;*/ usleep(100); }
 
             arrayIndex++;
             cmd = threadData->cmdArray[arrayIndex];
         }
 
     // sleep
+        /*
         if( firstRun == false ){ usleep( 1000 * delay ); }
         else { firstRun = false; usleep(100); }
+        */
+        if( firstRun != false ) firstRun = false;
 
+        usleep( 1000 * delay );
 
     }
 
