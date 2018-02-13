@@ -661,6 +661,9 @@ connstate:
                 coCore::ptr->plugins->messageQueue->add( this,
                 coCore::ptr->nodeName(), "", "ldap", "groupNotDeleted", groupName );
             }
+
+            json_decref( jsonNewValues );
+            return coPlugin::MESSAGE_FINISHED;
         }
 
     // get member to add/remove user from a group member
@@ -703,7 +706,7 @@ connstate:
             return coPlugin::MESSAGE_FINISHED;
         }
 
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: Action '%i' is not defined ", action );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: Action '%i' is not defined ", __PRETTY_FUNCTION__, action );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
         json_decref( jsonNewValues );
@@ -873,7 +876,8 @@ bool ldapService::                  ldapModAppend( LDAPMod*** mod, int* LDAPModL
     newMod = (LDAPMod**)malloc( newModSize );
 
 // if not delete, we create the attributes
-    if( op != LDAP_MOD_DELETE ){
+    //if( op != LDAP_MOD_DELETE ){
+    if( value1 != NULL || value2 != NULL || value3 != NULL ){
 
     // allocate
         newModAttrValues = (const char**)malloc( newModAttrValuesSize );
@@ -890,15 +894,22 @@ bool ldapService::                  ldapModAppend( LDAPMod*** mod, int* LDAPModL
         newModAttrValues[3] = NULL;
 
     }
+
 // mod
     newMod[newModLen-2] = (LDAPMod*)malloc(sizeof(LDAPMod)); memset( newMod[newModLen-2], 0, sizeof(LDAPMod) );
     newMod[newModLen-2]->mod_op = op;
     newMod[newModLen-2]->mod_type = (char*)property;
     newMod[newModLen-1] = NULL;
 
-    if( op != LDAP_MOD_DELETE ){
+// if all values are NULLm we set vals to NULL
+    if( value1 != NULL || value2 != NULL || value3 != NULL ){
+
+    //if( op != LDAP_MOD_DELETE ){
         newMod[newModLen-2]->mod_vals.modv_strvals = (char**)newModAttrValues;
+    } else {
+        newMod[newModLen-2]->mod_vals.modv_strvals = NULL;
     }
+
 
     *mod = newMod;
     *LDAPModLen = newModLen;
@@ -1865,7 +1876,7 @@ bool ldapService::                  groupAddMember( const char* groupName, const
     }
 
 // change description
-    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_REPLACE, "member", userDN.c_str() );
+    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "member", userDN.c_str() );
 
 
 // call
