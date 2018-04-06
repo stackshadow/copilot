@@ -49,11 +49,14 @@ private:
         json_t*                 jsonCommands = NULL;
         json_t*                 jsonTimes = NULL;
 
-    //
+    // health
         lockID                  cmdHealthLock = 0;
         int                     cmdHealth = 100;
         void*                   cmdHealthCmd = NULL;            ///< sysStateCmd of worst health value; This is the only cmd which can increase health
         etString*               cmdHealthDescription = NULL;    ///< decription of command which set the last worst value
+
+    // options
+        bool                    sendRawValues = false;          ///< If true, we send raw-values on every health-update-command
 
         sysStateThreadData**    threadedDataArray = NULL;
         int                     threadedDataArrayCount = 0;

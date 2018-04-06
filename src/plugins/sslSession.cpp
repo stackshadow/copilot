@@ -680,7 +680,14 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
 
 pinkey:
     if( pinning == true ){
-        file = fopen( fileName.c_str(), "w+" );
+        
+		file = fopen( fileName.c_str(), "w+" );
+		if( file == NULL ){
+			snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not create file %s", fileName.c_str() );
+			etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+			return false;
+		}
+		
         fwrite( publicKeyBuffer, 1, publicKeyBufferSizeOut, file );
         fflush(file);
         fclose(file);
@@ -693,8 +700,15 @@ pinkey:
         fileName  = sslKeyPath;
         fileName += "/";
         fileName += peerHostName;
-        file = fopen( fileName.c_str(), "w+" );
-        fwrite( publicKeyBuffer, 1, publicKeyBufferSizeOut, file );
+        
+		file = fopen( fileName.c_str(), "w+" );
+		if( file == NULL ){
+			snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not create file %s", fileName.c_str() );
+			etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+			return false;
+		}
+        
+		fwrite( publicKeyBuffer, 1, publicKeyBufferSizeOut, file );
         fflush(file);
         fclose(file);
 
