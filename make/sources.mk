@@ -183,10 +183,19 @@ CLIBS		+= -lldap
 endif
 
 ifdef DISABLE_SYSTEMD
+CFLAGS      += -DDISABLE_SYSTEMD
 else
 sources     += src/plugins/syslogd.cpp
 CLIBS		+= -lsystemd
 endif
+
+ifdef DISABLE_EDB
+CFLAGS      += -DDISABLE_EDB
+else
+sources     += src/plugins/eDB.cpp
+endif
+CLIBS		+= -lsqlite3
+
 
 ifdef _DEBUG
 CFLAGS      += -D_DEBUG
@@ -235,6 +244,7 @@ client: gitversion
 	DISABLE_MQTT=1 \
 	DISABLE_SSH=1 \
 	DISABLE_WEBSOCKET=1 \
+	DISABLE_EDB=1 \
 	binary
 
 client-deploy: client copilot-user copilotd copilotd-client.service sudoers
@@ -247,7 +257,11 @@ engineering: gitversion
 	make -f make/Makefile \
 	DISABLE_MQTT=1 \
 	DISABLE_SSH=1 \
+	DISABLE_EDB=1 \
 	binary-dbg
+
+
+
 
 engineering-deploy: engineering copilot-user copilotd copilotd-engineering.service sudoers
 engineering-install: engineering-deploy

@@ -44,17 +44,17 @@
 
 #include "system/etFile.c"
 
-/*
-// db stuff
-#include "db/etDBTable.c"
-#include "db/etDBColumn.c"
-#include "db/etDBFilter.c"
 
-// db driver
-#include "dbdriver/etDBDriver.c"
-#include "dbdriver/etDBSQL.c"
-#include "dbdriver/etDBSQLite.c"
-*/
+#ifndef DISABLE_EDB
+	// db stuff
+	#include "db/etDBTable.c"
+	#include "db/etDBColumn.c"
+
+
+	// db driver
+	#include "dbdriver/etDBSQL.c"
+	#include "dbdriver/etDBSQLite.c"
+#endif
 
 /*
 #include "db/etDBObject.c"

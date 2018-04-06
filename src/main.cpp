@@ -52,6 +52,11 @@ localhost:4567
 //#include "plugins/mqttService.h"
 //#include "plugins/ldapService.h"
 #include "plugins/syslogd.h"
+
+#ifndef DISABLE_EDB
+#include "plugins/eDB.h"
+#endif
+
 //#include <QtCore/QCoreApplication>
 
 static struct option options[] = {
@@ -336,7 +341,16 @@ int main( int argc, char *argv[] ){
     syslogd* syslogdService = new syslogd();
 #endif
 
+#ifndef DISABLE_SYSSTATE
     sysState*   state = new sysState();
+#endif
+
+
+#ifndef DISABLE_EDB
+	new eDB();
+#endif
+
+
 
 // Setup All plugins
 	core->plugins->setupAll();
