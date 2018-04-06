@@ -178,6 +178,9 @@ bool coCoreConfig::			save( const char* jsonString ){
 		return true;
 	}
 
+// error
+	snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not save config-file to %s%s", configFile.c_str(), "core.json" );
+	etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 	unlockMyPthread();
 	return false;
 }

@@ -196,12 +196,18 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
 
 	if( coCore::strIsExact("nodeRemove",msgCommand,msgCommandLen) == true ){
         coCore::ptr->config->nodeRemove( msgPayload );
-        coCore::ptr->config->save();
+        bool configSaved = coCore::ptr->config->save();
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        myNodeName, msgSource,
-        msgGroup, "nodeRemoved", "" );
+		if( configSaved == true ){
+			coCore::ptr->plugins->messageQueue->add( this,
+			myNodeName, msgSource,
+			msgGroup, "configSaved", "" );
+		} else {
+			coCore::ptr->plugins->messageQueue->add( this,
+			myNodeName, msgSource,
+			msgGroup, "configNotSaved", "" );
+		}
 
         return coPlugin::MESSAGE_FINISHED;
     }
@@ -251,13 +257,19 @@ coPlugin::t_state coreService::			onBroadcastMessage( coMessage* message ){
         coCore::ptr->config->nodeAppend( nodeName );
         coCore::ptr->config->nodeInfo( NULL, &nodeType, true );
         coCore::ptr->config->nodeConnInfo( &nodeHostName, &nodeHostPostPort, true );
-        coCore::ptr->config->save();
+        bool configSaved = coCore::ptr->config->save();
         coCore::ptr->config->nodesIterateFinish();
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        myNodeName, msgSource,
-        msgGroup, "nodeSaved", "" );
+		if( configSaved == true ){
+			coCore::ptr->plugins->messageQueue->add( this,
+			myNodeName, msgSource,
+			msgGroup, "configSaved", "" );
+		} else {
+			coCore::ptr->plugins->messageQueue->add( this,
+			myNodeName, msgSource,
+			msgGroup, "configNotSaved", "" );
+		}
 
         return coPlugin::MESSAGE_FINISHED;
     }
