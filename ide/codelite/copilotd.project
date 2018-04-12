@@ -52,6 +52,8 @@
       <File Name="../../src/develop/doDBTable.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="plugins">
+      <File Name="../../src/plugins/eDB.cpp"/>
+      <File Name="../../src/plugins/eDB.h"/>
       <File Name="../../src/plugins/coreService.cpp"/>
       <File Name="../../src/plugins/coreService.h"/>
       <File Name="../../src/plugins/nftService.cpp"/>
@@ -92,6 +94,8 @@
     <File Name="../../src/lockPthread.h"/>
     <File Name="../../src/main.cpp"/>
     <VirtualDirectory Name="core">
+      <File Name="../../src/core/threadList.h"/>
+      <File Name="../../src/core/threadList.c"/>
       <File Name="../../src/core/coCore.cpp"/>
       <File Name="../../src/core/coCore.h"/>
       <File Name="../../src/core/coCoreConfig.cpp"/>
@@ -153,7 +157,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--nonft --websocket --debug" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--nonft --websocket" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -188,7 +192,8 @@
 /usr/src/projekte/copilot/copilotd/libs/evillib/core
 $(ProjectPath)/../../src
 $(ProjectPath)/../../src/plugins
-$(ProjectPath)/../../libs/evillib/core</SearchPaths>
+$(ProjectPath)/../../libs/evillib/core
+$(ProjectPath)/../../libs/evillib/extra</SearchPaths>
       </Completion>
     </Configuration>
     <Configuration Name="TestNode" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">

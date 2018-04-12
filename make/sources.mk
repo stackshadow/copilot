@@ -61,6 +61,7 @@ targetPath  = /tmp/copilotd/target
 
 # core
 sources     += src/evillib.c
+sources     += src/core/threadList.c
 sources     += src/main.cpp
 
 sources     += src/core/coCore.cpp
