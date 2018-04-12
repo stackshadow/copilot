@@ -187,10 +187,12 @@ coPlugin::t_state ldapService::		onBroadcastMessage( coMessage* message ){
 
 
     // admin-connection
+		etDebugMessage( etID_LEVEL_DETAIL_APP, "Try to connect as Admin" );
         this->ldapConnectionAdminActive = ldapService::connect( &this->ldapConnectionAdmin,
             &ldapVersion, &ldapTimeout, this->uri.c_str(), this->admindn.c_str(), this->adminpass.c_str() );
 
     // dbconnection
+		etDebugMessage( etID_LEVEL_DETAIL_APP, "Try to connect as Manager" );
         this->ldapConnectionActive = ldapService::connect( &this->ldapConnection,
             &ldapVersion, &ldapTimeout, this->uri.c_str(), this->logindn.c_str(), this->loginpass.c_str() );
 
