@@ -38,7 +38,8 @@ sslService::               			sslService() : coPlugin( "sslService", coCore::ptr
 // init keys
     sslSession::globalInit( coCore::ptr->nodeName() );
 
-
+// alloc thread list
+	etThreadListAlloc( &this->threadList );
 
 // register plugin
 	coCore::ptr->plugins->append( this );
@@ -200,6 +201,49 @@ coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
 
 
     }
+
+
+    if( strncmp(msgCommand,"start",7) == 0 ){
+
+		this->serve();
+		this->connectAll();
+
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->nodeName(), msgSource,
+        msgGroup, "started", "" );
+
+		return coPlugin::NO_REPLY;
+    }
+
+    if( strncmp(msgCommand,"stop",7) == 0 ){
+
+		//this->threadCancelAll();
+		etThreadListCancelAll( this->threadList );
+
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->nodeName(), msgSource,
+        msgGroup, "stoped", "" );
+
+		return coPlugin::NO_REPLY;
+    }
+
+    if( strncmp(msgCommand,"restart",7) == 0 ){
+
+		//this->threadCancelAll();
+
+		this->serve();
+		this->connectAll();
+
+    // add the message to list
+        coCore::ptr->plugins->messageQueue->add( this,
+        coCore::ptr->nodeName(), msgSource,
+        msgGroup, "restarted", "" );
+
+		return coPlugin::NO_REPLY;
+    }
+
 
 
     return coPlugin::NO_REPLY;
@@ -541,14 +585,14 @@ bool sslService::					acceptedKeyRemove( const char* fingerprint ){
 
 
 
+
+
+
+
 void sslService::					serve(){
 
 // start the thread which wait for clients
-	pthread_t thread;
-	pthread_create( &thread, NULL, sslService::serveThread, this );
-    pthread_setname_np( thread, "ssl-server\0" );
-	pthread_detach( thread );
-
+	etThreadListAdd( this->threadList, "ssl-server", sslService::serveThread, NULL, this );
 }
 
 
@@ -631,12 +675,7 @@ void* sslService::					serveThread( void* void_service ){
         );
 
     // client communication will be handled inside an thread
-        pthread_t thread;
-        char threadName[16] = { '\0' };
-        snprintf( threadName, 16, "client-%s\0", clientHostName );
-        pthread_create( &thread, NULL, sslService::serverHandleClientThread, newSession );
-        pthread_setname_np( thread, threadName );
-        pthread_detach( thread );
+		etThreadListAdd( service->threadList, clientHostName, sslService::serverHandleClientThread, sslService::serverHandleClientThreadCancel, newSession );
 
 
     }
@@ -660,6 +699,15 @@ void* sslService::					serverHandleClientThread( void* void_sslSession ){
 
 // session finished
     delete session;
+}
+
+
+void* sslService::					serverHandleClientThreadCancel( void* void_sslSession ){
+	
+// vars
+	sslSession*     session = (sslSession*)void_sslSession;
+	delete session;
+	
 }
 
 
@@ -718,14 +766,7 @@ void sslService::					connectAll(){
         newSession->socketChannelAddressLen = sizeof(clientSocketAddress);
 
     // client communication will be handled inside an thread
-        pthread_t thread;
-        pthread_create( &thread, NULL, sslService::connectToClientThread, newSession );
-        char threadName[16] = { '\0' };
-        snprintf( threadName, 16, "client-%s\0", clientHost );
-        pthread_setname_np( thread, threadName );
-        pthread_detach( thread );
-
-
+		etThreadListAdd( this->threadList, clientHost, sslService::connectToClientThread, sslService::connectToClientThreadCancel, newSession );
 
 	}
 
@@ -799,6 +840,14 @@ void* sslService::					connectToClientThread( void* void_session ){
 
 }
 
+
+void* sslService::					connectToClientThreadCancel( void* void_sslSession ){
+	
+// vars
+	sslSession*     session = (sslSession*)void_sslSession;
+	delete session;
+	
+}
 
 
 

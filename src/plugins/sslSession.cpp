@@ -182,6 +182,12 @@ sslSession::                ~sslSession(){
 // remove string
     etStringFree( this->sessionHost );
 
+// close and deinit
+    gnutls_bye (this->tlsSession, GNUTLS_SHUT_WR);
+    close( this->socketChannel );
+    gnutls_deinit (this->tlsSession);
+
+
 // deregister plugin
 	coCore::ptr->plugins->remove( this );
 }

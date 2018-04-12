@@ -35,6 +35,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coPlugin.h"
 #include "coCoreConfig.h"
 #include "plugins/sslSession.h"
+#include "core/threadList.h"
 
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
@@ -55,7 +56,10 @@ class sslService : public coPlugin {
         out_disconnected,
     } sessionState;
 
-    private:
+	private:
+		threadList_t*		threadList;
+
+	
         lockID				sessionStateLock = 0;
 		unsigned int		maxConnections = 5;
 		unsigned int		curConnections = 0;
@@ -92,11 +96,13 @@ class sslService : public coPlugin {
 		void				serve();
 		static void*		serveThread( void* void_service );
 		static void*		serverHandleClientThread( void* void_sslSession );
+		static void*		serverHandleClientThreadCancel( void* void_sslSession );
 
 
 // client ( we connect to servers )
 		void				connectAll();
 		static void*		connectToClientThread( void* void_session );
+		static void*		connectToClientThreadCancel( void* void_session );
 
 
 
