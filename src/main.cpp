@@ -164,7 +164,6 @@ int main( int argc, char *argv[] ){
             case 10:
                 printf ("Set nodename to '%s'\n", optarg);
                 core->nodeName( optarg );
-                exit(0);
                 break;
 
             case 11:
