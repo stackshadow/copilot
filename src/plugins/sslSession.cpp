@@ -185,7 +185,7 @@ sslSession::                ~sslSession(){
 // close and deinit
     gnutls_bye (this->tlsSession, GNUTLS_SHUT_WR);
     close( this->socketChannel );
-    gnutls_deinit (this->tlsSession);
+    //gnutls_deinit (this->tlsSession);
 
 
 // deregister plugin
@@ -405,6 +405,11 @@ bool sslSession::           generateKeyPair( const char* name, const char* folde
 
     // write it to file
         fileTemp = fopen( tempFilePath.c_str(), "w+" );
+        if( fileTemp == NULL ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not create key '%s'", tempFilePath.c_str() );
+            etDebugMessage( etID_LEVEL_CRITICAL, etDebugTempMessage );
+            exit(-1);
+        }
         fprintf( fileTemp, "%s", buffer );
         fflush( fileTemp );
         fclose( fileTemp );
@@ -456,6 +461,11 @@ bool sslSession::           generateKeyPair( const char* name, const char* folde
 
     // write it to file
         fileTemp = fopen( tempFilePath.c_str(), "w+" );
+        if( fileTemp == NULL ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not create key '%s'", tempFilePath.c_str() );
+            etDebugMessage( etID_LEVEL_CRITICAL, etDebugTempMessage );
+            exit(-1);
+        }
         fprintf( fileTemp, "%s", buffer );
         fflush( fileTemp );
         fclose( fileTemp );
@@ -491,6 +501,11 @@ bool sslSession::           generateKeyPair( const char* name, const char* folde
         tempString += "expiration_days = -1";
 
         fileTemp = fopen( tempFilePath.c_str(), "w+" );
+        if( fileTemp == NULL ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not create key '%s'", tempFilePath.c_str() );
+            etDebugMessage( etID_LEVEL_CRITICAL, etDebugTempMessage );
+            exit(-1);
+        }
         fwrite( tempString.c_str(), 1, tempString.length(), fileTemp );
         fflush( fileTemp );
         fclose( fileTemp );
@@ -686,14 +701,14 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
 
 pinkey:
     if( pinning == true ){
-        
+
 		file = fopen( fileName.c_str(), "w+" );
 		if( file == NULL ){
 			snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not create file %s", fileName.c_str() );
 			etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 			return false;
 		}
-		
+
         fwrite( publicKeyBuffer, 1, publicKeyBufferSizeOut, file );
         fflush(file);
         fclose(file);
@@ -706,14 +721,14 @@ pinkey:
         fileName  = sslKeyPath;
         fileName += "/";
         fileName += peerHostName;
-        
+
 		file = fopen( fileName.c_str(), "w+" );
 		if( file == NULL ){
 			snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not create file %s", fileName.c_str() );
 			etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 			return false;
 		}
-        
+
 		fwrite( publicKeyBuffer, 1, publicKeyBufferSizeOut, file );
         fflush(file);
         fclose(file);

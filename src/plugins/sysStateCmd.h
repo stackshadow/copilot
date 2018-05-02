@@ -24,7 +24,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #define cmdSize 2048
 
-#include "libio.h"
+#include "stdio.h"
 
 typedef void sysHealthSetFct( int newHealth, void* cmd );
 
