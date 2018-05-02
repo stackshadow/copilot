@@ -28,6 +28,9 @@ extern "C" {
 #include "memory/etMemory.h"
 #include "core/etDebug.h"
 
+
+
+
 typedef void*(*threadFunctionStart)(void *);
 typedef void*(*threadFunctionStop)(void *);
 

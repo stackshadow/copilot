@@ -25,6 +25,9 @@ extern "C" {
 
 #include "threadList.h"
 
+#define _GNU_SOURCE
+#include <pthread.h>
+extern int pthread_setname_np (pthread_t __target_thread, const char *__name) __THROW __nonnull ((2));
 
 
 etID_STATE 		etThreadListAlloc( threadList_t** threadList ){
@@ -44,8 +47,37 @@ etID_STATE 		etThreadListAlloc( threadList_t** threadList ){
 }
 
 
-etID_STATE 		etThreadListFree( threadList_t** threadList ){
+etID_STATE 		etThreadListFree( threadList_t** p_threadList ){
+	etDebugCheckNull( p_threadList );
+
+// vars
+	int						index = 0;
+	threadList_t*			threadList = *p_threadList;
+	threadListItem_t*		threadListItem;
 	
+	
+	
+	for( index = 0; index < threadList->count; index++ ){
+		
+	// get element
+		threadListItem = threadList->items[index];
+		if( threadListItem == NULL ) continue;
+		
+	// call 
+		if( threadListItem->functionCancel != NULL ){
+			threadListItem->functionCancel( threadListItem->functionData );
+		}
+
+	// release memory
+		etMemoryRelease( threadListItem );
+		threadList->items[index] = NULL;
+	}
+
+// relase the list
+	etMemoryRelease( threadList->items );
+	__etMemoryRelease( (void**)threadList );
+	
+	return etID_YES;
 }
 
 
@@ -53,7 +85,7 @@ etID_STATE 		etThreadListAdd( threadList_t* threadList, const char* name, thread
 	
 // vars
 	threadListItem_t*	newThreadListItem;
-	threadListItem_t**	newThreadListItems;
+	threadListItem_t**	newThreadListItemArray;
 	int					newThreadListItemsCount;
 	
 // list-item: alloc and set
@@ -64,15 +96,15 @@ etID_STATE 		etThreadListAdd( threadList_t* threadList, const char* name, thread
 	
 // list-array: alloc and copy
 	newThreadListItemsCount = threadList->count + 1;
-	etMemoryAlloc( newThreadListItems, sizeof(threadListItem_t*) * newThreadListItemsCount );
-	memcpy( newThreadListItems, threadList->items, sizeof(threadListItem_t*) * threadList->count );
+	etMemoryAlloc( newThreadListItemArray, sizeof(threadListItem_t*) * newThreadListItemsCount );
+	memcpy( newThreadListItemArray, threadList->items, sizeof(threadListItem_t*) * threadList->count );
 	
 // list-array: set new list-item
-	newThreadListItems[threadList->count] = newThreadListItem;
+	newThreadListItemArray[threadList->count] = newThreadListItem;
 	
 // list-array: replace
 	if( threadList->items != NULL )	etMemoryRelease( threadList->items );
-	threadList->items = newThreadListItems;
+	threadList->items = newThreadListItemArray;
 	threadList->count = newThreadListItemsCount;
 
 // start the thread
