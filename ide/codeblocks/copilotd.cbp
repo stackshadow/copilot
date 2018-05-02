@@ -8,7 +8,7 @@
 		<Option execution_dir="../../../copilotd" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
-		<Option virtualFolders="src/;src/classes/;src/develop/;src/plugins/;src/deprecated/;make/;make/generic/;make/postmake/;make/premake/;" />
+		<Option virtualFolders="src/;src/classes/;src/develop/;src/plugins/;src/deprecated/;make/;make/generic/;make/postmake/;make/premake/;src/core/;" />
 		<Build>
 			<Target title="engineering">
 				<Option output="/tmp/copilotd/build/app" prefix_auto="0" extension_auto="0" />
@@ -16,7 +16,7 @@
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters="--debug --nonft --sslserver" />
+				<Option parameters="--debugDB --nonft" />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -104,35 +104,54 @@
 		</Unit>
 		<Unit filename="../../src/client/copilotd.service" />
 		<Unit filename="../../src/client/sudoers" />
-		<Unit filename="../../src/coCore.cpp">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coCore.cpp">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coCore.h">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coCore.h">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coCoreConfig.cpp">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coCoreConfig.cpp">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coCoreConfig.h">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coCoreConfig.h">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coMessage.cpp">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coMessage.cpp">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coMessage.h">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coMessage.h">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coPlugin.cpp">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coMessageQueue.cpp">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coPlugin.h">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coMessageQueue.h">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coPluginList.cpp">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coMessageQueue2.cpp">
+			<Option virtualFolder="src/core/" />
 		</Unit>
-		<Unit filename="../../src/coPluginList.h">
-			<Option virtualFolder="src/" />
+		<Unit filename="../../src/core/coMessageQueue2.h">
+			<Option virtualFolder="src/core/" />
+		</Unit>
+		<Unit filename="../../src/core/coPlugin.cpp">
+			<Option virtualFolder="src/core/" />
+		</Unit>
+		<Unit filename="../../src/core/coPlugin.h">
+			<Option virtualFolder="src/core/" />
+		</Unit>
+		<Unit filename="../../src/core/coPluginList.cpp">
+			<Option virtualFolder="src/core/" />
+		</Unit>
+		<Unit filename="../../src/core/coPluginList.h">
+			<Option virtualFolder="src/core/" />
+		</Unit>
+		<Unit filename="../../src/core/threadList.c">
+			<Option compilerVar="CC" />
+			<Option virtualFolder="src/core/" />
+		</Unit>
+		<Unit filename="../../src/core/threadList.h">
+			<Option virtualFolder="src/core/" />
 		</Unit>
 		<Unit filename="../../src/deprecated/coPluginElement.cpp">
 			<Option virtualFolder="src/deprecated/" />
@@ -207,6 +226,15 @@
 			<Option compilerVar="CC" />
 			<Option virtualFolder="src/" />
 		</Unit>
+		<Unit filename="../../src/files/copilotd-client.service" />
+		<Unit filename="../../src/files/copilotd-engineering.service" />
+		<Unit filename="../../src/files/sudoers" />
+		<Unit filename="../../src/intl.h">
+			<Option virtualFolder="src/" />
+		</Unit>
+		<Unit filename="../../src/lockPthread.h">
+			<Option virtualFolder="src/" />
+		</Unit>
 		<Unit filename="../../src/main.cpp">
 			<Option virtualFolder="src/" />
 		</Unit>
@@ -214,6 +242,12 @@
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
 		<Unit filename="../../src/plugins/coreService.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/eDB.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/eDB.h">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
 		<Unit filename="../../src/plugins/ldapService.cpp">
@@ -228,21 +262,6 @@
 		<Unit filename="../../src/plugins/nftService.h">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
-		<Unit filename="../../src/plugins/sshService.cpp">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
-		<Unit filename="../../src/plugins/sshService.h">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
-		<Unit filename="../../src/plugins/sshSession.cpp">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
-		<Unit filename="../../src/plugins/sshSession.cpp~">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
-		<Unit filename="../../src/plugins/sshSession.h">
-			<Option virtualFolder="src/plugins/" />
-		</Unit>
 		<Unit filename="../../src/plugins/sslService.cpp">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
@@ -253,6 +272,24 @@
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
 		<Unit filename="../../src/plugins/sslSession.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sysState.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sysState.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sysStateCmd.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/sysStateCmd.h">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/syslogd.cpp">
+			<Option virtualFolder="src/plugins/" />
+		</Unit>
+		<Unit filename="../../src/plugins/syslogd.h">
 			<Option virtualFolder="src/plugins/" />
 		</Unit>
 		<Unit filename="../../src/plugins/websocket.cpp">
@@ -269,6 +306,7 @@
 				<search_path add="/usr/include" />
 				<search_path add="/usr/include/linux" />
 				<search_path add="../../libs/evillib/core" />
+				<search_path add="../../libs/evillib/extra" />
 			</code_completion>
 			<envvars />
 			<debugger />

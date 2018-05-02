@@ -55,7 +55,6 @@
       <File Name="../../src/plugins/eDB.cpp"/>
       <File Name="../../src/plugins/eDB.h"/>
       <File Name="../../src/plugins/coreService.cpp"/>
-      <File Name="../../src/plugins/coreService.h"/>
       <File Name="../../src/plugins/nftService.cpp"/>
       <File Name="../../src/plugins/nftService.h"/>
       <File Name="../../src/plugins/websocket.cpp"/>
@@ -94,6 +93,7 @@
     <File Name="../../src/lockPthread.h"/>
     <File Name="../../src/main.cpp"/>
     <VirtualDirectory Name="core">
+      <File Name="../../src/plugins/coreService.h"/>
       <File Name="../../src/core/threadList.h"/>
       <File Name="../../src/core/threadList.c"/>
       <File Name="../../src/core/coCore.cpp"/>
