@@ -126,7 +126,7 @@ bool coMessage:: 			clear(){
 	etStringClean( this->group_t );
 	etStringClean( this->command_t );
 	etStringClean( this->payload_t );
-
+	return true;
 }
 
 

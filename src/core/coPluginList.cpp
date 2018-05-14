@@ -122,7 +122,11 @@ bool coPluginList::			iterate(){
     lockPthread( this->pluginListLock );
 
 	this->pluginListIterator = NULL;
-	etListIterate( this->pluginList, this->pluginListIterator );
+	if( etListIterate( this->pluginList, this->pluginListIterator ) == etID_YES ){
+		return true;
+	}
+	
+	return false;
 }
 
 
@@ -142,6 +146,7 @@ bool coPluginList::			next( coPlugin** plugin ){
 
 bool coPluginList::         iterateFinish(){
     unlockPthread( this->pluginListLock );
+	return true;
 }
 
 
@@ -274,7 +279,7 @@ void* coPluginList::        broadcastWatchdogThread( void* userdata ){
 
     }
 
-
+	return NULL;
 }
 
 

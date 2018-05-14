@@ -38,6 +38,7 @@ syslogd::               			    syslogd() : coPlugin( "syslogd", coCore::ptr->nod
 
 bool syslogd::                          onExecute(){
     this->messageThreadStart();
+	return true;
 }
 
 
@@ -96,6 +97,7 @@ coPlugin::t_state syslogd::	            onBroadcastMessage( coMessage* message )
     }
 
 
+	return coPlugin::NO_REPLY;
 }
 
 
@@ -140,8 +142,7 @@ int syslogd::                           messageThreadStart(){
 
 int syslogd::                           messageThreadStop(){
     this->messageThreadStopReq = true;
-
-
+	return 0;
 }
 
 
@@ -261,6 +262,7 @@ finish:
     syslogdInstance->messageThreadRunning = false;
     coCore::ptr->plugins->messageQueue->add( syslogdInstance, coCore::ptr->nodeName(), coCore::ptr->nodeName(), "syslogd", "msgSuccess", "Stopped." );
 
+	return NULL;
 }
 
 

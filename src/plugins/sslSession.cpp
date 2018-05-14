@@ -615,7 +615,11 @@ bool sslSession::           pubKeyGetId( gnutls_pubkey_t publicKey, char* outBuf
     tmp.size = rawKeyIDSize;
 
     ret = gnutls_hex_encode( &tmp, outBuffer, outBufferSize );
-
+	if( ret == 0 ){
+		return true;
+	}
+	
+	return false;
 }
 
 
