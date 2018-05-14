@@ -1352,6 +1352,12 @@ bool ldapService::                  dbAdd( const char* suffix, const char* dbTyp
 
 
 
+
+// build dn
+    fullDN  = "olcDatabase=";
+    fullDN += dbType;
+    fullDN += ",cn=config";
+
 // attribute - objectClass
     if( coCore::strIsExact( dbType, "bdb", 3 ) == true ){
         this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "objectClass", "olcDatabaseConfig", "olcBdbConfig" );
@@ -1371,10 +1377,6 @@ bool ldapService::                  dbAdd( const char* suffix, const char* dbTyp
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "olcDbIndex", "objectClass eq" );
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "olcLastMod", "TRUE" );
 
-// build dn
-    fullDN  = "olcDatabase=";
-    fullDN += dbType;
-    fullDN += ",cn=config";
 
 
 // call
@@ -1877,9 +1879,10 @@ bool ldapService::                  groupAddMember( const char* groupName, const
         return false;
     }
 
+
+
 // change description
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "member", userDN.c_str() );
-
 
 // call
     returnCode = ldap_modify_ext_s( this->ldapConnection, groupDN.c_str(), mods, NULL, NULL );
@@ -1890,7 +1893,32 @@ bool ldapService::                  groupAddMember( const char* groupName, const
         return false;
     }
 
+// clean
     this->ldapModMemFree( &mods );
+
+
+
+
+
+// change description
+	modsLen = 0;
+    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "memberOf", groupDN.c_str() );
+
+// call
+    returnCode = ldap_modify_ext_s( this->ldapConnection, userDN.c_str(), mods, NULL, NULL );
+    if( returnCode != LDAP_SUCCESS ){
+        char *errorMessage = ldap_err2string( returnCode );
+        etDebugMessage( etID_LEVEL_ERR, errorMessage );
+        this->ldapModMemFree( &mods );
+        return false;
+    }
+
+// clean
+    this->ldapModMemFree( &mods );
+
+
+
+
     return true;
 }
 
