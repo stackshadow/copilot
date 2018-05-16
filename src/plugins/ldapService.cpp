@@ -1883,7 +1883,6 @@ bool ldapService::                  groupAddMember( const char* groupName, const
 
 // change description
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "member", userDN.c_str() );
-
 // call
     returnCode = ldap_modify_ext_s( this->ldapConnection, groupDN.c_str(), mods, NULL, NULL );
     if( returnCode != LDAP_SUCCESS ){
@@ -1892,18 +1891,15 @@ bool ldapService::                  groupAddMember( const char* groupName, const
         this->ldapModMemFree( &mods );
         return false;
     }
-
 // clean
     this->ldapModMemFree( &mods );
-
+	modsLen = 0;
 
 
 
 
 // change description
-	modsLen = 0;
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_ADD, "memberOf", groupDN.c_str() );
-
 // call
     returnCode = ldap_modify_ext_s( this->ldapConnection, userDN.c_str(), mods, NULL, NULL );
     if( returnCode != LDAP_SUCCESS ){
@@ -1912,7 +1908,6 @@ bool ldapService::                  groupAddMember( const char* groupName, const
         this->ldapModMemFree( &mods );
         return false;
     }
-
 // clean
     this->ldapModMemFree( &mods );
 
@@ -1958,9 +1953,8 @@ bool ldapService::                  groupRemoveMember( const char* groupName, co
     }
 
 // change description
+	modsLen = 0;
     this->ldapModAppend( &mods, &modsLen, LDAP_MOD_DELETE, "member", userDN.c_str() );
-
-
 // call
     returnCode = ldap_modify_ext_s( this->ldapConnection, groupDN.c_str(), mods, NULL, NULL );
     if( returnCode != LDAP_SUCCESS ){
@@ -1969,8 +1963,22 @@ bool ldapService::                  groupRemoveMember( const char* groupName, co
         this->ldapModMemFree( &mods );
         return false;
     }
-
     this->ldapModMemFree( &mods );
+	modsLen = 0;
+
+// change description
+    this->ldapModAppend( &mods, &modsLen, LDAP_MOD_DELETE, "memberOf", groupDN.c_str() );
+// call
+    returnCode = ldap_modify_ext_s( this->ldapConnection, userDN.c_str(), mods, NULL, NULL );
+    if( returnCode != LDAP_SUCCESS ){
+        char *errorMessage = ldap_err2string( returnCode );
+        etDebugMessage( etID_LEVEL_ERR, errorMessage );
+        this->ldapModMemFree( &mods );
+        return false;
+    }
+    this->ldapModMemFree( &mods );
+
+
     return true;
 }
 
