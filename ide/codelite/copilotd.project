@@ -5,6 +5,9 @@
       <![CDATA[00050001N0006Client0000000000000001N0005Debug0000000000000001N0012Debug Client0000000000000001N0012Debug Server0000000000000001N0005Setup000000000000]]>
     </Plugin>
   </Plugins>
+  <VirtualDirectory Name="cmake">
+    <File Name="../../cmake/CMakeLists.txt"/>
+  </VirtualDirectory>
   <Reconciliation>
     <Regexes/>
     <Excludepaths/>
@@ -52,6 +55,8 @@
       <File Name="../../src/develop/doDBTable.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="plugins">
+      <File Name="../../src/plugins/uwebsockets.h"/>
+      <File Name="../../src/plugins/uwebsockets.cpp"/>
       <File Name="../../src/plugins/eDB.cpp"/>
       <File Name="../../src/plugins/eDB.h"/>
       <File Name="../../src/plugins/coreService.cpp"/>
@@ -93,6 +98,8 @@
     <File Name="../../src/lockPthread.h"/>
     <File Name="../../src/main.cpp"/>
     <VirtualDirectory Name="core">
+      <File Name="../../src/plugins/pubsub.h"/>
+      <File Name="../../src/plugins/pubsub.cpp"/>
       <File Name="../../src/plugins/coreService.h"/>
       <File Name="../../src/core/threadList.h"/>
       <File Name="../../src/core/threadList.c"/>
@@ -141,7 +148,7 @@
   <Dependencies Name="Docu"/>
   <Dependencies Name="Release"/>
   <Dependencies Name="Setup"/>
-  <Settings Type="Dynamic Library">
+  <Settings Type="Executable">
     <GlobalSettings>
       <Compiler Options="" C_Options="" Assembler="">
         <IncludePath Value="."/>
@@ -151,13 +158,13 @@
       </Linker>
       <ResourceCompiler Options=""/>
     </GlobalSettings>
-    <Configuration Name="Debug Server" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+    <Configuration Name="Debug Server" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
       <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
         <IncludePath Value="."/>
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="./Debug" Command="/tmp/copilotd/build/app" CommandArguments="--nonft --websocket" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="./Debug" Command="$(ProjectPath)/../../cmake/copilotd" CommandArguments="--websocket --debugDB" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -167,12 +174,20 @@
         <PostConnectCommands/>
         <StartupCommands/>
       </Debugger>
-      <PreBuild/>
+      <PreBuild>
+        <Command Enabled="yes">cd cmake</Command>
+        <Command Enabled="yes">cmake . \
+-DPLUGIN_LDAP=ON \
+-DPLUGIN_NFT=OFF \
+-DPLUGIN_STS=OFF \
+-DPLUGIN_SYSTEMD=OFF \
+-DPLUGIN_WS=ON</Command>
+      </PreBuild>
       <PostBuild/>
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
-        <CleanCommand>make -f make/Makefile clean</CleanCommand>
-        <BuildCommand>make -f make/Makefile engineering</BuildCommand>
+        <CleanCommand>cd cmake &amp;&amp; make clean</CleanCommand>
+        <BuildCommand>make</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
@@ -188,6 +203,7 @@
         <ClangCmpFlags/>
         <ClangPP/>
         <SearchPaths>/usr/include
+/usr/include/uWS
 /usr/local/include
 /usr/src/projekte/copilot/copilotd/libs/evillib/core
 $(ProjectPath)/../../src

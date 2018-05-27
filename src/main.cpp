@@ -37,13 +37,14 @@ localhost:4567
 
 #include "core/etInit.h"
 
+#include "plugins/pubsub.h"
 #include "coCore.h"
 
 // plugins
 //#include "plugins/qwebsocket.h"
 #include "plugins/sslService.h"
 #include "plugins/sslSession.h"
-#include "plugins/websocket.h"
+#include "plugins/uwebsockets.h"
 #include "plugins/coreService.h"
 #include "plugins/sysState.h"
 //#include "plugins/lxcService.h"
@@ -56,6 +57,8 @@ localhost:4567
 #ifndef DISABLE_EDB
 #include "plugins/eDB.h"
 #endif
+
+
 
 //#include <QtCore/QCoreApplication>
 
@@ -92,8 +95,11 @@ int main( int argc, char *argv[] ){
   textdomain( PACKAGE );
 
 
-    etInit(argc,(const char**)argv);
-    etDebugLevelSet( etID_LEVEL_DETAIL_APP );
+	etInit(argc,(const char**)argv);
+	etDebugLevelSet( etID_LEVEL_DETAIL_APP );
+
+// we need the pubsub-stuff
+	new psBus();
 
 //    QCoreApplication a(argc, argv);
 
@@ -319,13 +325,13 @@ int main( int argc, char *argv[] ){
 
 
 
+
 // websocket-service
 #ifndef DISABLE_WEBSOCKET
     if( startWebSocket == true ){
-        websocket*      wsPlugin = new websocket( 3000 );
+        uwebsocket*      wsPlugin = new uwebsocket( 3000 );
     }
 #endif
-
 
 // nft
 #ifndef DISABLE_NFT
