@@ -62,8 +62,6 @@
       <File Name="../../src/plugins/coreService.cpp"/>
       <File Name="../../src/plugins/nftService.cpp"/>
       <File Name="../../src/plugins/nftService.h"/>
-      <File Name="../../src/plugins/websocket.cpp"/>
-      <File Name="../../src/plugins/websocket.h"/>
       <File Name="../../src/plugins/ldapService.cpp"/>
       <File Name="../../src/plugins/ldapService.h"/>
       <File Name="../../src/plugins/sslSession.h"/>
@@ -109,14 +107,6 @@
       <File Name="../../src/core/coCoreConfig.h"/>
       <File Name="../../src/core/coMessage.cpp"/>
       <File Name="../../src/core/coMessage.h"/>
-      <File Name="../../src/core/coMessageQueue.cpp"/>
-      <File Name="../../src/core/coMessageQueue.h"/>
-      <File Name="../../src/core/coMessageQueue2.cpp"/>
-      <File Name="../../src/core/coMessageQueue2.h"/>
-      <File Name="../../src/core/coPlugin.cpp"/>
-      <File Name="../../src/core/coPlugin.h"/>
-      <File Name="../../src/core/coPluginList.cpp"/>
-      <File Name="../../src/core/coPluginList.h"/>
     </VirtualDirectory>
   </VirtualDirectory>
   <VirtualDirectory Name="make">
@@ -178,10 +168,11 @@
         <Command Enabled="yes">cd cmake</Command>
         <Command Enabled="yes">cmake . \
 -DPLUGIN_LDAP=ON \
--DPLUGIN_NFT=OFF \
--DPLUGIN_STS=OFF \
+-DPLUGIN_NFT=ON \
+-DPLUGIN_STS=ON \
 -DPLUGIN_SYSTEMD=OFF \
--DPLUGIN_WS=ON</Command>
+-DPLUGIN_WS=ON \
+-DPLUGIN_DB=OFF</Command>
       </PreBuild>
       <PostBuild/>
       <CustomBuild Enabled="yes">

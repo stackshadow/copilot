@@ -21,10 +21,10 @@
 
 #include "coCore.h"
 #include "plugins/ldapService.h"
+#include "pubsub.h"
 
 
-
-ldapService::                       ldapService() : coPlugin( "ldap", coCore::ptr->nodeName(), "ldap" ) {
+ldapService::                       ldapService() {
 
 // setup timeout
     this->searchTimeout.tv_sec = 20;
@@ -78,8 +78,8 @@ ldapService::                       ldapService() : coPlugin( "ldap", coCore::pt
     this->groupAdd( "wikiAdmin", "The admin of the wiki" );
 
 */
-// register plugin
-	coCore::ptr->plugins->append( this );
+// subscribe
+	psBus::inst->subscribe( coCore::ptr->nodeName(), "ldap", this, ldapService::onSubscriberMessage, NULL );
 }
 
 
@@ -89,55 +89,53 @@ ldapService::                       ~ldapService(){
 
 
 
-coPlugin::t_state ldapService::		onBroadcastMessage( coMessage* message ){
 
-// vars
-	const char*			msgTarget = message->nodeNameTarget();
-    const char*			msgSource = message->nodeNameSource();
-	const char*			msgGroup = message->group();
-	const char*			msgCommand = message->command();
+int ldapService::                   onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
+
+    // vars
     int                 msgCommandLen = 0;
-	const char*			msgPayload = message->payload();
+    ldapService*		ldapServiceInst = (ldapService*)userdata;
+    const char*			myNodeName = coCore::ptr->nodeName();
     char*               jsonTempString = NULL;
 
-// check
-    if( msgCommand == NULL ) return coPlugin::NO_REPLY;
-    msgCommandLen = strlen(msgCommand);
+    // check
+    if( command == NULL ) return psBus::END;
+    msgCommandLen = strlen(command);
+
 
     std::string     tempString;
 
 
-    if( coCore::strIsExact("configGet",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("configGet",command,msgCommandLen) == true ){
 
     // get passwords ( we dont want to send it over websocket...
-        json_t* adminpass = json_object_get( this->jsonObjectConfig, "adminpass" );
-        json_t* loginpass = json_object_get( this->jsonObjectConfig, "loginpass" );
+        json_t* adminpass = json_object_get( ldapServiceInst->jsonObjectConfig, "adminpass" );
+        json_t* loginpass = json_object_get( ldapServiceInst->jsonObjectConfig, "loginpass" );
 
     // remove it from object
         json_incref(adminpass);
-        json_object_del( this->jsonObjectConfig, "adminpass" );
+        json_object_del( ldapServiceInst->jsonObjectConfig, "adminpass" );
         json_incref(loginpass);
-        json_object_del( this->jsonObjectConfig, "loginpass" );
+        json_object_del( ldapServiceInst->jsonObjectConfig, "loginpass" );
 
     // dump
-        jsonTempString = json_dumps( this->jsonObjectConfig, JSON_PRESERVE_ORDER | JSON_COMPACT );
+        jsonTempString = json_dumps( ldapServiceInst->jsonObjectConfig, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, "ldap", "config", jsonTempString );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "config", jsonTempString );
 
     // cleanup
         free( jsonTempString );
 
     // save it back to json
-        json_object_set_new( this->jsonObjectConfig, "adminpass", adminpass );
-        json_object_set_new( this->jsonObjectConfig, "loginpass", loginpass );
+        json_object_set_new( ldapServiceInst->jsonObjectConfig, "adminpass", adminpass );
+        json_object_set_new( ldapServiceInst->jsonObjectConfig, "loginpass", loginpass );
 
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("configSet",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("configSet",command,msgCommandLen) == true ){
 
     // vars
         json_error_t    jsonError;
@@ -146,14 +144,14 @@ coPlugin::t_state ldapService::		onBroadcastMessage( coMessage* message ){
         const char*     jsonKey = NULL;
         json_t*         jsonValue = NULL;
 
-	// parse json
-		jsonNewValues = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
-		if( jsonNewValues == NULL || jsonError.line > -1 ){
+    // parse json
+        jsonNewValues = json_loads( payload, JSON_PRESERVE_ORDER, &jsonError );
+        if( jsonNewValues == NULL || jsonError.line > -1 ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
-			return coPlugin::MESSAGE_FINISHED;
-		}
+            return psBus::END;
+        }
 
     // iterate values and update internal config
         jsonIterator = json_object_iter( jsonNewValues );
@@ -161,138 +159,146 @@ coPlugin::t_state ldapService::		onBroadcastMessage( coMessage* message ){
             jsonKey = json_object_iter_key(jsonIterator);
             jsonValue = json_object_iter_value(jsonIterator);
 
-            json_object_set_new( this->jsonObjectConfig, jsonKey, json_string( json_string_value(jsonValue)) );
+            json_object_set_new( ldapServiceInst->jsonObjectConfig, jsonKey, json_string( json_string_value(jsonValue)) );
 
             jsonIterator = json_object_iter_next( jsonNewValues, jsonIterator );
         }
 
     // save
-        this->configSave();
+        ldapServiceInst->configSave();
 
     // destroy temporary object
         json_decref( jsonNewValues );
 
     // send message
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "ldap", "saved", "" );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "saved", "" );
 
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("connect",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("connect",command,msgCommandLen) == true ){
     // connect
         int ldapVersion = LDAP_VERSION3;
         int ldapTimeout = 30;
 
 
     // admin-connection
-		etDebugMessage( etID_LEVEL_DETAIL_APP, "Try to connect as Admin" );
-        this->ldapConnectionAdminActive = ldapService::connect( &this->ldapConnectionAdmin,
-            &ldapVersion, &ldapTimeout, this->uri.c_str(), this->admindn.c_str(), this->adminpass.c_str() );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, "Try to connect as Admin" );
+        ldapServiceInst->ldapConnectionAdminActive = ldapServiceInst->connect( 
+            &ldapServiceInst->ldapConnectionAdmin,
+            &ldapVersion, 
+            &ldapTimeout, 
+            ldapServiceInst->uri.c_str(), 
+            ldapServiceInst->admindn.c_str(), 
+            ldapServiceInst->adminpass.c_str() 
+        );
 
     // dbconnection
-		etDebugMessage( etID_LEVEL_DETAIL_APP, "Try to connect as Manager" );
-        this->ldapConnectionActive = ldapService::connect( &this->ldapConnection,
-            &ldapVersion, &ldapTimeout, this->uri.c_str(), this->logindn.c_str(), this->loginpass.c_str() );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, "Try to connect as Manager" );
+        ldapServiceInst->ldapConnectionActive = ldapServiceInst->connect( 
+            &ldapServiceInst->ldapConnection,
+            &ldapVersion,
+            &ldapTimeout,
+            ldapServiceInst->uri.c_str(),
+            ldapServiceInst->logindn.c_str(),
+            ldapServiceInst->loginpass.c_str()
+        );
 
 
     // create db
-        if( this->dbAdd( this->basedn.c_str(), "mdb" ) == true ){
+        if( ldapServiceInst->dbAdd( ldapServiceInst->basedn.c_str(), "mdb" ) == true ){
 
         // set username and password
-            this->dbChangeCreds( this->basedn.c_str(), this->logindn.c_str(), this->loginpass.c_str() );
+            ldapServiceInst->dbChangeCreds( ldapServiceInst->basedn.c_str(), ldapServiceInst->logindn.c_str(), ldapServiceInst->loginpass.c_str() );
         //this->attributeAdd( "olcDatabase={1}mdb,cn=config", "olcAccess", "to * by dn=\"cn=admin,cn=config\" write" );
         }
 
     // change
-        this->dbChangeCreds( this->basedn.c_str(), this->logindn.c_str(), this->loginpass.c_str() );
+        ldapServiceInst->dbChangeCreds( ldapServiceInst->basedn.c_str(), ldapServiceInst->logindn.c_str(), ldapServiceInst->loginpass.c_str() );
 
     // add hashing type
-        this->dbAddHash( "{SSHA}" );
+        ldapServiceInst->dbAddHash( "{SSHA}" );
 
     // add orga if needed
-        this->orgaAdd( this->basedn.c_str() );
+        ldapServiceInst->orgaAdd( ldapServiceInst->basedn.c_str() );
     // create user-tree
-        tempString = this->userdn.substr(3);
-        this->orgaUnitAdd( tempString.c_str() );
+        tempString = ldapServiceInst->userdn.substr(3);
+        ldapServiceInst->orgaUnitAdd( tempString.c_str() );
     // create group-tree
-        tempString = this->groupdn.substr(3);
-        this->orgaUnitAdd( tempString.c_str() );
+        tempString = ldapServiceInst->groupdn.substr(3);
+        ldapServiceInst->orgaUnitAdd( tempString.c_str() );
 
     // create dummyMember for new groups
-        this->userAdd( "dummyMember" );
+        ldapServiceInst->userAdd( "dummyMember" );
 
         goto connstate;
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("disconnect",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("disconnect",command,msgCommandLen) == true ){
 
-        ldap_unbind_ext_s( this->ldapConnectionAdmin, NULL, NULL );
-        this->ldapConnectionAdminActive = false;
-        this->ldapConnectionAdmin = NULL;
+        ldap_unbind_ext_s( ldapServiceInst->ldapConnectionAdmin, NULL, NULL );
+        ldapServiceInst->ldapConnectionAdminActive = false;
+        ldapServiceInst->ldapConnectionAdmin = NULL;
 
-        ldap_unbind_ext_s( this->ldapConnection, NULL, NULL );
-        this->ldapConnectionActive = false;
-        this->ldapConnection = NULL;
+        ldap_unbind_ext_s( ldapServiceInst->ldapConnection, NULL, NULL );
+        ldapServiceInst->ldapConnectionActive = false;
+        ldapServiceInst->ldapConnection = NULL;
 
         goto connstate;
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("status",msgCommand,msgCommandLen) == true ){
-connstate:
+    if( coCore::strIsExact("status",command,msgCommandLen) == true ){
+    connstate:
     // connected ?
-        if( this->ldapConnectionAdminActive && this->ldapConnectionActive ){
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "ldap", "connected", "connected" );
+        if( ldapServiceInst->ldapConnectionAdminActive && ldapServiceInst->ldapConnectionActive ){
+            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "connected", "connected" );
         } else {
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "ldap", "disconnected", "disconnected" );
+            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "disconnected", "disconnected" );
         }
 
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
 
-// user stuff
-    if( coCore::strIsExact("userlist",msgCommand,msgCommandLen) == true ){
+    // user stuff
+    if( coCore::strIsExact("userlist",command,msgCommandLen) == true ){
 
     // connected ?
-        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
-            return coPlugin::MESSAGE_UNKNOWN;
+        if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
+            return psBus::END;
         }
 
     // vars
         json_t*     jsonUserlist = json_object();
 
     // add users to json
-        this->userDump( this->ldapConnection, jsonUserlist );
+        ldapServiceInst->userDump( ldapServiceInst->ldapConnection, jsonUserlist );
 
     // dump
         jsonTempString = json_dumps( jsonUserlist, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, "ldap", "users", jsonTempString );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "users", jsonTempString );
 
     // cleanup
         free( jsonTempString );
         json_decref(jsonUserlist);
 
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("userGet",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("userGet",command,msgCommandLen) == true ){
 
     // connected ?
-        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
-            return coPlugin::MESSAGE_UNKNOWN;
+        if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
+            return psBus::END;
         }
 
     // vars
@@ -301,37 +307,35 @@ connstate:
 
     // build dn
         fullDN  = "uid=";
-        fullDN += msgPayload;
+        fullDN += payload;
         fullDN += ",";
-        fullDN += this->userdn;
+        fullDN += ldapServiceInst->userdn;
         fullDN += ",";
-        fullDN += this->basedn;
+        fullDN += ldapServiceInst->basedn;
 
     // add the message to list
         const char* attributes[] = { "uid", "mail", NULL };
-        this->dump( jsonUserlist, attributes, fullDN.c_str(), true );
+        ldapServiceInst->dump( jsonUserlist, attributes, fullDN.c_str(), true );
 
     // dump
         jsonTempString = json_dumps( jsonUserlist, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, "ldap", "user", jsonTempString );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "user", jsonTempString );
 
     // cleanup
         free( jsonTempString );
         json_decref(jsonUserlist);
 
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
-// modificate a user ( add / change / delete )
-    if( coCore::strIsExact("userMod",msgCommand,msgCommandLen) == true ){
+    // modificate a user ( add / change / delete )
+    if( coCore::strIsExact("userMod",command,msgCommandLen) == true ){
     // connected ?
-        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
-            coCore::ptr->plugins->messageQueue->add( this,
-            msgTarget, msgSource, "ldap", "userNotChanged", "no connection" );
-            return coPlugin::MESSAGE_UNKNOWN;
+        if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
+            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotChanged", "no connection" );
+            return psBus::END;
         }
 
     // vars
@@ -341,14 +345,14 @@ connstate:
         const char*     jsonKey = NULL;
         json_t*         jsonValue = NULL;
 
-	// parse json
-		jsonNewValues = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
-		if( jsonNewValues == NULL || jsonError.line > -1 ){
+    // parse json
+        jsonNewValues = json_loads( payload, JSON_PRESERVE_ORDER, &jsonError );
+        if( jsonNewValues == NULL || jsonError.line > -1 ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
-			return coPlugin::MESSAGE_FINISHED;
-		}
+            return psBus::END;
+        }
 
     // action ( 1=add, 2=change, 3=delete )
         int action = 0;
@@ -357,7 +361,7 @@ connstate:
             json_decref( jsonNewValues );
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'action' in json-object", __PRETTY_FUNCTION__ );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            return coPlugin::MESSAGE_UNKNOWN;
+            return psBus::END;
         }
         action = json_integer_value( jsonValue );
 
@@ -369,7 +373,7 @@ connstate:
             json_decref( jsonNewValues );
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'uid' in json-object", __PRETTY_FUNCTION__ );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            return coPlugin::MESSAGE_UNKNOWN;
+            return psBus::END;
 
         }
         userName = json_string_value( jsonValue );
@@ -377,20 +381,19 @@ connstate:
 
     // add
         if( action == 1 ){
-            if( this->userAdd( userName ) == true ){
+            if( ldapServiceInst->userAdd( userName ) == true ){
 
             // we change to command to user-change, to add additional values ( if possible )
             // we also dont return from this function !
                 action = 2;
 
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userAdded", userName );
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userAdded", userName );
             } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userNotAdded", userName );
+                
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotAdded", userName );
 
                 json_decref( jsonNewValues );
-                return coPlugin::MESSAGE_FINISHED;
+                return psBus::END;
             }
         }
 
@@ -411,16 +414,14 @@ connstate:
                 userMail = json_string_value( jsonValue );
             }
 
-            if( this->userChange( userName, userPassword, userMail ) ){
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userChanged", userName );
+            if( ldapServiceInst->userChange( userName, userPassword, userMail ) ){
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userChanged", userName );
             } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userNotChanged", userName );
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotChanged", userName );
             }
 
             json_decref( jsonNewValues );
-            return coPlugin::MESSAGE_FINISHED;
+            return psBus::END;
         }
 
     // delete
@@ -428,35 +429,31 @@ connstate:
 
         // we can not delete dummyMember !
             if( strncmp( "uid=dummyMember",userName, 14 ) == 0 ){
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userNotDeleted", userName );
-
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotDeleted", userName );
                 json_decref( jsonNewValues );
-                return coPlugin::MESSAGE_FINISHED;
+                return psBus::END;
             }
 
         // here the userName is DN
         ///@todo Check if its an DN !
 
         // try to remove it
-            if( this->removeDN( userName ) == true ){
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userDeleted", userName );
+            if( ldapServiceInst->removeDN( userName ) == true ){
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userDeleted", userName );
             } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "userNotDeleted", userName );
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotDeleted", userName );
             }
         }
 
         json_decref( jsonNewValues );
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("userMembersGet",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("userMembersGet",command,msgCommandLen) == true ){
     // connected ?
-        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
-            return coPlugin::MESSAGE_UNKNOWN;
+        if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
+            return psBus::END;
         }
 
     // vars
@@ -465,55 +462,53 @@ connstate:
 
 
     // add the message to list
-        this->userDumpMembership( msgPayload, jsonGroups );
+        ldapServiceInst->userDumpMembership( payload, jsonGroups );
 
     // dump
         jsonTempString = json_dumps( jsonGroups, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, "ldap", "userMembers", jsonTempString );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userMembers", jsonTempString );
 
     // cleanup
         free( jsonTempString );
         json_decref(jsonGroups);
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
-// group get
-    if( coCore::strIsExact("grouplist",msgCommand,msgCommandLen) == true ){
+    // group get
+    if( coCore::strIsExact("grouplist",command,msgCommandLen) == true ){
 
     // connected ?
-        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
-            return coPlugin::MESSAGE_UNKNOWN;
+        if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
+            return psBus::END;
         }
 
     // vars
         json_t*     jsonGrouplist = json_object();
 
     // add users to json
-        this->groupDump( jsonGrouplist );
+        ldapServiceInst->groupDump( jsonGrouplist );
 
     // dump
         jsonTempString = json_dumps( jsonGrouplist, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, "ldap", "groups", jsonTempString );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groups", jsonTempString );
 
     // cleanup
         free( jsonTempString );
         json_decref( jsonGrouplist );
 
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("groupGet",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("groupGet",command,msgCommandLen) == true ){
 
     // connected ?
-        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
-            return coPlugin::MESSAGE_UNKNOWN;
+        if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
+            return psBus::END;
         }
 
     // vars
@@ -522,52 +517,50 @@ connstate:
 
     // dump ldap to json
         const char* attributes[] = { "cn", "description", NULL };
-        this->dump( jsonGrouplist, attributes, msgPayload, true );
+        ldapServiceInst->dump( jsonGrouplist, attributes, payload, true );
 
     // dump json to string
         jsonTempString = json_dumps( jsonGrouplist, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, "ldap", "group", jsonTempString );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "group", jsonTempString );
 
     // cleanup
         free( jsonTempString );
         json_decref( jsonGrouplist );
 
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("groupmemberlist",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("groupmemberlist",command,msgCommandLen) == true ){
 
     // connected ?
-        if( this->ldapConnection == NULL || this->ldapConnectionActive == false ){
-            return coPlugin::MESSAGE_UNKNOWN;
+        if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
+            return psBus::END;
         }
 
     // vars
         json_t*     jsonMemberList = json_object();
 
     // add users to json
-        this->groupMembersDump( msgPayload, jsonMemberList );
+        ldapServiceInst->groupMembersDump( payload, jsonMemberList );
 
     // dump
         jsonTempString = json_dumps( jsonMemberList, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, "ldap", "groupmembers", jsonTempString );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupmembers", jsonTempString );
 
     // cleanup
         free( jsonTempString );
         json_decref(jsonMemberList);
 
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
-// modificate a user ( add / change / delete )
-    if( coCore::strIsExact("groupMod",msgCommand,msgCommandLen) == true ){
+    // modificate a user ( add / change / delete )
+    if( coCore::strIsExact("groupMod",command,msgCommandLen) == true ){
     // vars
         json_error_t    jsonError;
         json_t*         jsonNewValues = NULL;
@@ -575,14 +568,14 @@ connstate:
         const char*     jsonKey = NULL;
         json_t*         jsonValue = NULL;
 
-	// parse json
-		jsonNewValues = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
-		if( jsonNewValues == NULL || jsonError.line > -1 ){
+    // parse json
+        jsonNewValues = json_loads( payload, JSON_PRESERVE_ORDER, &jsonError );
+        if( jsonNewValues == NULL || jsonError.line > -1 ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
-			return coPlugin::MESSAGE_FINISHED;
-		}
+            return psBus::END;
+        }
 
     // action ( 1=add, 2=change, 3=delete )
         int action = 0;
@@ -591,7 +584,7 @@ connstate:
             json_decref( jsonNewValues );
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'action' in json-object", __PRETTY_FUNCTION__ );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            return coPlugin::MESSAGE_UNKNOWN;
+            return psBus::END;
         }
         action = json_integer_value( jsonValue );
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: got action '%i'", __PRETTY_FUNCTION__, action );
@@ -604,27 +597,25 @@ connstate:
             json_decref( jsonNewValues );
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'name' in json-object", __PRETTY_FUNCTION__ );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            return coPlugin::MESSAGE_UNKNOWN;
+            return psBus::END;
         }
         groupName = json_string_value( jsonValue );
 
 
     // add
         if( action == 1 ){
-            if( this->groupAdd( groupName ) == true ){
+            if( ldapServiceInst->groupAdd( groupName ) == true ){
 
             // we change to command to user-change, to add additional values ( if possible )
             // we also dont return from this function !
                 action = 2;
 
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "groupAdded", groupName );
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupAdded", groupName );
             } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "groupNotAdded", groupName );
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotAdded", groupName );
 
                 json_decref( jsonNewValues );
-                return coPlugin::MESSAGE_FINISHED;
+                return psBus::END;
             }
         }
 
@@ -637,16 +628,14 @@ connstate:
                 description = json_string_value( jsonValue );
             }
 
-            if( this->groupChange( groupName, description ) ){
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "groupChanged", groupName );
+            if( ldapServiceInst->groupChange( groupName, description ) ){
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
             } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "groupNotChanged", groupName );
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
             }
 
             json_decref( jsonNewValues );
-            return coPlugin::MESSAGE_FINISHED;
+            return psBus::END;
         }
 
     // delete
@@ -656,16 +645,14 @@ connstate:
         ///@todo Check if its an DN !
 
         // try to remove it
-            if( this->removeDN( groupName ) == true ){
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "groupDeleted", groupName );
+            if( ldapServiceInst->removeDN( groupName ) == true ){
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupDeleted", groupName );
             } else {
-                coCore::ptr->plugins->messageQueue->add( this,
-                coCore::ptr->nodeName(), "", "ldap", "groupNotDeleted", groupName );
+                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotDeleted", groupName );
             }
 
             json_decref( jsonNewValues );
-            return coPlugin::MESSAGE_FINISHED;
+            return psBus::END;
         }
 
     // get member to add/remove user from a group member
@@ -678,41 +665,37 @@ connstate:
                 json_decref( jsonNewValues );
                 snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'member' in json-object", __PRETTY_FUNCTION__ );
                 etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-                return coPlugin::MESSAGE_UNKNOWN;
+                return psBus::END;
             }
             memberUserName = json_string_value( jsonValue );
 
         // add user to group
             if( action == 4 ){
-                if( this->groupAddMember( groupName, memberUserName ) ){
-                    coCore::ptr->plugins->messageQueue->add( this,
-                    coCore::ptr->nodeName(), "", "ldap", "groupChanged", groupName );
+                if( ldapServiceInst->groupAddMember( groupName, memberUserName ) ){
+                    psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
                 } else {
-                    coCore::ptr->plugins->messageQueue->add( this,
-                    coCore::ptr->nodeName(), "", "ldap", "groupNotChanged", groupName );
+                    psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
                 }
             }
 
         // remove user to group
             if( action == 5 ){
-                if( this->groupRemoveMember( groupName, memberUserName ) ){
-                    coCore::ptr->plugins->messageQueue->add( this,
-                    coCore::ptr->nodeName(), "", "ldap", "groupChanged", groupName );
+                if( ldapServiceInst->groupRemoveMember( groupName, memberUserName ) ){
+                    psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
                 } else {
-                    coCore::ptr->plugins->messageQueue->add( this,
-                    coCore::ptr->nodeName(), "", "ldap", "groupNotChanged", groupName );
+                    psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
                 }
             }
 
             json_decref( jsonNewValues );
-            return coPlugin::MESSAGE_FINISHED;
+            return psBus::END;
         }
 
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: Action '%i' is not defined ", __PRETTY_FUNCTION__, action );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
         json_decref( jsonNewValues );
-        return coPlugin::MESSAGE_FINISHED;
+        return psBus::END;
     }
 
 
@@ -720,19 +703,10 @@ connstate:
 
 
 
-
-    return coPlugin::MESSAGE_UNKNOWN;
+    return psBus::NEXT_SUBSCRIBER;
 }
 
 
-bool ldapService::                  onSetup(){
-
-}
-
-
-bool ldapService::                  onExecute(){
-
-}
 
 
 
@@ -747,7 +721,7 @@ bool ldapService::                  configLoad(){
 // load config from json
     this->configFromJson( this->jsonObjectConfig );
 
-
+    return true;
 }
 
 
@@ -787,6 +761,8 @@ bool ldapService::                  configFromJson( json_t* jsonObject ){
     if( resultValue == 3 ){
         this->configSave();
     }
+    
+    return true;
 }
 
 
@@ -842,8 +818,7 @@ bool ldapService::                  connect( LDAP** connection, int* ldapVersion
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
 
     // send message
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "ldap", "msgError", errorMessage );
+		psBus::inst->publish( NULL, coCore::ptr->nodeName(), NULL, "ldap", "msgError", errorMessage );
 
         *connection = NULL;
         return false;
@@ -916,7 +891,7 @@ bool ldapService::                  ldapModAppend( LDAPMod*** mod, int* LDAPModL
     *mod = newMod;
     *LDAPModLen = newModLen;
 
-
+    return true;
 }
 
 
@@ -953,6 +928,7 @@ bool ldapService::                  ldapModMemFree( LDAPMod*** mod ){
     free(*mod);
     *mod = NULL;
 
+    return true;
 }
 
 
@@ -1110,6 +1086,7 @@ bool ldapService::                  iterate( const char* searchBase ){
         &this->resultMessages
     );
 
+    return true;
 }
 
 
@@ -1189,6 +1166,8 @@ bool ldapService::                  dumpAll( LDAP* connection, const char* based
 
         actualMessage = ldap_next_entry( connection, actualMessage );
     }
+    
+    return true;
 }
 
 
@@ -1580,6 +1559,7 @@ bool ldapService::                  purge(){
 
     }
 
+    return true;
 }
 
 
@@ -1600,6 +1580,8 @@ bool ldapService::                  attributeAdd( const char* dn, const char* pr
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
         return false;
     }
+    
+    return true;
 }
 
 

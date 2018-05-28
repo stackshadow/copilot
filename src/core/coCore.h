@@ -34,8 +34,8 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "coCoreConfig.h"
 #include "coMessage.h"
 //#include "coPluginElement.h"
-#include "coPlugin.h"
-#include "coPluginList.h"
+//#include "coPlugin.h"
+//#include "coPluginList.h"
 
 
 
@@ -67,7 +67,7 @@ class coCore {
 
 	public:
 		coCoreConfig*		config;
-		coPluginList*		plugins;
+		//coPluginList*		plugins;
 
 	// set / get
         const char*         nodeName( const char* newNodeName = NULL );

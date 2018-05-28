@@ -7,7 +7,6 @@ file( GLOB srcEvillib   "../src/evillib.c" )
 file( GLOB srcCopilotd  
 "../src/plugins/coreService.cpp"
 "../src/plugins/pubsub.cpp"
-"../src/plugins/eDB.cpp" 
 "../src/main.cpp" 
 "../src/core/*.c" 
 "../src/core/*.cpp" )
@@ -66,8 +65,20 @@ if(PLUGIN_SYSTEMD)
 	LIST( APPEND LIBRARYS systemd )
 else()
 	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDISABLE_SYSTEMD" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dsyslogd_C" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dsyslogd_H" )
 endif()
 
+option( PLUGIN_DB "Enable Systemd" ON )
+if(PLUGIN_DB)
+    file( GLOB srcCopilotd ${srcCopilotd} "../src/plugins/eDB.cpp" )
+    LIST( APPEND LIBRARYS sqlite3 )
+else()
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDISABLE_EDB" )
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DeDB_C" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DeDB_H" )
+    LIST( APPEND LIBRARYS sqlite3 )
+endif()
 
 
 include_directories( "../libs/evillib/core" ) 
@@ -106,7 +117,7 @@ target_link_libraries( copilotd dl )
 
 
 
-target_link_libraries( copilotd sqlite3 )
+
 
 
 

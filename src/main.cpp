@@ -364,10 +364,10 @@ int main( int argc, char *argv[] ){
 
 
 // Setup All plugins
-	core->plugins->setupAll();
+	//core->plugins->setupAll();
 
 // execute all plugins
-	core->plugins->executeAll();
+	//core->plugins->executeAll();
 
 
     //coCore::ptr->plugins->messageQueue->add( NULL, "test", "all", "", "ping", "" );

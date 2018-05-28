@@ -25,12 +25,12 @@
 #include "evillib-extra_depends.h"
 #include "db/etDBObject.h"
 
-#include "coPlugin.h"
+//#include "coPlugin.h"
 
 #include <ldap.h>
 #include <string.h>
 
-class ldapService : public coPlugin
+class ldapService 
 {
 
 private:
@@ -66,9 +66,7 @@ public:
 
 public:
 // API
-    coPlugin::t_state	onBroadcastMessage( coMessage* message );
-    bool 				onSetup();
-    bool				onExecute();
+    static int          onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
 
 
 

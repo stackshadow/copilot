@@ -31,7 +31,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <gnutls/x509.h>
 #include <gnutls/abstract.h>
 
-#include "coPlugin.h"
+//#include "coPlugin.h"
 #include "coCoreConfig.h"
 
 // functions for ALL sessions
@@ -41,7 +41,7 @@ bool sslServerInit( const char* serverName );
 #define hostNameBufferSize 1024
 
 
-class sslSession : public coPlugin {
+class sslSession {
 
     public:
         typedef enum {
@@ -71,6 +71,8 @@ class sslSession : public coPlugin {
         static etString*    pathMyKeys;
         static etString*    pathAcceptedKeys;
         static etString*    pathRequestedKeys;
+		etString*			remoteNoteName;
+
 
         int                                 socketChannel;
         struct sockaddr_in                  socketChannelAddress;
@@ -131,8 +133,7 @@ class sslSession : public coPlugin {
 
 
 // ######################################## API ########################################
-		coPlugin::t_state	onBroadcastMessage( coMessage* message );
-
+		static int 			psSubscriberJsonMessage( json_t* jsonObject, void* userdata );
 
 
 };

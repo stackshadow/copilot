@@ -21,7 +21,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #define syslogd_H
 
 
-#include "coPlugin.h"
+//#include "coPlugin.h"
 #include "coCoreConfig.h"
 
 

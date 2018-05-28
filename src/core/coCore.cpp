@@ -58,8 +58,6 @@ coCore::                    coCore(){
     this->config->myNodeName( &tempNodeName );
     etStringCharSet( this->myNodeName, tempNodeName, -1 );
 
-// create plugin list
-	this->plugins = new coPluginList();
 
 // create temp-message
     coCore::message = new coMessage();
@@ -84,7 +82,6 @@ coCore::                    coCore(){
 
 coCore::                    ~coCore(){
     delete this->config;
-    delete this->plugins;
 	delete this->message;
     etStringFree( this->hostName );
 
@@ -384,7 +381,7 @@ bool coCore::               passwordCheck( const char* user, const char* pass ){
 
 
 bool coCore::               passwordChange( const char* user, const char* oldpw, const char* newpw ){
-
+    return false;
 }
 
 

@@ -558,7 +558,7 @@ bool coCoreConfig::			userAdd( const char* username ){
 
 bool coCoreConfig::			userCheck( const char* username, const char* password ){
 
-
+    return true;
 }
 
 

@@ -32,7 +32,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <netinet/in.h>
 #include <unistd.h>
 
-#include "coPlugin.h"
+//#include "coPlugin.h"
 #include "coCoreConfig.h"
 #include "plugins/sslSession.h"
 #include "core/threadList.h"
@@ -47,7 +47,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-class sslService : public coPlugin {
+class sslService {
 
     typedef enum {
         in_connected,
@@ -75,9 +75,12 @@ class sslService : public coPlugin {
 							~sslService();
 
 // API
-		coPlugin::t_state	onBroadcastMessage( coMessage* message );
 		bool 				onSetup();
 		bool				onExecute();
+
+		static int 			onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
+		//int 				onSubscriberJsonMessage)( json_t* jsonObject, void* userdata );
+
 
 // configuration
         int                 maxConnection( int* setConnections );

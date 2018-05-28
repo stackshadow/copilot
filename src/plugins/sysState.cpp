@@ -32,6 +32,7 @@ df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//
 
 #include "sysState.h"
 #include "coCore.h"
+#include "pubsub.h"
 
 #include <string>
 #include <pthread.h>
@@ -39,7 +40,7 @@ df | tail -n +2 | sort -hb -k5 | tail -n 1 | awk -F' ' '{print $5}' | sed 's/%//
 
 sysState* sysState::ptr = NULL;
 
-sysState::                          sysState() : coPlugin( "sysstate", coCore::ptr->nodeName(), "sysstate" ) {
+sysState::                          sysState() {
 
 // remember pointer
     sysState::ptr = this;
@@ -62,8 +63,6 @@ sysState::                          sysState() : coPlugin( "sysstate", coCore::p
 // start all commands
     this->commandsStartAll();
 
-// register plugin
-	coCore::ptr->plugins->append( this );
 }
 
 
@@ -115,8 +114,7 @@ int sysState::                      health( int newHealth, void* cmd ){
             snprintf( jsonCharDump, 2048, "{ \"health\": \"%d\", \"name\": \"%s\" }", this->cmdHealth, ((sysStateCmd*)this->cmdHealthCmd)->displayName() );
 
         // add the message to list
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "sysstate", "health", jsonCharDump );
+            psBus::inst->publish( "", coCore::ptr->nodeName(), "", "sysstate", "health", jsonCharDump );
 
         }
 
@@ -140,18 +138,15 @@ int sysState::                      running( int newCounter ){
     // add the message to list
         char cmdRunningChar[10] = "         ";
         snprintf( cmdRunningChar, 10, "%d", this->cmdRunningCount );
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "sysstate", "cmdRunning", cmdRunningChar );
+        psBus::inst->publish( "", "", coCore::ptr->nodeName(), "sysstate", "cmdRunning", cmdRunningChar );
     }
 
 
     if( newCounter == 0 ){
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "sysState: Commands stopped" );
+        psBus::inst->publish( "", "", coCore::ptr->nodeName(), "sysstate", "msgSuccess", "sysState: Commands stopped" );
     }
     if( newCounter == 1 ){
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "sysState: Commands running" );
+        psBus::inst->publish( "", "", coCore::ptr->nodeName(), "sysstate", "msgSuccess", "sysState: Commands running" );
     }
 
     return this->cmdRunningCount;
@@ -355,7 +350,7 @@ then
 fi
 */
 
-
+    return true;
 }
 
 
@@ -459,7 +454,7 @@ int sysState::                      commandsStartAll(){
     // okay, we now have all infos for the thread :D
         pthread_create( &threadData->thread, NULL, sysState::cmdThread, threadData );
         char threadName[16] = { '\0' };
-        snprintf( threadName, 16, "sysstate-%s\0", timeChar );
+        snprintf( threadName, 16, "sysstate-%s", timeChar );
         pthread_setname_np( threadData->thread, threadName );
         pthread_detach( threadData->thread );
 
@@ -615,28 +610,20 @@ void* sysState::                    cmdThread( void* void_service ){
 
 
 
-
-coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
-
+int sysState::                      onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
 
 
 // vars
-	const char*			        msgSource = message->nodeNameSource();
-    const char*			        msgTarget = message->nodeNameTarget();
-    const char*		            msgGroup = message->group();
-	const char*		            msgCommand = message->command();
-	const char*		            msgPayload = message->payload();
-
-	json_error_t	            jsonError;
-	json_t*			            jsonPayload = NULL;
-	json_t*                     jsonValue;
+    json_error_t                jsonError;
+    json_t*                     jsonPayload = NULL;
+    json_t*                     jsonValue;
     char*                       jsonTempString = NULL;
     void*                       jsonIterator = NULL;
 
 
 
 
-    if( strncmp(msgCommand,"cmdListGet",10) == 0 ){
+    if( strncmp(command,"cmdListGet",10) == 0 ){
 
         void*       jsonTimerIterator = NULL;
         json_t*     jsonTimer = NULL;
@@ -657,8 +644,7 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
                 jsonTempString = json_dumps( jsonCmd, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
             // add the message to list
-                coCore::ptr->plugins->messageQueue->add( this,
-                msgTarget, msgSource, msgGroup, "cmdList", jsonTempString );
+                psBus::inst->publish( id, nodeTarget, nodeSource, group, "cmdList", jsonTempString );
 
             // cleanup
                 free( jsonTempString );
@@ -673,20 +659,20 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         }
 
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-	if( strncmp(msgCommand,"cmdTry",6) == 0 ){
+    if( strncmp(command,"cmdTry",6) == 0 ){
 
-	// parse json
-		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
-		if( jsonPayload == NULL || jsonError.line > -1 ){
+    // parse json
+        jsonPayload = json_loads( payload, JSON_PRESERVE_ORDER, &jsonError );
+        if( jsonPayload == NULL || jsonError.line > -1 ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
-			return coPlugin::MESSAGE_FINISHED;
-		}
+            return psBus::END;
+        }
 
         const char*         command;
         int                 commandMin = 0;
@@ -697,17 +683,17 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
 
     // cmd
         jsonValue = json_object_get( jsonPayload, "cmd" );
-        if( jsonValue == NULL ) return coPlugin::NO_REPLY;
+        if( jsonValue == NULL ) return psBus::END;
         command = json_string_value( jsonValue );
 
     // min
         jsonValue = json_object_get( jsonPayload, "min" );
-        if( jsonValue == NULL ) return coPlugin::NO_REPLY;
+        if( jsonValue == NULL ) return psBus::END;
         commandMin = json_integer_value( jsonValue );
 
     // max
         jsonValue = json_object_get( jsonPayload, "max" );
-        if( jsonValue == NULL ) return coPlugin::NO_REPLY;
+        if( jsonValue == NULL ) return psBus::END;
         commandMax = json_integer_value( jsonValue );
 
     // run
@@ -722,20 +708,19 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         json_object_set_new( jsonPayload, "health", json_integer(commandHealth) );
 
     // create the answer payloer
-        msgPayload = json_dumps( jsonPayload, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        payload = json_dumps( jsonPayload, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, msgGroup, "cmdTryOut", msgPayload );
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "cmdTryOut", payload );
 
     // cleanup and return
-        free((void*)msgPayload);
+        free((void*)payload);
         json_decref(jsonPayload);
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( strncmp(msgCommand,"cmdSave",7) == 0 ){
+    if( strncmp(command,"cmdSave",7) == 0 ){
 
     // vars
         json_t*         jsonID = NULL;
@@ -745,109 +730,99 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         char            intervalMillisecondsChar[20]; memset( intervalMillisecondsChar, 0, 20 );
         char*           id;
 
-	// parse json
-		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
-		if( jsonPayload == NULL || jsonError.line > -1 ){
+    // parse json
+        jsonPayload = json_loads( payload, JSON_PRESERVE_ORDER, &jsonError );
+        if( jsonPayload == NULL || jsonError.line > -1 ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
-			return coPlugin::MESSAGE_FINISHED;
-		}
+            return psBus::END;
+        }
 
         this->commandAppend( jsonPayload );
         this->save();
 
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "Saved" );
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "msgSuccess", "Saved" );
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( strncmp(msgCommand,"cmdDelete",9) == 0 ){
+    if( strncmp(command,"cmdDelete",9) == 0 ){
 
     // remove id
-        if( this->cmdRemove( msgPayload ) == true ){
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "Deleted" );
+        if( this->cmdRemove( payload ) == true ){
+            psBus::inst->publish( id, nodeTarget, nodeSource, group, "msgSuccess", "Deleted" );
             this->save();
         } else {
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "sysstate", "msgError", "Could not delete..." );
+            psBus::inst->publish( id, nodeTarget, nodeSource, group, "msgError", "Could not delete..." );
         }
 
+        return psBus::END;
+    } 
 
-    }
 
+    if( strncmp(command,"cmdDetailGet",12) == 0 ){
 
-    if( strncmp(msgCommand,"cmdDetailGet",12) == 0 ){
-
-        json_t*     jsonCmd = this->cmdGet( msgPayload );
+        json_t*     jsonCmd = this->cmdGet( payload );
         if( jsonCmd == NULL ){
             etDebugMessage( etID_LEVEL_WARNING, "Command not found");
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "sysstate", "msgError", "Command not found" );
+            psBus::inst->publish( id, nodeTarget, nodeSource, group, "msgError", "Command not found" );
         }
 
     // dump
         jsonTempString = json_dumps( jsonCmd, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        msgTarget, msgSource, msgGroup, "cmdDetail", jsonTempString );
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "cmdDetail", jsonTempString );
 
     // cleanup
         free( jsonTempString );
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( strncmp(msgCommand,"cmdStartAll",11) == 0 ){
+    if( strncmp(command,"cmdStartAll",11) == 0 ){
         int returnCode = commandsStartAll();
 
         if( returnCode == -1 ){
             etDebugMessage( etID_LEVEL_WARNING, "Commands already started, you need to stop it first!");
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "sysstate", "msgError", "Already running..." );
+            psBus::inst->publish( id, nodeTarget, nodeSource, group, "msgError", "Already running..." );
         }
         if( returnCode == -2 ){
             etDebugMessage( etID_LEVEL_WARNING, "No commands aviable.");
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "sysstate", "msgError", "No commands aviable." );
+            psBus::inst->publish( id, nodeTarget, nodeSource, group, "msgError", "No commands aviable." );
         }
         if( returnCode == 0 ){
             etDebugMessage( etID_LEVEL_INFO, "Started...");
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "sysState: Start reqest" );
+            psBus::inst->publish( id, nodeTarget, nodeSource, group, "msgSuccess", "sysState: Start reqest" );
         }
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( strncmp(msgCommand,"cmdStopAll",10) == 0 ){
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "sysstate", "msgSuccess", "sysState: Request stop of commands.. this can take a bit" );
+    if( strncmp(command,"cmdStopAll",10) == 0 ){
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "msgSuccess", "sysState: Request stop of commands.. this can take a bit" );
 
         commandsStopAll();
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( strncmp(msgCommand,"cmdRunningGet",13) == 0 ){
+    if( strncmp(command,"cmdRunningGet",13) == 0 ){
     // add the message to list
         char cmdRunningChar[10] = "\0\0\0\0\0\0\0\0\0";
         snprintf( cmdRunningChar, 10, "%d", this->cmdRunningCount );
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "sysstate", "cmdRunning", cmdRunningChar );
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "cmdRunning", cmdRunningChar );
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( strncmp(msgCommand,"healthGet",9) == 0 ){
+    if( strncmp(command,"healthGet",9) == 0 ){
 
     // get command which was set the health
         sysStateCmd* lastHealthCommand = (sysStateCmd*)this->cmdHealthCmd;
@@ -855,9 +830,8 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
     // if no command was set the health yet
         if( lastHealthCommand == NULL ){
         // add the message to list
-            coCore::ptr->plugins->messageQueue->add( this,
-            coCore::ptr->nodeName(), "", "sysstate", "health", "-1" );
-            return coPlugin::MESSAGE_FINISHED;
+            psBus::inst->publish( id, nodeTarget, nodeSource, group, "health", "-1" );
+            return psBus::END;
         }
 
     // build json-answer-object
@@ -865,20 +839,19 @@ coPlugin::t_state sysState::        onBroadcastMessage( coMessage* message ){
         snprintf( jsonCharDump, 2048, "{ \"health\": \"%d\", \"name\": \"%s\" }", lastHealthCommand->health(), lastHealthCommand->displayName() );
 
     // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), "", "sysstate", "health", jsonCharDump );
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "health", jsonCharDump );
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( strncmp(msgCommand,"healthReset",11) == 0 ){
+    if( strncmp(command,"healthReset",11) == 0 ){
         this->cmdHealth = 101;
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    return coPlugin::NO_REPLY;
+    return psBus::END;
 }
 
 

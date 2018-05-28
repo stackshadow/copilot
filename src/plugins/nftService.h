@@ -27,7 +27,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "evillib-extra_depends.h"
 #include "db/etDBObject.h"
 
-#include "coPlugin.h"
+//#include "coPlugin.h"
 
 #include <string>
 #include "jansson.h"
@@ -44,7 +44,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 	newRule["type"] = "custom";
 	newRule["rule"] = customRule;
 */
-class nftService : public coPlugin
+class nftService
 {
 private:
     json_t*         jsonRootObject;
@@ -78,14 +78,14 @@ private:
     bool            selectChain( const char* chainName );
 
     static bool     createRuleCommand( std::string* nftCommand, const char* chainName, json_t* jsonRule );
-    bool            applyChain( const char* chainName, const char* chainType, coMessage* message = NULL );
-    bool            applyRules( const char* hostName, coMessage* message = NULL );
+    bool            applyChain( const char* chainName, const char* chainType, std::string* returnMessage );
+    bool            applyRules( const char* hostName, std::string* returnMessage );
 
 
 
-// overloaded functions
+// api
 public:
-	coPlugin::t_state 		onBroadcastMessage( coMessage* message );
+    static int      onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
 
 };
 

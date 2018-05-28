@@ -21,7 +21,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #define sysState_H
 
 
-#include "coPlugin.h"
+//#include "coPlugin.h"
 #include "coCoreConfig.h"
 
 #include "lockPthread.h"
@@ -30,7 +30,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #define healthBand 2
 
-class sysState : public coPlugin
+class sysState
 {
 private:
         typedef struct sysStateThreadData_s {
@@ -90,8 +90,7 @@ private:
 
 // API
     public:
-		coPlugin::t_state	    onBroadcastMessage( coMessage* message );
-
+        int                     onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
 
 };
 

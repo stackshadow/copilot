@@ -22,22 +22,21 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "coCore.h"
 #include "plugins/nftService.h"
+#include "pubsub.h"
+#include <string>
 
-
-nftService::                    	nftService() : coPlugin( "nft", coCore::ptr->nodeName(), "nft" ) {
+nftService::                        nftService(){
 
     this->jsonRootObject = NULL;
 
 // json
     this->load();
 
-// register plugin
-	coCore::ptr->plugins->append( this );
 
 }
 
 
-nftService::                    	~nftService(){
+nftService::                        ~nftService(){
     if( this->jsonRootObject != NULL ){
         json_decref( this->jsonRootObject );
     }
@@ -46,25 +45,21 @@ nftService::                    	~nftService(){
 
 
 
-
-coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
+int nftService::                    onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
 
 // vars
-	const char*			msgTarget = message->nodeNameTarget();
-    const char*			msgSource = message->nodeNameSource();
-	const char*			msgGroup = message->group();
-	const char*			msgCommand = message->command();
+    nftService*         nftServiceInst = (nftService*)userdata;
     int                 msgCommandLen = 0;
-	const char*			msgPayload = message->payload();
+
 
 // check
-    if( msgCommand == NULL ) return coPlugin::NO_REPLY;
-    msgCommandLen = strlen(msgCommand);
+    if( command == NULL ) return psBus::END;
+    msgCommandLen = strlen(command);
 
     std::string     answerTopic;
 
 
-    if( coCore::strIsExact("chainsCountGet",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("chainsCountGet",command,msgCommandLen) == true ){
 
     // vars
         const char*     chainName = NULL;
@@ -73,13 +68,13 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
         char*           jsonString = NULL;
 
     // get the host
-        if( this->selectHost(msgTarget) == false ){
-            return coPlugin::NO_REPLY;
+        if( nftServiceInst->selectHost(nodeTarget) == false ){
+            return psBus::END;
         }
 
-        this->iterate();
-        while( this->nextChain(&chainName) == true ){
-            chainCounter = json_array_size( this->jsonRulesArray );
+        nftServiceInst->iterate();
+        while( nftServiceInst->nextChain(&chainName) == true ){
+            chainCounter = json_array_size( nftServiceInst->jsonRulesArray );
             json_object_set_new( jsonChainCounter, chainName, json_integer(chainCounter) );
         }
 
@@ -87,129 +82,135 @@ coPlugin::t_state nftService::		onBroadcastMessage( coMessage* message ){
         jsonString = json_dumps( jsonChainCounter, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // send back
-        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "chainsCount", jsonString );
+        psBus::inst->publish( id, nodeTarget, nodeSource, "nft", "chainsCount", jsonString );
 
     // clean
         free( (void*)jsonString );
         json_decref( jsonChainCounter );
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("chainsList",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("chainsList",command,msgCommandLen) == true ){
 
 
     // get the host
-        if( this->selectHost(msgTarget) == false ){
-            return coPlugin::NO_REPLY;
+        if( nftServiceInst->selectHost(nodeTarget) == false ){
+            return psBus::END;
         }
 
-        char* jsonString = json_dumps( this->jsonChainsObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+        char* jsonString = json_dumps( nftServiceInst->jsonChainsObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
-        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "chains", jsonString );
+        psBus::inst->publish( id, nodeTarget, nodeSource, "nft", "chains", jsonString );
+
 
         free( (void*)jsonString );
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("chainGet",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("chainGet",command,msgCommandLen) == true ){
 
     // vars
         json_t*         jsonChain = json_object();
 
     // get the host
-        if( this->selectHost(msgTarget) == false ){
-            return coPlugin::NO_REPLY;
+        if( nftServiceInst->selectHost(nodeTarget) == false ){
+            return psBus::END;
         }
 
     // select the chain
-        if( this->selectChain(msgPayload) == false ){
-            coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "", "msgError", "Chain dont exist !" );
-            return coPlugin::NO_REPLY;
+        if( nftServiceInst->selectChain(payload) == false ){
+            psBus::inst->publish( id, nodeTarget, nodeSource, "", "msgError", "Chain dont exist !" );
+
+            return psBus::END;
         }
 
     // set the object
-        json_object_set( jsonChain, msgPayload, this->jsonRulesArray );
+        json_object_set( jsonChain, payload, nftServiceInst->jsonRulesArray );
 
     // dump
         char* jsonString = json_dumps( jsonChain, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // send back
-        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "chain", jsonString );
+        psBus::inst->publish( id, nodeTarget, nodeSource, "nft", "chain", jsonString );
 
     // clean
         free( (void*)jsonString );
         json_decref( jsonChain );
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("chainSave",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("chainSave",command,msgCommandLen) == true ){
 
     // vars
         json_t*         jsonChain = NULL;
         json_error_t    jsonError;
-        int             msgPayloadLen = strlen( msgPayload );
+        int             msgPayloadLen = strlen( payload );
         const char*     chainName = NULL;
         void*           jsonIterator = NULL;
         json_t*         jsonRulesArray = NULL;
 
     // parse json
-        jsonChain = json_loads( msgPayload, msgPayloadLen, &jsonError );
+        jsonChain = json_loads( payload, msgPayloadLen, &jsonError );
         if( jsonChain == NULL || jsonError.line > 0 ){
             snprintf( etDebugTempMessage, etDebugTempMessageLen, "chainSave error: '%s'", jsonError.text );
             etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-            coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "", "msgError", etDebugTempMessage );
-            return coPlugin::NO_REPLY;
+            psBus::inst->publish( id, nodeTarget, nodeSource, "", "msgError", etDebugTempMessage );
+            return psBus::END;
         }
 
     // get the chain name
         jsonIterator = json_object_iter( jsonChain );
-        if( jsonIterator == NULL ) return coPlugin::REPLY;
+        if( jsonIterator == NULL ) return psBus::END;
         chainName = json_object_iter_key( jsonIterator );
-        if( chainName == NULL ) return coPlugin::REPLY;
+        if( chainName == NULL ) return psBus::END;
 
         jsonRulesArray = json_object_iter_value( jsonIterator );
 
     // select the requested host
-        if( this->selectHost(msgTarget) == false ){
-            return coPlugin::NO_REPLY;
+        if( nftServiceInst->selectHost(nodeTarget) == false ){
+            return psBus::END;
         }
 
     // overwrite chain
-        json_object_set( this->jsonChainsObject, chainName, jsonRulesArray );
+        json_object_set( nftServiceInst->jsonChainsObject, chainName, jsonRulesArray );
 
     // clean
         json_decref( jsonChain );
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("save",msgCommand,msgCommandLen) == true ){
+    if( coCore::strIsExact("save",command,msgCommandLen) == true ){
 
     // save it to the file
-        this->save();
+        nftServiceInst->save();
 
-        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource, "nft", "saveok", "" );
+        psBus::inst->publish( id, nodeTarget, nodeSource, "nft", "saveok", "" );
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    if( coCore::strIsExact("apply",msgCommand,msgCommandLen) == true ){
-        if( this->applyRules(msgTarget, message) == false ){
-			return coPlugin::REPLY;
-		}
+    if( coCore::strIsExact("apply",command,msgCommandLen) == true ){
+        
+        std::string returnMessage = "";
+        
+        if( nftServiceInst->applyRules(nodeTarget,&returnMessage) == false ){
+            psBus::inst->publish( id, nodeTarget, nodeSource, "nft", "msgError", returnMessage.c_str() );
+            return psBus::END;
+        }
+        psBus::inst->publish( id, nodeTarget, nodeSource, "nft", "msgInfo", "Rules active." );
 
-        //coCore::ptr->plugins->messageAdd( this, msgTarget, msgSource, "nft", "applyok", "" );
 
-        return coPlugin::REPLY;
+        return psBus::END;
     }
 
 
-    return coPlugin::NO_REPLY;
+    return psBus::END;
 }
 
 
@@ -280,7 +281,7 @@ bool nftService::               	nextChain( const char** chainName ){
     if( this->jsonChainsObject == NULL ){
         this->jsonChainsObject = json_object_get( this->jsonHostObject, "chains" );
         if( this->jsonChainsObject == NULL ) {
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Chain '%s' not aviable in host.", chainName );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Chain '%s' not aviable in host.", *chainName );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
             return false;
         }
@@ -476,7 +477,7 @@ bool nftService::               	createRuleCommand( std::string* nftCommand, con
 }
 
 
-bool nftService::               	applyChain( const char* chainName, const char* chainType, coMessage* message ){
+bool nftService::               	applyChain( const char* chainName, const char* chainType, std::string* returnMessage ){
 
 // vars
     std::string     command;
@@ -484,13 +485,8 @@ bool nftService::               	applyChain( const char* chainName, const char* 
     const char*     msgSource = NULL;
     const char*     msgTarget = NULL;
 
-    if( message != NULL ){
-        msgSource = message->nodeNameSource();
-        msgTarget = message->nodeNameTarget();
-    } else {
-        msgSource = "";
-        msgTarget = "";
-    }
+// clear return-message
+    returnMessage->clear();
 
     if( this->selectChain(chainName) == true ){
 
@@ -505,8 +501,7 @@ bool nftService::               	applyChain( const char* chainName, const char* 
         returnValue = system( command.c_str() );
         fprintf( stdout, "nft: %s\n", command.c_str() );
         if( returnValue != 0 ){
-            coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
-            "nft", "msgError", "Could not create chain" );
+            returnMessage->assign( "Could not create chain" );
             return false;
         }
 
@@ -521,8 +516,7 @@ bool nftService::               	applyChain( const char* chainName, const char* 
         returnValue = system( command.c_str() );
         fprintf( stdout, "nft: %s\n", command.c_str() );
         if( returnValue != 0 ){
-            coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
-            "nft", "msgError", "Could not create chain" );
+            returnMessage->assign( "Could not create ipv6 chain" );
             return false;
         }
 
@@ -533,10 +527,8 @@ bool nftService::               	applyChain( const char* chainName, const char* 
                 returnValue = system( command.c_str() );
                 if( returnValue != 0 ){
 
-					command = "Could not apply " + command;
-
-                    coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
-                    "nft", "msgError", command.c_str() );
+                    command = "Could not apply " + command;
+                    returnMessage->assign( command );
 
                     return false;
                 }
@@ -548,7 +540,7 @@ bool nftService::               	applyChain( const char* chainName, const char* 
 }
 
 
-bool nftService::               	applyRules( const char* hostName, coMessage* message ){
+bool nftService::               	applyRules( const char* hostName, std::string* returnMessage ){
 
 // vars
     int             returnValue = -1;
@@ -558,13 +550,8 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
     const char*     msgSource = NULL;
     const char*     msgTarget = NULL;
 
-    if( message != NULL ){
-        msgSource = message->nodeNameSource();
-        msgTarget = message->nodeNameTarget();
-    } else {
-        msgSource = "";
-        msgTarget = "";
-    }
+// clear return-message
+    returnMessage->clear();
 
 // select host
     if( this->selectHost( hostName ) == false ) return false;
@@ -578,8 +565,7 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
     returnValue = system( "sudo nft flush ruleset" );
     fprintf( stdout, "nft: sudo nft flush ruleset\n" );
     if( returnValue != 0 ){
-        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
-        "nft", "msgError", "Could not flush rules" );
+        returnMessage->assign( "Could not flush rules" );
         return false;
     }
 
@@ -587,36 +573,35 @@ bool nftService::               	applyRules( const char* hostName, coMessage* me
     returnValue = system( "sudo nft add table ip default" );
     fprintf( stdout, "nft: sudo nft add table ip default\n" );
     if( returnValue != 0 ){
-        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
-        "nft", "msgError", "Could not create ip table" );
+        returnMessage->assign( "Could not create ip table" );
         return false;
     }
     returnValue = system( "sudo nft add table ip6 default" );
     fprintf( stdout, "nft: sudo nft add table ip6 default\n" );
     if( returnValue != 0 ){
-        coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
-        "nft", "msgError", "Could not create ip6 table" );
+        returnMessage->assign( "Could not create ip6 table" );
         return false;
     }
 
 // prerouting
-    if( this->applyChain( "prerouting",     "nat",      message ) == false ) return false;
-    if( this->applyChain( "input",          "filter",   message ) == false ) return false;
-    if( this->applyChain( "forward",        "filter",   message ) == false ) return false;
-    if( this->applyChain( "output",         "filter",   message ) == false ) return false;
-    if( this->applyChain( "postrouting",    "nat",      message ) == false ) return false;
+    if( this->applyChain( "prerouting",     "nat",      returnMessage ) == false ) return false;
+    if( this->applyChain( "input",          "filter",   returnMessage ) == false ) return false;
+    if( this->applyChain( "forward",        "filter",   returnMessage ) == false ) return false;
+    if( this->applyChain( "output",         "filter",   returnMessage ) == false ) return false;
+    if( this->applyChain( "postrouting",    "nat",      returnMessage ) == false ) return false;
 
 
-    coCore::ptr->plugins->messageQueue->add( this, msgTarget, msgSource,
-    "nft", "msgInfo", "Rules active." );
+
+    returnMessage->assign( "Rules active." );
 
     return true;
 }
 
 
 bool nftService::               	applyRules(){
-	const char* hostName = coCore::ptr->nodeName();
-	this->applyRules( hostName );
+    const char* hostName = coCore::ptr->nodeName();
+    std::string returnMessage = "";
+    return this->applyRules( hostName, &returnMessage );
 }
 
 

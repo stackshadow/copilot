@@ -25,7 +25,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "plugins/sslService.h"
 #include "coCore.h"
-
+#include "pubsub.h"
 
 #include "plugins/sslSession.h"
 
@@ -33,7 +33,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "limits.h"     // for UINT_MAX
 
 
-sslService::               			sslService() : coPlugin( "sslService", coCore::ptr->nodeName(), "cocom" ){
+sslService::                        sslService(){
 
 // init keys
     sslSession::globalInit( coCore::ptr->nodeName() );
@@ -41,244 +41,48 @@ sslService::               			sslService() : coPlugin( "sslService", coCore::ptr
 // alloc thread list
 	etThreadListAlloc( &this->threadList );
 
-// register plugin
-	coCore::ptr->plugins->append( this );
-}
-
-
-sslService::               			~sslService(){
+// subscribe
+	psBus::inst->subscribe( coCore::ptr->nodeName(), "cocom", this, sslService::onSubscriberMessage, NULL );
 
 }
 
 
+sslService::                        ~sslService(){
 
-
-coPlugin::t_state sslService::		onBroadcastMessage( coMessage* message ){
-
-// vars
-    const char*                 msgSource = message->nodeNameSource();
-    const char*		            msgGroup = message->group();
-	const char*		            msgCommand = message->command();
-	const char*		            msgPayload = message->payload();
-	json_t*			            jsonPayload = NULL;
-	json_t*                     jsonTempValue;
-    const char*                 jsonTempString = NULL;
-	const char*                 hostName = NULL;
-	int                         hostPort = 0;
-    int                         serverEnabled = 0;
-	json_error_t	            jsonError;
-    coCoreConfig::nodeType      type = coCoreConfig::UNKNOWN;
-
-
-
-
-
-	if( strncmp(msgCommand,"serverSave",10) == 0 ){
-
-	// parse json
-		jsonPayload = json_loads( msgPayload, JSON_PRESERVE_ORDER, &jsonError );
-		if( jsonPayload == NULL || jsonError.line > -1 ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-
-			return coPlugin::MESSAGE_FINISHED;
-		}
-
-    // get host / port
-		json_t* jsonHostName = json_object_get( jsonPayload, "host" );
-		json_t* jsonHostPort = json_object_get( jsonPayload, "port" );
-        json_t* jsonHostEnabled = json_object_get( jsonPayload, "enabled" );
-
-        hostName = json_string_value( jsonHostName );
-		jsonTempString = json_string_value( jsonHostPort );
-        hostPort = atoi( jsonTempString );
-		jsonTempString = json_string_value( jsonHostEnabled );
-        serverEnabled = atoi( jsonTempString );
-
-    // lock
-        coCore::ptr->config->nodesIterate();
-
-    // read infos
-        coCore::ptr->config->nodeSelectByHostName(coCore::ptr->nodeName());
-        if( serverEnabled == 1 ){
-            type = coCoreConfig::SERVER;
-        } else {
-            type = coCoreConfig::UNKNOWN;
-        }
-        coCore::ptr->config->nodeInfo( NULL, &type, true );
-        coCore::ptr->config->nodeConnInfo( &hostName, &hostPort, true );
-        coCore::ptr->config->save();
-
-    // unlock
-        coCore::ptr->config->nodesIterateFinish();
-
-	// cleanup
-		json_decref(jsonPayload);
-		return coPlugin::NO_REPLY;
-	}
-
-
-    if( strncmp(msgCommand,"requestKeysGet",14) == 0 ){
-        requestKeysGet:
-    // vars
-        json_t*         jsonKeys = json_object();
-
-    // get the requested keys as json
-        sslService::reqKeysGet( jsonKeys );
-
-    // set the message
-        msgPayload = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-
-    // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), msgSource,
-        msgGroup, "requestKeys", msgPayload );
-
-
-    // cleanup and return
-        free((void*)msgPayload);
-        json_decref(jsonKeys);
-        return coPlugin::REPLY;
-    }
-
-
-	if( strncmp(msgCommand,"requestKeyAccept",16) == 0 ){
-
-	// parse json
-		sslService::reqKeyAccept( msgPayload );
-
-        goto requestKeysGet;
-        return coPlugin::NO_REPLY;
-    }
-
-
-	if( strncmp(msgCommand,"requestKeyRemove",16) == 0 ){
-
-	// parse json
-		sslService::reqKeyRemove( msgPayload );
-
-        goto requestKeysGet;
-        return coPlugin::NO_REPLY;
-    }
-
-
-    if( strncmp(msgCommand,"acceptedKeysGet",15) == 0 ){
-        acceptedKeysGet:
-    // vars
-        json_t*         jsonKeys = json_object();
-
-    // get the requested keys as json
-        sslService::acceptedKeysGet( jsonKeys );
-
-    // set the message
-        msgPayload = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
-
-    // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), msgSource,
-        msgGroup, "acceptedKeys", msgPayload );
-
-    // cleanup and return
-        free((void*)msgPayload);
-        json_decref(jsonKeys);
-        return coPlugin::REPLY;
-    }
-
-
-	if( strncmp(msgCommand,"acceptedKeyRemove",17) == 0 ){
-
-	// parse json
-		sslService::acceptedKeyRemove( msgPayload );
-
-        goto acceptedKeysGet;
-        return coPlugin::NO_REPLY;
-    }
-
-
-    if( strncmp(msgCommand,"connectionStateGet",18) == 0 ){
-
-
-
-
-    }
-
-
-    if( strncmp(msgCommand,"start",7) == 0 ){
-
-		this->serve();
-		this->connectAll();
-
-    // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), msgSource,
-        msgGroup, "started", "" );
-
-		return coPlugin::NO_REPLY;
-    }
-
-    if( strncmp(msgCommand,"stop",7) == 0 ){
-
-		//this->threadCancelAll();
-		etThreadListCancelAll( this->threadList );
-
-    // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), msgSource,
-        msgGroup, "stoped", "" );
-
-		return coPlugin::NO_REPLY;
-    }
-
-    if( strncmp(msgCommand,"restart",7) == 0 ){
-
-		//this->threadCancelAll();
-
-		this->serve();
-		this->connectAll();
-
-    // add the message to list
-        coCore::ptr->plugins->messageQueue->add( this,
-        coCore::ptr->nodeName(), msgSource,
-        msgGroup, "restarted", "" );
-
-		return coPlugin::NO_REPLY;
-    }
-
-
-
-    return coPlugin::NO_REPLY;
 }
 
 
-bool sslService:: 					onSetup(){
 
-// check if we have an server connection
+
+bool sslService::                   onSetup(){
+
+    // check if we have an server connection
 
 // get the server infos
-	bool 					serverFound = false;
-	coCoreConfig::nodeType 	serverType;
-	const char* 			serverHost;
-	int 					serverPort;
-	char 					answer[512] = { '0' };
-	int						answerLen = 0;
-	const char* 			pAnswer = (const char*)&answer;
+    bool                    serverFound = false;
+    coCoreConfig::nodeType  serverType;
+    const char*             serverHost;
+    int                     serverPort;
+    char                    answer[512] = { '0' };
+    int                     answerLen = 0;
+    const char*             pAnswer = (const char*)&answer;
 
-	fprintf( stdout, "Copilot Node-Connection-Setup \n" );
+    fprintf( stdout, "Copilot Node-Connection-Setup \n" );
 
-ask:
-	fprintf( stdout, "Please choose:\n" );
-	fprintf( stdout, "1.) Create an listener to accept Connection from another node \n" );
-	fprintf( stdout, "2.) Creata a connection to another node \n" );
+    ask:
+    fprintf( stdout, "Please choose:\n" );
+    fprintf( stdout, "1.) Create an listener to accept Connection from another node \n" );
+    fprintf( stdout, "2.) Creata a connection to another node \n" );
     fprintf( stdout, "9.) Finished, do nothing \n" );
     fprintf( stdout, "What would you like to do ? (1/2/9) \n" );
-	fflush( stdout );
-	read( STDIN_FILENO, answer, 512 );
+    fflush( stdout );
+    read( STDIN_FILENO, answer, 512 );
 
 // wrong answer
-	if( answer[0] != '1' && answer[0] != '2' && answer[0] != '9' ) goto ask;
+    if( answer[0] != '1' && answer[0] != '2' && answer[0] != '9' ) goto ask;
 
 // do nothing
-	if( answer[0] == '9' ){
+    if( answer[0] == '9' ){
         return true;
     }
 
@@ -346,12 +150,198 @@ ask:
 }
 
 
-bool sslService:: 					onExecute(){
-	if( coCore::setupMode == true ) return true;
+bool sslService::                   onExecute(){
+    if( coCore::setupMode == true ) return true;
 
-	//this->serve();
-	//this->connectAll();
+    //this->serve();
+    //this->connectAll();
+    return true;
 }
+
+
+
+
+int sslService::                    onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
+
+    // vars
+    sslService*                 sslServiceInst = (sslService*)userdata;
+    json_error_t                jsonError;
+    json_t*                     jsonPayload = NULL;
+    json_t*                     jsonTempValue;
+    const char*                 jsonTempString = NULL;
+
+
+    const char*                 hostName = NULL;
+    int                         hostPort = 0;
+    int                         serverEnabled = 0;
+    coCoreConfig::nodeType      type = coCoreConfig::UNKNOWN;
+
+
+    if( strncmp(command,"serverSave",10) == 0 ){
+
+    // parse json
+        jsonPayload = json_loads( payload, JSON_PRESERVE_ORDER, &jsonError );
+        if( jsonPayload == NULL || jsonError.line > -1 ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: %s", __PRETTY_FUNCTION__, jsonError.text );
+            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+            return psBus::END;
+        }
+
+    // get host / port
+        json_t* jsonHostName = json_object_get( jsonPayload, "host" );
+        json_t* jsonHostPort = json_object_get( jsonPayload, "port" );
+        json_t* jsonHostEnabled = json_object_get( jsonPayload, "enabled" );
+
+        hostName = json_string_value( jsonHostName );
+        jsonTempString = json_string_value( jsonHostPort );
+        hostPort = atoi( jsonTempString );
+        jsonTempString = json_string_value( jsonHostEnabled );
+        serverEnabled = atoi( jsonTempString );
+
+    // lock
+        coCore::ptr->config->nodesIterate();
+
+    // read infos
+        coCore::ptr->config->nodeSelectByHostName(coCore::ptr->nodeName());
+        if( serverEnabled == 1 ){
+            type = coCoreConfig::SERVER;
+        } else {
+            type = coCoreConfig::UNKNOWN;
+        }
+        coCore::ptr->config->nodeInfo( NULL, &type, true );
+        coCore::ptr->config->nodeConnInfo( &hostName, &hostPort, true );
+        coCore::ptr->config->save();
+
+    // unlock
+        coCore::ptr->config->nodesIterateFinish();
+
+    // cleanup
+        json_decref(jsonPayload);
+        return psBus::END;
+    }
+
+
+
+
+    if( strncmp(command,"requestKeysGet",14) == 0 ){
+        requestKeysGet:
+    // vars
+        json_t*         jsonKeys = json_object();
+
+    // get the requested keys as json
+        sslService::reqKeysGet( jsonKeys );
+
+    // set the message
+        const char* jsonKeysChar = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+
+    // add the message to list
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "requestKeys", jsonKeysChar );
+        
+    // cleanup and return
+        free((void*)jsonKeysChar);
+        json_decref(jsonKeys);
+        return psBus::END;
+    }
+
+
+    if( strncmp(command,"requestKeyAccept",16) == 0 ){
+
+    // parse json
+        sslService::reqKeyAccept( payload );
+
+        goto requestKeysGet;
+        return psBus::END;
+    }
+
+
+    if( strncmp(command,"requestKeyRemove",16) == 0 ){
+
+    // parse json
+        sslService::reqKeyRemove( payload );
+
+        goto requestKeysGet;
+        return psBus::END;
+    }
+
+
+    if( strncmp(command,"acceptedKeysGet",15) == 0 ){
+        acceptedKeysGet:
+    // vars
+        json_t*         jsonKeys = json_object();
+
+    // get the requested keys as json
+        sslService::acceptedKeysGet( jsonKeys );
+
+    // set the message
+        const char* jsonKeysChar = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+
+    // add the message to list
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "acceptedKeys", jsonKeysChar );
+        
+    // cleanup and return
+        free((void*)jsonKeysChar);
+        json_decref(jsonKeys);
+        return psBus::END;
+    }
+
+
+    if( strncmp(command,"acceptedKeyRemove",17) == 0 ){
+
+    // parse json
+        sslService::acceptedKeyRemove( payload );
+
+        goto acceptedKeysGet;
+        return psBus::END;
+    }
+
+
+    if( strncmp(command,"connectionStateGet",18) == 0 ){
+
+
+
+
+    }
+
+
+    if( strncmp(command,"start",7) == 0 ){
+
+        sslServiceInst->serve();
+        sslServiceInst->connectAll();
+
+    // add the message to list
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "started", "" );
+        return psBus::END;
+    }
+
+    if( strncmp(command,"stop",7) == 0 ){
+
+        //this->threadCancelAll();
+        etThreadListCancelAll( sslServiceInst->threadList );
+
+    // add the message to list
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "stoped", "" );
+        
+        return psBus::END;
+    }
+
+    if( strncmp(command,"restart",7) == 0 ){
+
+        //this->threadCancelAll();
+
+        sslServiceInst->serve();
+        sslServiceInst->connectAll();
+
+    // add the message to list
+        psBus::inst->publish( id, nodeTarget, nodeSource, group, "restarted", "" );
+
+        return psBus::END;
+    }
+
+    return psBus::END;
+}
+
+
 
 
 // configuration
@@ -423,7 +413,7 @@ bool sslService::					reqKeysGet( json_t* jsonObject ){
     keyDir = opendir( sslKeyPath );
     if( keyDir == NULL ){
         etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
-        return coPlugin::NO_REPLY;
+        return psBus::END;
     }
 
 // read every key
@@ -532,7 +522,7 @@ bool sslService::					acceptedKeysGet( json_t* jsonObject ){
     keyDir = opendir( sslKeyPath );
     if( keyDir == NULL ){
         etDebugMessage( etID_LEVEL_ERR, "Could not open key-directory" );
-        return coPlugin::NO_REPLY;
+        return psBus::END;
     }
 
 // read every key
@@ -669,11 +659,13 @@ void* sslService::					serveThread( void* void_service ){
         newSession->socketChannelAddressLen = sizeof(clientSocketAddress);
 
     // send it out that we have an new client
+    /* BROKEN
         coCore::ptr->plugins->messageQueue->add(
             newSession, coCore::ptr->nodeName(), coCore::ptr->nodeName(),
             "cocom", "onNewInClient", clientHostName
         );
-
+    */
+    
     // client communication will be handled inside an thread
 		etThreadListAdd( service->threadList, clientHostName, sslService::serverHandleClientThread, sslService::serverHandleClientThreadCancel, newSession );
 
@@ -684,41 +676,46 @@ void* sslService::					serveThread( void* void_service ){
 }
 
 
-void* sslService::					serverHandleClientThread( void* void_sslSession ){
+void* sslService::                  serverHandleClientThread( void* void_sslSession ){
 
-	sslSession*     session = (sslSession*)void_sslSession;
+    sslSession*     session = (sslSession*)void_sslSession;
 
 // client loop
     session->handleClient();
 
 // send it out that we have an new client
+    /* BROKEN
     coCore::ptr->plugins->messageQueue->add(
         session, coCore::ptr->nodeName(), coCore::ptr->nodeName(),
         "cocom", "onDisconnectClient", session->host()
     );
+     * */
 
 // session finished
     delete session;
+    
+    return NULL;
 }
 
 
-void* sslService::					serverHandleClientThreadCancel( void* void_sslSession ){
-	
+void* sslService::                  serverHandleClientThreadCancel( void* void_sslSession ){
+
 // vars
-	sslSession*     session = (sslSession*)void_sslSession;
-	delete session;
-	
+    sslSession*     session = (sslSession*)void_sslSession;
+    delete session;
+
+    return NULL;
 }
 
 
 
 
-void sslService::					connectAll(){
+void sslService::                   connectAll(){
 
 // vars
-	const char*					clientHost;
-	int							clientPort;
-	coCoreConfig::nodeType		nodeType;
+    const char*                 clientHost;
+    int                         clientPort;
+    coCoreConfig::nodeType      nodeType;
     struct sockaddr_in          clientSocketAddress;
     socklen_t                   clientSocketAddressLen;
     int                         clientSocket;
@@ -726,21 +723,21 @@ void sslService::					connectAll(){
 
 
 // start iteration ( and lock core )
-	coCore::ptr->config->nodesIterate();
+    coCore::ptr->config->nodesIterate();
 
-	while( coCore::ptr->config->nodeNext() == true ){
+    while( coCore::ptr->config->nodeNext() == true ){
 
-		coCore::ptr->config->nodeInfo(&clientHost,&nodeType);
+        coCore::ptr->config->nodeInfo(&clientHost,&nodeType);
 
-	// only clients
-		if( nodeType != coCoreConfig::CLIENT ){
-			continue;
-		}
+    // only clients
+        if( nodeType != coCoreConfig::CLIENT ){
+            continue;
+        }
 
-	// get host/port
-		if( coCore::ptr->config->nodeConnInfo( &clientHost, &clientPort ) != true ){
-			continue;
-		}
+    // get host/port
+        if( coCore::ptr->config->nodeConnInfo( &clientHost, &clientPort ) != true ){
+            continue;
+        }
 
 
 
@@ -766,19 +763,19 @@ void sslService::					connectAll(){
         newSession->socketChannelAddressLen = sizeof(clientSocketAddress);
 
     // client communication will be handled inside an thread
-		etThreadListAdd( this->threadList, clientHost, sslService::connectToClientThread, sslService::connectToClientThreadCancel, newSession );
+        etThreadListAdd( this->threadList, clientHost, sslService::connectToClientThread, sslService::connectToClientThreadCancel, newSession );
 
-	}
+    }
 
 // finish
-	coCore::ptr->config->nodesIterateFinish();
+    coCore::ptr->config->nodesIterateFinish();
 }
 
 
-void* sslService::					connectToClientThread( void* void_session ){
+void* sslService::                  connectToClientThread( void* void_session ){
 
     int             ret = -1;
-	sslSession*     session = (sslSession*)void_session;
+    sslSession*     session = (sslSession*)void_session;
 
     for(;;){
 
@@ -841,12 +838,13 @@ void* sslService::					connectToClientThread( void* void_session ){
 }
 
 
-void* sslService::					connectToClientThreadCancel( void* void_sslSession ){
-	
+void* sslService::                  connectToClientThreadCancel( void* void_sslSession ){
+
 // vars
-	sslSession*     session = (sslSession*)void_sslSession;
-	delete session;
-	
+    sslSession*     session = (sslSession*)void_sslSession;
+    delete session;
+
+    return NULL;
 }
 
 

@@ -28,7 +28,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "evillib-extra_depends.h"
 #include "db/etDBObject.h"
 
-#include "coPlugin.h"
+//#include "coPlugin.h"
 
 
 /**
@@ -94,7 +94,7 @@ client recieve: mylaptop/co/versionGet payload: 0.1
 */
 
 
-class coreService : public coPlugin
+class coreService
 {
 
 
@@ -112,8 +112,8 @@ private:
 
 public:
 // handlers
-	coPlugin::t_state 			onBroadcastMessage( coMessage* message );
 
+	static int 					onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
 
 
 };
