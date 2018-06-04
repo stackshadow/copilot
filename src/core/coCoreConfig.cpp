@@ -24,9 +24,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "coCoreConfig.h"
 
-coCoreConfig::				coCoreConfig(){
+coCoreConfig::              coCoreConfig(){
 // init lock
-	this->threadLock = 0;
+    this->threadLock = 0;
 
 // settings
     etStringAlloc( this->configBasePath );
@@ -34,7 +34,7 @@ coCoreConfig::				coCoreConfig(){
 }
 
 
-coCoreConfig::				~coCoreConfig(){
+coCoreConfig::              ~coCoreConfig(){
     if( this->jsonConfig != NULL ){
         json_decref( this->jsonConfig );
     }
@@ -43,7 +43,7 @@ coCoreConfig::				~coCoreConfig(){
 
 
 
-bool coCoreConfig::			load( const char* myNodeName ){
+bool coCoreConfig::         load( const char* myNodeName ){
 	lockMyPthread();
 
 // vars
@@ -126,7 +126,7 @@ bool coCoreConfig::			load( const char* myNodeName ){
 }
 
 
-bool coCoreConfig::			save( const char* jsonString ){
+bool coCoreConfig::         save( const char* jsonString ){
 	lockMyPthread();
 
 // vars
@@ -206,7 +206,7 @@ json_t* coCoreConfig::      section( const char* sectionName ){
 
 
 
-bool coCoreConfig::			configPath( const char** path ){
+bool coCoreConfig::         configPath( const char** path ){
     if( path == NULL ) return false;
 
 
@@ -221,7 +221,7 @@ bool coCoreConfig::			configPath( const char** path ){
 }
 
 
-bool coCoreConfig::			myNodeName( const char** nodeName ){
+bool coCoreConfig::         myNodeName( const char** nodeName ){
     if( nodeName == NULL ) return false;
 
 // Set
@@ -253,7 +253,7 @@ bool coCoreConfig::			myNodeName( const char** nodeName ){
 
 
 
-bool coCoreConfig::			nodesGet( json_t** jsonObject ){
+bool coCoreConfig::         nodesGet( json_t** jsonObject ){
 	if( jsonObject == NULL ) return false;
 	if( this->jsonNodes == NULL ) return false;
 
@@ -262,7 +262,7 @@ bool coCoreConfig::			nodesGet( json_t** jsonObject ){
 }
 
 
-bool  coCoreConfig::		nodesGetAsArray( json_t* jsonArray ){
+bool  coCoreConfig::        nodesGetAsArray( json_t* jsonArray ){
 	if( jsonArray == NULL ) return false;
 	if( this->jsonNodes == NULL ) return false;
 	lockMyPthread();
@@ -283,7 +283,7 @@ bool  coCoreConfig::		nodesGetAsArray( json_t* jsonArray ){
 }
 
 
-void coCoreConfig::			nodeStatesRemove(){
+void coCoreConfig::         nodeStatesRemove(){
 	if( this->jsonNodes == NULL ) return;
 	lockMyPthread();
 
@@ -522,7 +522,7 @@ bool coCoreConfig::			nodesIterateFinish(){
 
 
     // user / password
-bool coCoreConfig::			authMethode(){
+bool coCoreConfig::         authMethode(){
     if(	this->jsonConfig == NULL ) return false;
 
 // get the methode
@@ -541,7 +541,7 @@ bool coCoreConfig::			authMethode(){
 }
 
 
-bool coCoreConfig::			userAdd( const char* username ){
+bool coCoreConfig::         userAdd( const char* username ){
     if(	this->jsonConfig == NULL ) return false;
 
 // all users
@@ -556,7 +556,7 @@ bool coCoreConfig::			userAdd( const char* username ){
 }
 
 
-bool coCoreConfig::			userCheck( const char* username, const char* password ){
+bool coCoreConfig::         userCheck( const char* username, const char* password ){
 
     return true;
 }
