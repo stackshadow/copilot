@@ -61,9 +61,9 @@ class psSubscriber {
     }
 
 }
-							
-							
-							~psSubscriber();
+                    
+                        
+                            ~psSubscriber();
 
 
         bool                publishValidate( const char* nodeTarget, const char* group ){
