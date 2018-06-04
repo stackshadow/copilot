@@ -18,8 +18,10 @@ LIST( APPEND LIBRARYS pthread )
 
 option( PLUGIN_SSL "Enable SSL" ON )
 if(PLUGIN_SSL)
-	file( GLOB srcCopilotd ${srcCopilotd} "../src/plugins/sslService.cpp" "../src/plugins/sslSession.cpp" )
-	LIST( APPEND LIBRARYS gnutls )
+    file( GLOB srcCopilotd ${srcCopilotd} "../src/plugins/sslService.cpp" "../src/plugins/sslSession.cpp" )
+    LIST( APPEND LIBRARYS gnutls )
+else()
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDISABLE_SSL" )
 endif()
 
 
