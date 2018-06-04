@@ -108,28 +108,23 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
 
     if( coCore::strIsExact("configGet",command,msgCommandLen) == true ){
 
-    // get passwords ( we dont want to send it over websocket...
-        json_t* adminpass = json_object_get( ldapServiceInst->jsonObjectConfig, "adminpass" );
-        json_t* loginpass = json_object_get( ldapServiceInst->jsonObjectConfig, "loginpass" );
-
+    // copy
+        json_t* configCopy = json_deep_copy( ldapServiceInst->jsonObjectConfig );
+        
     // remove it from object
-        json_incref(adminpass);
-        json_object_del( ldapServiceInst->jsonObjectConfig, "adminpass" );
-        json_incref(loginpass);
-        json_object_del( ldapServiceInst->jsonObjectConfig, "loginpass" );
+        json_object_del( configCopy, "adminpass" );
+        json_object_del( configCopy, "loginpass" );
 
     // dump
-        jsonTempString = json_dumps( ldapServiceInst->jsonObjectConfig, JSON_PRESERVE_ORDER | JSON_COMPACT );
+        jsonTempString = json_dumps( configCopy, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
         psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "config", jsonTempString );
 
     // cleanup
         free( jsonTempString );
+        json_decref( configCopy );
 
-    // save it back to json
-        json_object_set_new( ldapServiceInst->jsonObjectConfig, "adminpass", adminpass );
-        json_object_set_new( ldapServiceInst->jsonObjectConfig, "loginpass", loginpass );
 
         return psBus::END;
     }
@@ -171,7 +166,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         json_decref( jsonNewValues );
 
     // send message
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "saved", "" );
+        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "configSaved", "" );
 
         return psBus::END;
     }
@@ -252,13 +247,13 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
     }
 
 
-    if( coCore::strIsExact("status",command,msgCommandLen) == true ){
+    if( coCore::strIsExact("stateGet",command,msgCommandLen) == true ){
     connstate:
     // connected ?
         if( ldapServiceInst->ldapConnectionAdminActive && ldapServiceInst->ldapConnectionActive ){
-            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "connected", "connected" );
+            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "state", "connected" );
         } else {
-            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "disconnected", "disconnected" );
+            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "state", "disconnected" );
         }
 
         return psBus::END;
