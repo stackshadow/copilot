@@ -69,7 +69,7 @@ static struct option options[] = {
     { "debugNet",               no_argument,        NULL, 4 },
     { "nodename",               required_argument,  NULL, 10 },
     { "configpath",             required_argument,  NULL, 11 },
-	{ "setup",                  no_argument,        NULL, 20 },
+    { "setup",                  no_argument,        NULL, 20 },
     { "listConections",         no_argument,        NULL, 30 },
     { "createConnection",       required_argument,  NULL, 31 },
     { "createServe",            required_argument,  NULL, 32 },
@@ -253,7 +253,7 @@ int main( int argc, char *argv[] ){
 
 
 // ssl service
-#ifndef DISABLE_TLS
+#ifndef DISABLE_SSL
     sslService* ssl = new sslService();
 
     if( connectToHost == true ){
@@ -314,9 +314,9 @@ int main( int argc, char *argv[] ){
 
 // sshd-service
 #ifndef DISABLE_SSH
-	ssh_threads_set_callbacks( ssh_threads_get_pthread() );
-	ssh_init();
-	sshService* newSshService = new sshService();
+    ssh_threads_set_callbacks( ssh_threads_get_pthread() );
+    ssh_init();
+    sshService* newSshService = new sshService();
 
     if( connectToHost == true ){
         newSshService->connect( connectToHostName, connectToPort );
@@ -329,7 +329,7 @@ int main( int argc, char *argv[] ){
 // websocket-service
 #ifndef DISABLE_WEBSOCKET
     if( startWebSocket == true ){
-        uwebsocket*      wsPlugin = new uwebsocket( 3000 );
+        uwebsocket*      wsPlugin = new uwebsocket( 3333 );
     }
 #endif
 
