@@ -295,6 +295,11 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
             return psBus::END;
         }
+        
+        if( payload == NULL ){
+            etDebugMessage( etID_LEVEL_ERR, "can not get user. Username missing" );
+            return psBus::END;
+        }
 
     // vars
         json_t*         jsonUserlist = json_object();
@@ -433,7 +438,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         ///@todo Check if its an DN !
 
         // try to remove it
-            if( ldapServiceInst->removeDN( userName ) == true ){
+            if( ldapServiceInst->userDelete( userName ) == true ){
                 psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userDeleted", userName );
             } else {
                 psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotDeleted", userName );
@@ -1218,6 +1223,12 @@ bool ldapService::                  dump( json_t* jsonObjectOutput, const char *
 
 // iterate
     ldap_search_ext_s( this->ldapConnection, searchDN, searchScope, LDAPFilter, NULL, 0, NULL, NULL, &this->searchTimeout, 1024, &actualMessageArray );
+
+// check
+    if( actualMessageArray == NULL ){
+        etDebugMessage( etID_LEVEL_ERR, "No result aviable" );
+        return false;
+    }
 
 // iterate over messages
     actualMessage = ldap_first_entry( this->ldapConnection, actualMessageArray );
@@ -2103,6 +2114,27 @@ bool ldapService::                  userChange( const char* accountName, const c
     this->ldapModMemFree( &mods );
     return true;
 
+}
+
+
+bool ldapService::                  userDelete( const char* uid ){
+// not connected
+    if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
+    if( uid == NULL ) return false;
+
+    
+// create account-group
+    std::string     fullDN;
+
+// build dn
+    fullDN  = "uid=";
+    fullDN += uid;
+    fullDN += ",";
+    fullDN += this->userdn;
+    fullDN += ",";
+    fullDN += this->basedn;
+    
+    return this->removeDN( fullDN.c_str() );
 }
 
 

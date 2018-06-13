@@ -117,7 +117,7 @@ private:
     bool                userDumpMembership( const char* uid, json_t* jsonObjectOutput );
     bool                userAdd( const char* accountName );
     bool                userChange( const char* accountName, const char* passwordClearText, const char* mail = NULL );
-
+    bool                userDelete( const char* uid );
 
 
 // overloaded functions
