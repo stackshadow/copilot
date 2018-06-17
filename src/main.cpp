@@ -53,6 +53,7 @@ localhost:4567
 //#include "plugins/mqttService.h"
 //#include "plugins/ldapService.h"
 #include "plugins/syslogd.h"
+#include "plugins/mongodb.h"
 
 #ifndef DISABLE_EDB
 #include "plugins/eDB.h"
@@ -361,6 +362,11 @@ int main( int argc, char *argv[] ){
 	new eDB();
 #endif
 
+
+#ifndef DISABLE_MDB
+    new mongodb();
+
+#endif
 
 
 // Setup All plugins

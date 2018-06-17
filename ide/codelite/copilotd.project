@@ -55,6 +55,8 @@
       <File Name="../../src/develop/doDBTable.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="plugins">
+      <File Name="../../src/plugins/mongodb.h"/>
+      <File Name="../../src/plugins/mongodb.cpp"/>
       <File Name="../../src/plugins/uwebsockets.h"/>
       <File Name="../../src/plugins/uwebsockets.cpp"/>
       <File Name="../../src/plugins/eDB.cpp"/>
@@ -154,7 +156,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="./Debug" Command="$(ProjectPath)/../../cmake/copilotd" CommandArguments="--websocket --debugDB" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="$(ProjectPath)/../../" Command="/tmp/copilotd/copilotd" CommandArguments="--websocket --debugDB" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -165,25 +167,30 @@
         <StartupCommands/>
       </Debugger>
       <PreBuild>
-        <Command Enabled="yes">cd cmake</Command>
-        <Command Enabled="yes">cmake . \
+        <Command Enabled="yes">projPath=$PWD</Command>
+        <Command Enabled="yes">echo "projPath: ${projPath}"</Command>
+        <Command Enabled="yes">mkdir -p /tmp/copilotd</Command>
+        <Command Enabled="yes">cd /tmp/copilotd</Command>
+        <Command Enabled="yes">cmake ${projPath}/cmake \
+-DPLUGIN_SSL=OFF \
 -DPLUGIN_LDAP=ON \
--DPLUGIN_NFT=ON \
+-DPLUGIN_NFT=OFF \
 -DPLUGIN_STS=ON \
 -DPLUGIN_SYSTEMD=OFF \
 -DPLUGIN_WS=ON \
--DPLUGIN_DB=OFF</Command>
+-DPLUGIN_DB=OFF \
+-DPLUGIN_MDB=ON</Command>
       </PreBuild>
       <PostBuild/>
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
-        <CleanCommand>cd cmake &amp;&amp; make clean</CleanCommand>
+        <CleanCommand>make clean</CleanCommand>
         <BuildCommand>make</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>
         <ThirdPartyToolName>None</ThirdPartyToolName>
-        <WorkingDirectory>$(WorkspacePath)/../../</WorkingDirectory>
+        <WorkingDirectory>$(IntermediateDirectory)</WorkingDirectory>
       </CustomBuild>
       <AdditionalRules>
         <CustomPostBuild/>
@@ -200,7 +207,8 @@
 $(ProjectPath)/../../src
 $(ProjectPath)/../../src/plugins
 $(ProjectPath)/../../libs/evillib/core
-$(ProjectPath)/../../libs/evillib/extra</SearchPaths>
+$(ProjectPath)/../../libs/evillib/extra
+/usr/include/libmongoc-1.0</SearchPaths>
       </Completion>
     </Configuration>
     <Configuration Name="TestNode" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Dynamic Library" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">

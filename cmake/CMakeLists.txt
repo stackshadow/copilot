@@ -7,7 +7,6 @@ file( GLOB srcEvillib   "../src/evillib.c" )
 file( GLOB srcCopilotd  
 "../src/plugins/coreService.cpp"
 "../src/plugins/pubsub.cpp"
-"../src/main.cpp" 
 "../src/core/*.c" 
 "../src/core/*.cpp" )
 
@@ -83,6 +82,28 @@ else()
 endif()
 
 
+option( PLUGIN_MDB "Enable MongoDB" ON )
+if(PLUGIN_MDB)
+    find_package( libmongoc-1.0 1.7 REQUIRED )
+    
+    message ("-- mongoc found version \"${MONGOC_VERSION}\"")
+    message ("-- mongoc include path \"${MONGOC_INCLUDE_DIRS}\"")
+    message ("-- mongoc libraries \"${MONGOC_LIBRARIES}\"")
+
+
+    file( GLOB srcCopilotd ${srcCopilotd} "../src/plugins/mongodb.cpp" )
+    LIST( APPEND INCDIRS ${MONGOC_INCLUDE_DIRS} )
+    LIST( APPEND LIBRARYS ${MONGOC_LIBRARIES} )
+else()
+	set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Dmongodb_H" )
+    set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDISABLE_MDB" )
+endif()
+
+# add main.cpp
+file( GLOB srcCopilotd ${srcCopilotd} "../src/main.cpp" )
+
+
+
 include_directories( "../libs/evillib/core" ) 
 include_directories( "../libs/evillib/extra" )
 include_directories( "../libs/util-linux/libuuid/src" )
@@ -92,7 +113,7 @@ include_directories( "../src/core" )
 
 add_executable(copilotd ${srcEvillib} ${srcCopilotd})
 target_link_libraries( copilotd ${LIBRARYS} )
-
+target_include_directories( copilotd PRIVATE ${INCDIRS} )
 
 
 execute_process( COMMAND git log -n 1 --pretty=format:"%h %ai"
