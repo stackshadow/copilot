@@ -110,6 +110,7 @@ private:
     bool                groupMembersDump( const char* groupName, json_t* jsonObjectOutput );
     bool                groupAdd( const char* name );
     bool                groupChange( const char* name, const char* description );
+    bool                groupDelete( const char* name );
     bool                groupAddMember( const char* groupName, const char* memberUserName );
     bool                groupRemoveMember( const char* groupName, const char* memberUserName );
 

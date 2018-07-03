@@ -512,12 +512,20 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         }
 
     // vars
-        json_t*     jsonGrouplist = json_object();
+        json_t*         jsonGrouplist = json_object();
+        std::string     fullDN;
 
+    // build dn
+        fullDN  = "cn=";
+        fullDN += payload;
+        fullDN += ",";
+        fullDN += ldapServiceInst->groupdn;
+        fullDN += ",";
+        fullDN += ldapServiceInst->basedn;
 
     // dump ldap to json
         const char* attributes[] = { "cn", "description", NULL };
-        ldapServiceInst->dump( jsonGrouplist, attributes, payload, true );
+        ldapServiceInst->dump( jsonGrouplist, attributes, fullDN.c_str(), true );
 
     // dump json to string
         jsonTempString = json_dumps( jsonGrouplist, JSON_PRESERVE_ORDER | JSON_COMPACT );
@@ -592,10 +600,10 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
 
     // groupname
         const char* groupName = NULL;
-        jsonValue = json_object_get( jsonNewValues, "name" );
+        jsonValue = json_object_get( jsonNewValues, "cn" );
         if( jsonValue == NULL ){
             json_decref( jsonNewValues );
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'name' in json-object", __PRETTY_FUNCTION__ );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: No 'cn' in json-object", __PRETTY_FUNCTION__ );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
             return psBus::END;
         }
@@ -623,7 +631,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         if( action == 2 ){
         // password
             const char* description = NULL;
-            jsonValue = json_object_get( jsonNewValues, "desc" );
+            jsonValue = json_object_get( jsonNewValues, "description" );
             if( jsonValue != NULL ){
                 description = json_string_value( jsonValue );
             }
@@ -645,7 +653,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         ///@todo Check if its an DN !
 
         // try to remove it
-            if( ldapServiceInst->removeDN( groupName ) == true ){
+            if( ldapServiceInst->groupDelete( groupName ) ){
                 psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupDeleted", groupName );
             } else {
                 psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotDeleted", groupName );
@@ -897,7 +905,7 @@ bool ldapService::                  ldapModAppend( LDAPMod*** mod, int* LDAPModL
 
 bool ldapService::                  ldapModMemFree( LDAPMod*** mod ){
     if( mod == NULL ) return false;
-
+    if( *mod == NULL ) return false;
 
     LDAPMod**       mods = *mod;
     LDAPMod*        actualMod;
@@ -1788,7 +1796,7 @@ bool ldapService::                  groupChange( const char* name, const char* d
 
 
 // create account-group
-    LDAPMod**       mods;
+    LDAPMod**       mods = NULL;
     int             modsLen = 0;
     int             returnCode;
     std::string     fullDN;
@@ -1827,6 +1835,27 @@ bool ldapService::                  groupChange( const char* name, const char* d
 
     this->ldapModMemFree( &mods );
     return true;
+}
+
+
+bool ldapService::                  groupDelete( const char* name ){
+// not connected
+    if( this->ldapConnectionActive == false || this->ldapConnection == NULL ) return false;
+    if( name == NULL ) return false;
+
+    
+// create account-group
+    std::string     fullDN;
+
+// build dn
+    fullDN  = "cn=";
+    fullDN += name;
+    fullDN += ",";
+    fullDN += this->groupdn;
+    fullDN += ",";
+    fullDN += this->basedn;
+
+    return this->removeDN( fullDN.c_str() );
 }
 
 
