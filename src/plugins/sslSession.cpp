@@ -25,6 +25,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <sys/socket.h>
 #include <netdb.h>
 #include "pubsub.h"
+#include "uuid/uuid.h"
 
 #define SERV_PORT 11111
 #define MAX_LINE 4096
@@ -167,13 +168,16 @@ sslSession::                sslSession() {
 // allocate memory
     etStringAlloc( this->sessionHost );
 
-	this->remoteNoteName = NULL;
 
 // we use an global priority-cache
 // this cache selects the cipher in tls
 
     this->tlsSession = NULL;
 
+
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: sslSession", this );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    
 }
 
 
@@ -208,6 +212,8 @@ bool sslSession::           globalInit( const char* myNodeName ){
 // init tls
     gnutls_global_init();
     gnutls_global_set_log_level( 1 );
+    
+    //gnutls_crypto_init();
 
 // alloc priority cache
     gnutls_priority_init( &sslSession::priorityCache, "PFS", NULL);
@@ -604,11 +610,11 @@ bool sslSession::           pubKeyGetId( gnutls_pubkey_t publicKey, char* outBuf
     int                 ret;
 
 // clean
-    memset( rawKeyID, rawKeyIDSize, sizeof(unsigned char) );
-    memset( outBuffer, *outBufferSize, sizeof(char) );
+    memset( rawKeyID, 0, rawKeyIDSize * sizeof(unsigned char) );
+    memset( outBuffer, 0, *outBufferSize * sizeof(char) );
 
 // get raw size
-    gnutls_pubkey_get_key_id( publicKey, 0, rawKeyID, &rawKeyIDSize );
+    gnutls_pubkey_get_key_id( publicKey, GNUTLS_KEYID_USE_SHA1, rawKeyID, &rawKeyIDSize );
 
 
     gnutls_datum_t tmp;
@@ -634,9 +640,9 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
     size_t          fileSizeReaded;
     size_t          publicKeyBufferSize = 1024;
     size_t          publicKeyBufferSizeOut = publicKeyBufferSize;
-    char            publicKeyBuffer[publicKeyBufferSize];
+    char            publicKeyBuffer[publicKeyBufferSize]; memset( publicKeyBuffer, 0, publicKeyBufferSize );
     size_t          acceptedKeyBufferSize = 1024;
-    char            acceptedKeyBuffer[acceptedKeyBufferSize];
+    char            acceptedKeyBuffer[acceptedKeyBufferSize]; memset( acceptedKeyBuffer, 0, acceptedKeyBufferSize );
     size_t          bufferIndex = 0;
     const char*     sslKeyPath = NULL;
 
@@ -652,15 +658,22 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
     }
 
 
+// get key id
+    size_t keyIDHexSize = 50;
+    char keyIDHex[keyIDHexSize];
+    sslSession::pubKeyGetId( publicKey, keyIDHex, &keyIDHexSize );
+
 // generate full filename
 // get accepted key path
     etStringCharGet( sslSession::pathAcceptedKeys, sslKeyPath );
     fileName  = sslKeyPath;
     fileName += "/";
-    fileName += peerHostName;
+    fileName += keyIDHex;
 
 // first check if the key exist
     if( access( fileName.c_str(), F_OK ) != 0 ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] File '%s' dont exist.", keyIDHex, fileName.c_str() );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
         goto pinkey;
     }
 
@@ -680,12 +693,12 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
     fclose( file );
 
 // print file size
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s fileSize %ld", fileName.c_str(), fileSize );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] %s fileSize %ld", keyIDHex, fileName.c_str(), fileSize );
     etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
 // compare buffer size
     if( fileSizeReaded != publicKeyBufferSizeOut ){
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s keysize is different: %ld <> %ld", peerHostName, fileSizeReaded, publicKeyBufferSizeOut );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] %s keysize is different: %ld <> %ld", keyIDHex, peerHostName, fileSizeReaded, publicKeyBufferSizeOut );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
         return false;
     }
@@ -693,13 +706,13 @@ bool sslSession::           checkAcceptedKey( gnutls_pubkey_t publicKey, const c
 // compare buffer contents
     for( bufferIndex = 0; bufferIndex < publicKeyBufferSizeOut; bufferIndex++ ){
         if( publicKeyBuffer[bufferIndex] != acceptedKeyBuffer[bufferIndex] ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s key content differ", peerHostName );
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] %s key content differ", keyIDHex, peerHostName );
             etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
             return false;
         }
     }
 
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: accepted", peerHostName );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] accepted", keyIDHex );
     etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
     return true;
 
@@ -717,18 +730,18 @@ pinkey:
         fflush(file);
         fclose(file);
 
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: key pinned", peerHostName );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] key pinned", keyIDHex );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
         return true;
     } else {
         etStringCharGet( sslSession::pathRequestedKeys, sslKeyPath );
         fileName  = sslKeyPath;
         fileName += "/";
-        fileName += peerHostName;
+        fileName += keyIDHex;
 
 		file = fopen( fileName.c_str(), "w+" );
 		if( file == NULL ){
-			snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not create file %s", fileName.c_str() );
+			snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] Could not create file %s", keyIDHex, fileName.c_str() );
 			etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 			return false;
 		}
@@ -737,7 +750,7 @@ pinkey:
         fflush(file);
         fclose(file);
 
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s: key requested for acceptence", peerHostName );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] %s: key requested for acceptence", keyIDHex, peerHostName );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
         return false;
     }
@@ -796,6 +809,29 @@ int sslSession::            verifyPublikKeyCallback( gnutls_session_t session, b
 
 
 
+bool sslSession::           hashMessage( const char* message, char* outputBuffer, size_t outputBufferSize ){
+    
+    size_t              hashHexSize = 30;
+    unsigned char       hashHexBuffer[hashHexSize];
+    memset( hashHexBuffer, 0, hashHexSize );
+    
+    
+    gnutls_hash_fast( GNUTLS_DIG_SHA1, message, strlen(message), hashHexBuffer );
+
+    gnutls_datum_t tmp;
+    tmp.data = hashHexBuffer;
+    tmp.size = 20;
+
+    int ret = gnutls_hex_encode( &tmp, outputBuffer, &outputBufferSize );
+    if( ret != GNUTLS_E_SUCCESS ){
+        etDebugMessage( etID_LEVEL_ERR, gnutls_strerror( ret ) );
+        return false;
+    }
+    
+    return true;
+}
+
+
 
 
 
@@ -822,7 +858,6 @@ const char* sslSession::    host( const char* hostName ){
 
     return hostNameToReturn;
 }
-
 
 
 
@@ -882,8 +917,54 @@ bool sslSession::           certInfo( const char* fileName ){
 }
 
 
+bool sslSession::           sendJson( json_t* jsonObject ){
+
+// vars
+    const char*     myNodeName = coCore::ptr->nodeName();
+    const char*     msgID = NULL;
+    const char*     msgSource = NULL;
+    const char*     msgTarget = NULL;
+    const char*     msgGroup = NULL;
+    const char*     msgCommand = NULL;
+    char*           jsonString = NULL;
+
+// connected ?
+    if( this->sessionState < sslSession::CONNECTED ) return false;
+
+// get source/target from json
+    psBus::fromJson( jsonObject, &msgID, &msgSource, &msgTarget, &msgGroup, &msgCommand, NULL );
+
+// if there is a message for myHost we dont need to send it out to the world
+    if( strncmp(msgTarget,myNodeName,strlen(myNodeName)) == 0 ){
+        return false;
+    }
 
 
+// make sure we are the source
+    json_object_set_new( jsonObject, "s", json_string( coCore::ptr->nodeName() ) );
+
+// dump / send json
+    jsonString = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
+    if( jsonString != NULL ){
+
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen,
+        "[SEND] [%s -> %s] [%s - %s]",
+        msgSource, msgTarget,
+        msgGroup, msgCommand );
+        etDebugMessage( etID_LEVEL_DETAIL_NET, etDebugTempMessage );
+
+    // send it out
+        gnutls_record_send( this->tlsSession, jsonString, strlen(jsonString) );
+
+    // cleanup 
+        free( jsonString );
+
+    }
+
+// we dont have anything to reply, because the answer comes asynchron
+    return true;
+}
 
 
 
@@ -1006,25 +1087,31 @@ bool sslSession::           communicate(){
         etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
     }
 
-// request node name
-/*
-    etDebugMessage( etID_LEVEL_DETAIL_APP, "Request Nodename from peer" );
-    json_t* jsonTempNodeName = NULL;
-    psBus::toJson( &jsonTempNodeName, "","","","","getNodeName","" );
-    sslSession::psSubscriberJsonMessage( jsonTempNodeName, this );
-    json_decref(jsonTempNodeName);
-*/
 
+// We subscribe on the remote-node for our node
+    json_t*     jsonTempRequest = NULL;
+    char        jsonTempRequestString[128];
+    uuid_t      newUUID;
+    char        newUUIDString[37];
+        
 
-// send subscriptions to remote
     etDebugMessage( etID_LEVEL_DETAIL_APP, "send subscriptions to remote" );
-    json_t* jsonTempNodeName = NULL;
-    char subs[128]; memset(subs,0,128);
-    snprintf( subs, 128, "{ \"t\": \"%s\" }", coCore::ptr->nodeName() );
-    
-    psBus::toJson( &jsonTempNodeName, "","","","bus","subscribe",subs );
-    sslSession::psSubscriberJsonMessage( jsonTempNodeName, this );
-    json_decref(jsonTempNodeName);
+
+    memset( jsonTempRequestString, 0, 128 );
+    snprintf( jsonTempRequestString, 128, "{ \"t\": \"%s\" }", coCore::ptr->nodeName() );
+
+// generate an uuid
+    uuid_generate( newUUID );
+    uuid_unparse( newUUID, newUUIDString );
+    psBus::toJson( &jsonTempRequest, newUUIDString, "", "", "bus", "subscribe", jsonTempRequestString );
+    this->sendJson( jsonTempRequest );
+    json_decref(jsonTempRequest);
+
+    uuid_generate( newUUID );
+    uuid_unparse( newUUID, newUUIDString );
+    psBus::toJson( &jsonTempRequest, newUUIDString, "", "", "bus", "subscribe", "{ \"t\": \"all\" }" );
+    this->sendJson( jsonTempRequest );
+    json_decref(jsonTempRequest);
 
 
     for (;;){
@@ -1099,14 +1186,17 @@ bool sslSession::           communicate(){
 */
         
     // we subscribe ?
-        const char* jsonTempValueChar;
-        psBus::fromJson( jsonMessage, &jsonTempValueChar, NULL, NULL, NULL, NULL, NULL );
+        const char* nodeSource, *nodeID, *nodeCmd;
+        psBus::fromJson( jsonMessage, &nodeID, &nodeSource, NULL, NULL, &nodeCmd, NULL );
+        
 
-        // an external message should not come from us
-        if( coCore::ptr->isHostName( jsonTempValueChar ) == true ){
-            etDebugMessage( etID_LEVEL_ERR, "We recieve a message from another host with our hostname as source. Message will be dropped" );
+    // an external message should not come from us
+        if( coCore::ptr->isNodeName( nodeSource ) == true ){
+            etDebugMessage( etID_LEVEL_WARNING, "We recieve a message from another host with our hostname as source. Message will be dropped" );
         } else {
-            psBus::inst->publishOrSubscribe( jsonMessage, this, NULL, psSubscriberJsonMessage );
+
+            psBus::inst->publishOrSubscribe( this, jsonMessage, NULL, NULL, sslSession::onSubscriberMessage );
+
         }
 
 
@@ -1124,46 +1214,13 @@ bool sslSession::           communicate(){
 
 
 
-int sslSession::        psSubscriberJsonMessage( json_t* jsonObject, void* userdata ){
+int sslSession::            onSubscriberMessage( void* objectSource, json_t* jsonObject, void* userdata ){
 
 // vars
-    sslSession*     sslSessionInst = (sslSession*)userdata;
-    const char*     myNodeName = coCore::ptr->nodeName();
-    const char*     msgSource = NULL;
-    const char*     msgTarget = NULL;
-    const char*     msgGroup = NULL;
-    const char*     msgCommand = NULL;
-    char*           jsonString = NULL;
+    sslSession*     sslSessionInst = (sslSession*)objectSource;
 
-    if( sslSessionInst->sessionState < sslSession::CONNECTED ) return -1;
-
-// get source/target from json
-	psBus::fromJson( jsonObject, NULL, &msgSource, &msgTarget, &msgGroup, &msgCommand, NULL );
-	
-// if there is a message for myHost we dont need to send it out to the world
-    if( strncmp(msgTarget,myNodeName,strlen(myNodeName)) == 0 ){
-        return 0;
-    }
-    
-// make sure we are the source
-    json_object_set_new( jsonObject, "s", json_string( coCore::ptr->nodeName() ) );
-
-// dump / send json
-	jsonString = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
-	if( jsonString != NULL ){
-
-    // debug
-        snprintf( etDebugTempMessage, etDebugTempMessageLen,
-        "[SEND] [%s -> %s] [%s - %s]",
-        msgSource, msgTarget,
-        msgGroup, msgCommand );
-        etDebugMessage( etID_LEVEL_DETAIL_NET, etDebugTempMessage );
-
-
-        gnutls_record_send( sslSessionInst->tlsSession, jsonString, strlen(jsonString) );
-
-
-    }
+// send it out
+    sslSessionInst->sendJson( jsonObject );
 
 // we dont have anything to reply, because the answer comes asynchron
 	return 0;

@@ -78,7 +78,7 @@ class sslService {
 		bool 				onSetup();
 		bool				onExecute();
 
-		static int 			onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
+		static int 			onSubscriberMessage( void* objectSource, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
 		//int 				onSubscriberJsonMessage)( json_t* jsonObject, void* userdata );
 
 

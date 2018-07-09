@@ -28,17 +28,17 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include "pubsub.h"
 #include <string>
 
-coreService::                   		coreService() {
+coreService::                           coreService() {
 
 
 
 // subscribe
-	psBus::inst->subscribe( coCore::ptr->nodeName(), "co", this, coreService::onSubscriberMessage, NULL );
-	psBus::inst->subscribe( "all", "co", this, coreService::onSubscriberMessage, NULL );
+	psBus::inst->subscribe( this, coCore::ptr->nodeName(), "co", NULL, coreService::onSubscriberMessage, NULL );
+	psBus::inst->subscribe( this, "all", "co", NULL, coreService::onSubscriberMessage, NULL );
 }
 
 
-coreService::                   		~coreService(){
+coreService::                           ~coreService(){
 
 }
 
@@ -76,12 +76,12 @@ void coreService::                      appendKnownNodes( const char* nodeName )
 
 
 
-int coreService::                       onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
+int coreService::                       onSubscriberMessage( void* objectInstance, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
 
     // vars
-    coreService*		coreServiceInst = (coreService*)userdata;
+    coreService*        coreServiceInst = (coreService*)objectInstance;
     int                 msgCommandLen = 0;
-    const char*			myNodeName = coCore::ptr->nodeName();
+    const char*         myNodeName = coCore::ptr->nodeName();
 
     // check
     if( command == NULL ) return psBus::NEXT_SUBSCRIBER;
@@ -94,7 +94,7 @@ int coreService::                       onSubscriberMessage( const char* id, con
         if( strncmp(command,"ping",4) == 0 ){
             
         // publish
-            psBus::inst->publish( id, myNodeName, nodeSource, group, "pong", "" );
+            psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "pong", "" );
 
             return psBus::END;
         }
@@ -122,7 +122,7 @@ int coreService::                       onSubscriberMessage( const char* id, con
     // get version
     if( coCore::strIsExact("versionGet",command,msgCommandLen) == true ){
 
-        psBus::inst->publish( id, nodeTarget, nodeSource, group, "version", copilotVersion );
+        psBus::inst->publish( coreServiceInst, id, nodeTarget, nodeSource, group, "version", copilotVersion );
 
         return psBus::END;
     }
@@ -134,14 +134,14 @@ int coreService::                       onSubscriberMessage( const char* id, con
         nodesGet:
     // vars
         //json_t*			jsonArray = json_array();
-        json_t*			jsonObject = NULL;
-        char*			jsonArrayChar = NULL;
+        json_t*         jsonObject = NULL;
+        char*           jsonArrayChar = NULL;
 
         coCore::ptr->config->nodesGet( &jsonObject );
         jsonArrayChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // publish
-        psBus::inst->publish( id, myNodeName, nodeSource, group, "nodes", jsonArrayChar );
+        psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodes", jsonArrayChar );
         
     // free
         free(jsonArrayChar);
@@ -159,7 +159,7 @@ int coreService::                       onSubscriberMessage( const char* id, con
         char*			jsonArrayChar = NULL;
 
     // publish
-        psBus::inst->publish( id, myNodeName, nodeSource, group, "nodes", jsonArrayChar );
+        psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodes", jsonArrayChar );
         
         coCore::ptr->config->nodesIterate();
         if( coCore::ptr->config->nodeSelect( payload ) == false ){
@@ -176,7 +176,7 @@ int coreService::                       onSubscriberMessage( const char* id, con
         coCore::ptr->config->nodesIterateFinish();
 
     // publish
-        psBus::inst->publish( id, myNodeName, nodeSource, group, "nodeForEdit", jsonArrayChar );
+        psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodeForEdit", jsonArrayChar );
         
     // free
         free(jsonArrayChar);
@@ -192,10 +192,10 @@ int coreService::                       onSubscriberMessage( const char* id, con
     // add the message to list
         if( configSaved == true ){
         // publish
-            psBus::inst->publish( id, myNodeName, nodeSource, group, "configSaved", "" );
+            psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "configSaved", "" );
         } else {
         // publish
-            psBus::inst->publish( id, myNodeName, nodeSource, group, "configNotSaved", "" );
+            psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "configNotSaved", "" );
         }
 
         return psBus::END;
@@ -252,10 +252,10 @@ int coreService::                       onSubscriberMessage( const char* id, con
     // add the message to list
         if( configSaved == true ){
         // publish
-            psBus::inst->publish( id, myNodeName, nodeSource, group, "configSaved", "" );
+            psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "configSaved", "" );
         } else {
         // publish
-            psBus::inst->publish( id, myNodeName, nodeSource, group, "configNotSaved", "" );
+            psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "configNotSaved", "" );
         }
 
         return psBus::END;

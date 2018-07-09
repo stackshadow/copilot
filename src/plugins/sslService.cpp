@@ -42,7 +42,7 @@ sslService::                        sslService(){
 	etThreadListAlloc( &this->threadList );
 
 // subscribe
-	psBus::inst->subscribe( coCore::ptr->nodeName(), "cocom", this, sslService::onSubscriberMessage, NULL );
+	psBus::inst->subscribe( this, coCore::ptr->nodeName(), "cocom", NULL, sslService::onSubscriberMessage, NULL );
 
 }
 
@@ -161,10 +161,10 @@ bool sslService::                   onExecute(){
 
 
 
-int sslService::                    onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
+int sslService::                    onSubscriberMessage( void* objectSource, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
 
     // vars
-    sslService*                 sslServiceInst = (sslService*)userdata;
+    sslService*                 sslServiceInst = (sslService*)objectSource;
     json_error_t                jsonError;
     json_t*                     jsonPayload = NULL;
     json_t*                     jsonTempValue;
@@ -236,7 +236,7 @@ int sslService::                    onSubscriberMessage( const char* id, const c
         const char* jsonKeysChar = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     // add the message to list
-        psBus::inst->publish( id, nodeTarget, nodeSource, group, "requestKeys", jsonKeysChar );
+        psBus::inst->publish( sslServiceInst, id, nodeTarget, nodeSource, group, "requestKeys", jsonKeysChar );
         
     // cleanup and return
         free((void*)jsonKeysChar);
@@ -277,7 +277,7 @@ int sslService::                    onSubscriberMessage( const char* id, const c
         const char* jsonKeysChar = json_dumps( jsonKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     // add the message to list
-        psBus::inst->publish( id, nodeTarget, nodeSource, group, "acceptedKeys", jsonKeysChar );
+        psBus::inst->publish( sslServiceInst, id, nodeTarget, nodeSource, group, "acceptedKeys", jsonKeysChar );
         
     // cleanup and return
         free((void*)jsonKeysChar);
@@ -310,7 +310,7 @@ int sslService::                    onSubscriberMessage( const char* id, const c
         sslServiceInst->connectAll();
 
     // add the message to list
-        psBus::inst->publish( id, nodeTarget, nodeSource, group, "started", "" );
+        psBus::inst->publish( sslServiceInst, id, nodeTarget, nodeSource, group, "started", "" );
         return psBus::END;
     }
 
@@ -320,7 +320,7 @@ int sslService::                    onSubscriberMessage( const char* id, const c
         etThreadListCancelAll( sslServiceInst->threadList );
 
     // add the message to list
-        psBus::inst->publish( id, nodeTarget, nodeSource, group, "stoped", "" );
+        psBus::inst->publish( sslServiceInst, id, nodeTarget, nodeSource, group, "stoped", "" );
         
         return psBus::END;
     }
@@ -333,7 +333,7 @@ int sslService::                    onSubscriberMessage( const char* id, const c
         sslServiceInst->connectAll();
 
     // add the message to list
-        psBus::inst->publish( id, nodeTarget, nodeSource, group, "restarted", "" );
+        psBus::inst->publish( sslServiceInst, id, nodeTarget, nodeSource, group, "restarted", "" );
 
         return psBus::END;
     }
@@ -579,14 +579,14 @@ bool sslService::					acceptedKeyRemove( const char* fingerprint ){
 
 
 
-void sslService::					serve(){
+void sslService::                   serve(){
 
 // start the thread which wait for clients
 	etThreadListAdd( this->threadList, "ssl-server", sslService::serveThread, NULL, this );
 }
 
 
-void* sslService::					serveThread( void* void_service ){
+void* sslService::                  serveThread( void* void_service ){
 
 // vars
 	sslService*             service = (sslService*)void_service;

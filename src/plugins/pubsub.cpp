@@ -7,9 +7,10 @@
 
 
 class psSubscriber {
-	
-	
+
+
     private:
+        void*                       objectSource = NULL;
         char*                       nodeSource;
         char*                       nodeTarget;
         char*                       group;
@@ -20,10 +21,13 @@ class psSubscriber {
     public:
 
 
-                            psSubscriber( const char* nodeTarget, const char* group, void* userdata, psSubscriberMessage onMessage, psSubscriberJsonMessage jsonCallback ){
+                            psSubscriber( void* objectSource, const char* nodeTarget, const char* group, void* userdata, psSubscriberMessage onMessage, psSubscriberJsonMessage jsonCallback ){
 
 
-    size_t	memsize = 0;
+    size_t  memsize = 0;
+
+// remember object instance
+    this->objectSource = objectSource;
 
 // nodetarget
     if( nodeTarget != NULL ){
@@ -113,13 +117,27 @@ class psSubscriber {
         }
 
 
-        void                publish( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, bool broadcast = false ){
+        void                publish( void* objectSource, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, bool broadcast = false ){
+            
+            
+        // published message should not sended to source
+            if( this->objectSource == objectSource ){
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, 
+                "[%p]/[%s]: [%s]/[%s]/[%s] : [%s]/[%s] -> [%s] skip because reciever is also the sender", 
+                objectSource, nodeSource,
+                nodeTarget, group, command, 
+                this->nodeTarget, this->group, 
+                nodeTarget );
+                etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+                return;
+            }
             
         // validate ( only if not broadcast ... )
             if( broadcast == false ){
                 if( this->publishValidate(nodeTarget,group) == false ) return;
             } else {
-                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] -> [broadcast]/[%s]/[%s] -> [%p](onMessage)", nodeSource, group, command, this->onMessage );
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: [%s] -> [%s]/[%s] -> [%s] call [%p]%s", 
+                objectSource, nodeSource, group, command, nodeTarget, this->onMessage, "(onMessage) broadcast" );
                 etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
             }
 
@@ -127,31 +145,33 @@ class psSubscriber {
         // call callback
             if( this->onMessage != NULL ){
             // debug
-                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] -> [%s]/[%s]/[%s] -> [%p](onMessage)", nodeSource, nodeTarget, group, command, this->onMessage );
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: [%s] -> [%s]/[%s] -> [%s] call [%p]%s", 
+                objectSource, nodeSource, group, command, nodeTarget, this->onMessage, "(onMessage)" );
                 etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
                 
-                this->onMessage( id, this->nodeSource, this->nodeTarget, this->group, command, payload, this->userdata );
+                this->onMessage( this->objectSource, id, this->nodeSource, this->nodeTarget, this->group, command, payload, this->userdata );
             }
 
         //  call json-callback
             if( this->onJsonMessage != NULL ){
             // debug
-                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] -> [%s]/[%s]/[%s] -> [%p](onJsonMessage)", nodeSource, nodeTarget, group, command, this->onJsonMessage );
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: [%s] -> [%s]/[%s] -> [%s] call [%p]%s", 
+                objectSource, nodeSource, group, command, nodeTarget, this->onJsonMessage, "(onJsonMessage)" );
                 etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
                 
                 json_t* newJsonObject = NULL;
                 psBus::toJson( &newJsonObject, id, nodeSource, nodeTarget, group, command, payload );
-                this->onJsonMessage( newJsonObject, this->userdata );
+                this->onJsonMessage( this->objectSource, newJsonObject, this->userdata );
                 
                 json_decref( newJsonObject );
             }
 
 
-    return;
+        return;
     }
 
 
-        void                publish( json_t* jsonObject, bool broadcast = false ){
+        void                publish( void* objectSource, json_t* jsonObject, bool broadcast = false ){
             
 
         // vars
@@ -165,9 +185,20 @@ class psSubscriber {
             
             
         // target and group
-            psBus::fromJson( jsonObject, NULL, NULL, &msgNodeTarget, &msgGroup, NULL, NULL );
+            psBus::fromJson( jsonObject, &msgID, &msgNodeSource, &msgNodeTarget, &msgGroup, &msgCommand, NULL );
 
-        
+        // published message should not sended to source
+            if( this->objectSource == objectSource ){
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, 
+                "[%p]/[%s]: [%s]/[%s]/[%s] : [%s]/[%s] -> [%s] skip because reciever is also the sender", 
+                objectSource, msgNodeSource,
+                msgNodeTarget, msgGroup, msgCommand, 
+                this->nodeTarget, this->group, 
+                nodeTarget );
+                etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+                return;
+            }
+
         // validate ( only if not broadcast ... )
             if( broadcast == false ){
                 if( this->publishValidate(msgNodeTarget,msgGroup) == false ) return;
@@ -181,10 +212,11 @@ class psSubscriber {
                         
 
             // debug
-                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] -> [%s]/[%s]/[%s] -> [%p](onMessage)", msgNodeSource, nodeTarget, msgGroup, msgCommand, this->onMessage );
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: [%s] -> [%s]/[%s] -> [%s] call [%p]%s", 
+                objectSource, nodeSource, group, msgCommand, nodeTarget, this->onMessage, "(onMessage)" );
                 etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
                 
-                this->onMessage( msgID, msgNodeSource, msgNodeTarget, msgGroup, msgCommand, msgValue, this->userdata );
+                this->onMessage( this->objectSource, msgID, msgNodeSource, msgNodeTarget, msgGroup, msgCommand, msgValue, this->userdata );
             }
             
         //  call json-callback
@@ -195,10 +227,11 @@ class psSubscriber {
                 if( jsonObjectValue != NULL ) msgCommand = json_string_value( jsonObjectValue );
                 
             // debug
-                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] -> [%s]/[%s]/[%s] -> [%p](onJsonMessage)", msgNodeSource, nodeTarget, msgGroup, msgCommand, this->onJsonMessage );
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: [%s] -> [%s]/[%s] -> [%s] call [%p]%s", 
+                objectSource, nodeSource, group, msgCommand, nodeTarget, this->onJsonMessage, "(onJsonMessage)" );
                 etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
-                this->onJsonMessage( jsonObject, this->userdata );
+                this->onJsonMessage( this->objectSource, jsonObject, this->userdata );
             }
 
         }
@@ -324,7 +357,7 @@ bool psBus::                fromJson( json_t* jsonObject, const char** id, const
 
 
 
-void psBus::				subscribe( const char* nodeTarget, const char* group, void* userdata, psSubscriberMessage callback, psSubscriberJsonMessage jsonCallback ){
+void psBus::                subscribe( void* objectSource, const char* nodeTarget, const char* group, void* userdata, psSubscriberMessage callback, psSubscriberJsonMessage jsonCallback ){
 	lockPthread(this->psSubscriberArrayLock);
 
 // allocate a new array
@@ -341,51 +374,51 @@ void psBus::				subscribe( const char* nodeTarget, const char* group, void* user
 	this->psSubscriberArray = psSubscriberNewArray;
 	
 // create / save
-	psSubscriber* subscriber = new psSubscriber( nodeTarget, group, userdata, callback, jsonCallback );
+	psSubscriber* subscriber = new psSubscriber( objectSource, nodeTarget, group, userdata, callback, jsonCallback );
 	this->psSubscriberArray[this->psSubscriberArrayLen - 1] = subscriber;
 
 	unlockPthread(this->psSubscriberArrayLock);
 }
 
 
-void psBus::				publish( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload ){
+void psBus::                publish( void* objectSource, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload ){
 	lockPthread(this->psSubscriberArrayLock);
 
 // vars
-    psSubscriber*	subscriber = NULL;
-    size_t			index = 0;
-	
-	
-	for( index = 0; index < this->psSubscriberArrayLen; index++ ){
-		subscriber = (psSubscriber*)this->psSubscriberArray[index];
-		subscriber->publish( id, nodeSource, nodeTarget, group, command, payload );
-	}
+    psSubscriber*   subscriber = NULL;
+    size_t          index = 0;
 
 
-	unlockPthread(this->psSubscriberArrayLock);
+    for( index = 0; index < this->psSubscriberArrayLen; index++ ){
+        subscriber = (psSubscriber*)this->psSubscriberArray[index];
+        subscriber->publish( objectSource, id, nodeSource, nodeTarget, group, command, payload );
+    }
+
+
+    unlockPthread(this->psSubscriberArrayLock);
 }
 
 
-void psBus::				publish( json_t* jsonObject ){
-	lockPthread(this->psSubscriberArrayLock);
+void psBus::                publish( void* objectSource, json_t* jsonObject ){
+    lockPthread(this->psSubscriberArrayLock);
 
 // vars
-    psSubscriber*	subscriber = NULL;
-    size_t			index = 0;
-	
-	
-	for( index = 0; index < this->psSubscriberArrayLen; index++ ){
-		subscriber = (psSubscriber*)this->psSubscriberArray[index];
-		subscriber->publish( jsonObject );
-	}
+    psSubscriber*   subscriber = NULL;
+    size_t          index = 0;
 
 
-	unlockPthread(this->psSubscriberArrayLock);
+    for( index = 0; index < this->psSubscriberArrayLen; index++ ){
+        subscriber = (psSubscriber*)this->psSubscriberArray[index];
+        subscriber->publish( objectSource, jsonObject );
+    }
+
+
+    unlockPthread(this->psSubscriberArrayLock);
 }
 
 // this function checks for subscibe message inside the payload
 // this is for plugins which subscribe for external stuff, like ssl/websockets
-void psBus::                publishOrSubscribe( json_t* jsonObject, void* userdata, psSubscriberMessage callback, psSubscriberJsonMessage jsonCallback ){
+void psBus::                publishOrSubscribe( void* objectSource, json_t* jsonObject, void* userdata, psSubscriberMessage callback, psSubscriberJsonMessage jsonCallback ){
 
 
     const char* msgGroup;
@@ -428,15 +461,16 @@ void psBus::                publishOrSubscribe( json_t* jsonObject, void* userda
         }
 
     // subscribe
-        this->subscribe( subscribeTarget, subscribeGroup, userdata, callback, jsonCallback );
+        this->subscribe( objectSource, subscribeTarget, subscribeGroup, userdata, callback, jsonCallback );
         
     // cleanup
         json_decref(jsonSubscribe);
         
+        return;
     }
 
 // publish it
-    this->publish( jsonObject );
+    this->publish( objectSource, jsonObject );
 }
 
 

@@ -113,7 +113,7 @@ private:
 public:
 // handlers
 
-	static int 					onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
+	static int 					onSubscriberMessage( void* objectInstance, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
 
 
 };

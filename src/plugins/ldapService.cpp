@@ -79,7 +79,7 @@ ldapService::                       ldapService() {
 
 */
 // subscribe
-	psBus::inst->subscribe( coCore::ptr->nodeName(), "ldap", this, ldapService::onSubscriberMessage, NULL );
+	psBus::inst->subscribe( this, coCore::ptr->nodeName(), "ldap", NULL, ldapService::onSubscriberMessage, NULL );
 }
 
 
@@ -90,11 +90,11 @@ ldapService::                       ~ldapService(){
 
 
 
-int ldapService::                   onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
+int ldapService::                   onSubscriberMessage( void* objectSource, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
 
     // vars
     int                 msgCommandLen = 0;
-    ldapService*		ldapServiceInst = (ldapService*)userdata;
+    ldapService*		ldapServiceInst = (ldapService*)objectSource;
     const char*			myNodeName = coCore::ptr->nodeName();
     char*               jsonTempString = NULL;
 
@@ -119,7 +119,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         jsonTempString = json_dumps( configCopy, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "config", jsonTempString );
+        psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "config", jsonTempString );
 
     // cleanup
         free( jsonTempString );
@@ -166,7 +166,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         json_decref( jsonNewValues );
 
     // send message
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "configSaved", "" );
+        psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "configSaved", "" );
 
         return psBus::END;
     }
@@ -251,9 +251,9 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
     connstate:
     // connected ?
         if( ldapServiceInst->ldapConnectionAdminActive && ldapServiceInst->ldapConnectionActive ){
-            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "state", "connected" );
+            psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "state", "connected" );
         } else {
-            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "state", "disconnected" );
+            psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "state", "disconnected" );
         }
 
         return psBus::END;
@@ -279,7 +279,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         jsonTempString = json_dumps( jsonUserlist, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "users", jsonTempString );
+        psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "users", jsonTempString );
 
     // cleanup
         free( jsonTempString );
@@ -321,7 +321,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         jsonTempString = json_dumps( jsonUserlist, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "user", jsonTempString );
+        psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "user", jsonTempString );
 
     // cleanup
         free( jsonTempString );
@@ -334,7 +334,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
     if( coCore::strIsExact("userMod",command,msgCommandLen) == true ){
     // connected ?
         if( ldapServiceInst->ldapConnection == NULL || ldapServiceInst->ldapConnectionActive == false ){
-            psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotChanged", "no connection" );
+            psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userNotChanged", "no connection" );
             return psBus::END;
         }
 
@@ -387,10 +387,10 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
             // we also dont return from this function !
                 action = 2;
 
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userAdded", userName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userAdded", userName );
             } else {
                 
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotAdded", userName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userNotAdded", userName );
 
                 json_decref( jsonNewValues );
                 return psBus::END;
@@ -415,9 +415,9 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
             }
 
             if( ldapServiceInst->userChange( userName, userPassword, userMail ) ){
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userChanged", userName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userChanged", userName );
             } else {
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotChanged", userName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userNotChanged", userName );
             }
 
             json_decref( jsonNewValues );
@@ -429,7 +429,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
 
         // we can not delete dummyMember !
             if( strncmp( "uid=dummyMember",userName, 14 ) == 0 ){
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotDeleted", userName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userNotDeleted", userName );
                 json_decref( jsonNewValues );
                 return psBus::END;
             }
@@ -439,9 +439,9 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
 
         // try to remove it
             if( ldapServiceInst->userDelete( userName ) == true ){
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userDeleted", userName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userDeleted", userName );
             } else {
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userNotDeleted", userName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userNotDeleted", userName );
             }
         }
 
@@ -468,7 +468,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         jsonTempString = json_dumps( jsonGroups, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "userMembers", jsonTempString );
+        psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "userMembers", jsonTempString );
 
     // cleanup
         free( jsonTempString );
@@ -494,7 +494,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         jsonTempString = json_dumps( jsonGrouplist, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groups", jsonTempString );
+        psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groups", jsonTempString );
 
     // cleanup
         free( jsonTempString );
@@ -531,7 +531,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         jsonTempString = json_dumps( jsonGrouplist, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "group", jsonTempString );
+        psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "group", jsonTempString );
 
     // cleanup
         free( jsonTempString );
@@ -558,7 +558,7 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         jsonTempString = json_dumps( jsonMemberList, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // add the message to list
-        psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupmembers", jsonTempString );
+        psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupmembers", jsonTempString );
 
     // cleanup
         free( jsonTempString );
@@ -618,9 +618,9 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
             // we also dont return from this function !
                 action = 2;
 
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupAdded", groupName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupAdded", groupName );
             } else {
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotAdded", groupName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupNotAdded", groupName );
 
                 json_decref( jsonNewValues );
                 return psBus::END;
@@ -637,9 +637,9 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
             }
 
             if( ldapServiceInst->groupChange( groupName, description ) ){
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
             } else {
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
             }
 
             json_decref( jsonNewValues );
@@ -654,9 +654,9 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
 
         // try to remove it
             if( ldapServiceInst->groupDelete( groupName ) ){
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupDeleted", groupName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupDeleted", groupName );
             } else {
-                psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotDeleted", groupName );
+                psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupNotDeleted", groupName );
             }
 
             json_decref( jsonNewValues );
@@ -680,18 +680,18 @@ int ldapService::                   onSubscriberMessage( const char* id, const c
         // add user to group
             if( action == 4 ){
                 if( ldapServiceInst->groupAddMember( groupName, memberUserName ) ){
-                    psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
+                    psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
                 } else {
-                    psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
+                    psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
                 }
             }
 
         // remove user to group
             if( action == 5 ){
                 if( ldapServiceInst->groupRemoveMember( groupName, memberUserName ) ){
-                    psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
+                    psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupChanged", groupName );
                 } else {
-                    psBus::inst->publish( id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
+                    psBus::inst->publish( ldapServiceInst, id, myNodeName, nodeSource, "ldap", "groupNotChanged", groupName );
                 }
             }
 
@@ -826,7 +826,7 @@ bool ldapService::                  connect( LDAP** connection, int* ldapVersion
         etDebugMessage( etID_LEVEL_ERR, errorMessage );
 
     // send message
-		psBus::inst->publish( NULL, coCore::ptr->nodeName(), NULL, "ldap", "msgError", errorMessage );
+		psBus::inst->publish( this, NULL, coCore::ptr->nodeName(), NULL, "ldap", "msgError", errorMessage );
 
         *connection = NULL;
         return false;

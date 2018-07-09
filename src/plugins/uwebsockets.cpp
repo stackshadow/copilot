@@ -24,9 +24,12 @@ uwebsocket::                        uwebsocket( int wsPort )  {
     pthread_setname_np( this->thread, threadName );
     pthread_detach( this->thread );
 
-
+// debug 
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: uwebsocket", this );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    
 // subscribe
-    psBus::inst->subscribe( NULL, NULL, this, NULL, uwebsocket::onSubscriberJsonMessage );
+    psBus::inst->subscribe( this, NULL, NULL, NULL, NULL, uwebsocket::onSubscriberJsonMessage );
 
 
 }
@@ -96,7 +99,7 @@ void uwebsocket::                   onMessage( uWS::WebSocket<uWS::SERVER> *serv
     // get a new json
         json_t*		newJsonAnswer = NULL;
         psBus::toJson( &newJsonAnswer, msgID, msgTarget, msgSource, msgGroup, "nodeName", coCore::ptr->nodeName() );
-        uwebsocket::onSubscriberJsonMessage( newJsonAnswer, this );
+        uwebsocket::onSubscriberJsonMessage( this, newJsonAnswer, NULL );
         json_decref( newJsonAnswer );
 
         return;
@@ -112,7 +115,7 @@ void uwebsocket::                   onMessage( uWS::WebSocket<uWS::SERVER> *serv
             psBus::toJson( &newJsonAnswer, msgID, msgTarget, msgSource, msgGroup, "authMethode", "password" );
         }
         
-        uwebsocket::onSubscriberJsonMessage( newJsonAnswer, this );
+        uwebsocket::onSubscriberJsonMessage( this, newJsonAnswer, NULL );
         json_decref( newJsonAnswer );
 
         return;
@@ -146,7 +149,7 @@ void uwebsocket::                   onMessage( uWS::WebSocket<uWS::SERVER> *serv
 
 
 
-        psBus::inst->publish( msgID, msgTarget, msgSource, msgGroup, "loginok", "" );
+        psBus::inst->publish( this, msgID, msgTarget, msgSource, msgGroup, "loginok", "" );
         return;
     }
 
@@ -163,13 +166,13 @@ checkAuth:
 
 
     json_object_set_new( jsonObject, "s", json_string("wsclient") );
-    psBus::inst->publish( jsonObject );
+    psBus::inst->publish( this, jsonObject );
 }
 
 
 
 
-int uwebsocket::                    onSubscriberMessage( const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
+int uwebsocket::                    onSubscriberMessage( void* objectSource, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
 
 
 
@@ -177,9 +180,9 @@ int uwebsocket::                    onSubscriberMessage( const char* id, const c
 }
 
 
-int uwebsocket::                    onSubscriberJsonMessage( json_t* jsonObject, void* userdata ){
+int uwebsocket::                    onSubscriberJsonMessage( void* objectSource, json_t* jsonObject, void* userdata ){
 // vars
-    uwebsocket*         uwebsocketInstance = (uwebsocket*)userdata;
+    uwebsocket*         uwebsocketInstance = (uwebsocket*)objectSource;
     json_t*             jsonTempObject = NULL;
     const char*         jsonTempObjectChar = NULL;
     

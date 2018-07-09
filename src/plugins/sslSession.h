@@ -30,6 +30,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <gnutls/gnutls.h>
 #include <gnutls/x509.h>
 #include <gnutls/abstract.h>
+#include <gnutls/crypto.h>
 
 //#include "coPlugin.h"
 #include "coCoreConfig.h"
@@ -64,14 +65,14 @@ class sslSession {
         static gnutls_certificate_credentials_t clientCerts;
 
         sslSession::state_t                 sessionState = UNKNOW;
-		etString*			                sessionHost = NULL;
+        etString*                           sessionHost = NULL;
         int                                 sessionPort = 4567;
 
     public:
-        static etString*    pathMyKeys;
-        static etString*    pathAcceptedKeys;
-        static etString*    pathRequestedKeys;
-		etString*			remoteNoteName;
+        static etString*                    pathMyKeys;
+        static etString*                    pathAcceptedKeys;
+        static etString*                    pathRequestedKeys;
+        
 
 
         int                                 socketChannel;
@@ -80,9 +81,12 @@ class sslSession {
         gnutls_session_t                    tlsSession;
         sslSessionServerOnNewPeerCallback*  newPeerCallbackFunct = NULL;
         void*                               userdata;
+        
 
+        
+        
 // public functions
-	public:
+    public:
                             sslSession();
                             ~sslSession();
 
@@ -109,7 +113,8 @@ class sslSession {
         static int          verifyPublikKeyOnClientCallback( gnutls_session_t session ) { return sslSession::verifyPublikKeyCallback( session, true ); };    // with pinning
         static int          verifyPublikKeyCallback( gnutls_session_t session, bool pinning );
 
-
+// useful stuff
+        static bool         hashMessage( const char* message, char* outputBuffer, size_t outputBufferSize );
 
 
 
@@ -121,6 +126,8 @@ class sslSession {
         const char*         host( const char* hostName = NULL );
 
         bool                certInfo( const char* name );
+        
+        bool                sendJson( json_t* jsonObject );
 
 // ######################################## server / client ########################################
     public:
@@ -133,7 +140,7 @@ class sslSession {
 
 
 // ######################################## API ########################################
-		static int 			psSubscriberJsonMessage( json_t* jsonObject, void* userdata );
+        static int          onSubscriberMessage( void* objectSource, json_t* jsonObject, void* userdata );
 
 
 };
