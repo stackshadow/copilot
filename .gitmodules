@@ -6,3 +6,6 @@
 	path = libs/util-linux
 	url = https://git.kernel.org/pub/scm/utils/util-linux/util-linux.git
 	branch = v2.30.2
+[submodule "libs/uWebSockets"]
+	path = libs/uWebSockets
+	url = https://github.com/uNetworking/uWebSockets.git

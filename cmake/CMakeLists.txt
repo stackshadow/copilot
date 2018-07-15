@@ -1,14 +1,20 @@
 cmake_minimum_required(VERSION 2.6)
 project(copilotd)
 
-
+# sources - evillib
 file( GLOB srcEvillib   "../src/evillib.c" )
 
+# sources - copilotd
 file( GLOB srcCopilotd  
 "../src/plugins/coreService.cpp"
 "../src/plugins/pubsub.cpp"
 "../src/core/*.c" 
 "../src/core/*.cpp" )
+
+# sources - uwebsocket
+file( GLOB srcUWebSockets
+    "../libs/uWebSockets/src/*.cpp"
+)
 
 # This we need
 LIST( APPEND LIBRARYS sodium )
@@ -26,9 +32,9 @@ endif()
 
 option( PLUGIN_WS "Enable Websocket" OFF )
 if(PLUGIN_WS)
-	file( GLOB srcCopilotd ${srcCopilotd} "../src/plugins/uwebsockets.cpp" )
+	file( GLOB srcCopilotd ${srcCopilotd} ${srcUWebSockets} "../src/plugins/uwebsockets.cpp" )
 	include_directories( "/usr/include/uWS" )
-	LIST( APPEND LIBRARYS uWS )
+#	LIST( APPEND LIBRARYS uWS )
 	LIST( APPEND LIBRARYS ssl )
 	LIST( APPEND LIBRARYS crypto )
 	LIST( APPEND LIBRARYS z )
@@ -100,10 +106,10 @@ else()
 endif()
 
 # add main.cpp
-file( GLOB srcCopilotd ${srcCopilotd} "../src/main.cpp" )
+file( GLOB srcCopilotd ${srcCopilotd}  "../src/main.cpp" )
 
 
-
+include_directories( "../libs/uWebSockets/src" ) 
 include_directories( "../libs/evillib/core" ) 
 include_directories( "../libs/evillib/extra" )
 include_directories( "../libs/util-linux/libuuid/src" )
