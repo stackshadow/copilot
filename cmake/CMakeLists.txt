@@ -120,7 +120,7 @@ include_directories( "../src/core" )
 add_executable(copilotd ${srcEvillib} ${srcCopilotd})
 target_link_libraries( copilotd ${LIBRARYS} )
 target_include_directories( copilotd PRIVATE ${INCDIRS} )
-
+install( TARGETS copilotd RUNTIME DESTINATION bin )
 
 execute_process( COMMAND git log -n 1 --pretty=format:"%h %ai"
                  OUTPUT_VARIABLE GITVERSION
