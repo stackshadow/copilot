@@ -170,19 +170,19 @@ bool coCoreConfig::         save( const char* jsonString ){
 
 
 // save the json to file
-	if( json_dump_file( this->jsonConfig, configFile.c_str(), JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
-		snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s%s", configFile.c_str(), "core.json" );
-		etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    if( json_dump_file( this->jsonConfig, configFile.c_str(), JSON_PRESERVE_ORDER | JSON_INDENT(4) ) == 0 ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Save config to %s", configFile.c_str() );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
-		unlockMyPthread();
-		return true;
-	}
+        unlockMyPthread();
+        return true;
+    }
 
 // error
-	snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not save config-file to %s%s", configFile.c_str(), "core.json" );
-	etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-	unlockMyPthread();
-	return false;
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Could not save config-file to %s%s", configFile.c_str(), "core.json" );
+    etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+    unlockMyPthread();
+    return false;
 }
 
 
