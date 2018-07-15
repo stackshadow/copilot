@@ -66,8 +66,9 @@ localhost:4567
 static struct option options[] = {
     { "help",                   no_argument,        NULL, 1 },
     { "debug",                  no_argument,        NULL, 2 },
-    { "debugDB",                no_argument,        NULL, 3 },
-    { "debugNet",               no_argument,        NULL, 4 },
+    { "debugApp",               no_argument,        NULL, 3 },
+    { "debugDB",                no_argument,        NULL, 4 },
+    { "debugNet",               no_argument,        NULL, 5 },
     { "nodename",               required_argument,  NULL, 10 },
     { "configpath",             required_argument,  NULL, 11 },
     { "setup",                  no_argument,        NULL, 20 },
@@ -109,7 +110,6 @@ int main( int argc, char *argv[] ){
     coCore*         core = new coCore();
 
 
-
 // parse options
     int             optionSelected = 0;
 
@@ -144,6 +144,7 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, _("Usage: %s\n"), argv[0] );
                 fprintf( stdout, _("--help: Show this help\n") );
 				fprintf( stdout, _("--debug: Enable debug messages\n") );
+                fprintf( stdout, _("--debugApp: Enable debug APP messages\n") );
 				fprintf( stdout, _("--debugDB: Enable debug of querys ( WARNING, CAN CONTAIN SENSITIVE DATA, LIKE PASSWORDS )\n") );
                 fprintf( stdout, _("--debugNet: Enable network debug messages\n") );
                 fprintf( stdout, _("--nodename <nodename>: Set the nodename ( if you dont set the nodename, your hostname will be used )\n") );
@@ -167,11 +168,15 @@ int main( int argc, char *argv[] ){
                 break;
 
             case 3:
+                etDebugLevelSet( etID_LEVEL_DETAIL_APP );
+                break;
+                
+            case 4:
                 etDebugLevelSet( etID_LEVEL_DETAIL_DB );
                 break;
 
-            case 4:
-                etDebugLevelSet( etID_LEVEL_DETAIL_PROCESS );
+            case 5:
+                etDebugLevelSet( etID_LEVEL_DETAIL_NET );
                 break;
 
             case 10:
