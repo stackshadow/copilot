@@ -42,8 +42,11 @@ localhost:4567
 
 // plugins
 //#include "plugins/qwebsocket.h"
+#include "plugins/lsslService.h"
+
 #include "plugins/sslService.h"
 #include "plugins/sslSession.h"
+
 #include "plugins/uwebsockets.h"
 #include "plugins/coreService.h"
 #include "plugins/sysState.h"
@@ -312,6 +315,14 @@ int main( int argc, char *argv[] ){
 
     ssl->serve();
     ssl->connectAll();
+#endif
+
+
+
+#ifndef DISABLE_LTLS
+
+    lsslService* tls = new lsslService();
+
 #endif
 
 
