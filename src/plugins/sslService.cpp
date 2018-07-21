@@ -589,7 +589,7 @@ void sslService::                   serve(){
 void* sslService::                  serveThread( void* void_service ){
 
 // vars
-	sslService*             service = (sslService*)void_service;
+	sslService*             service = NULL;
     const char*             serverHost = NULL;
     int                     serverPort = 0;
     int                     socketChannel;
@@ -601,6 +601,8 @@ void* sslService::                  serveThread( void* void_service ){
     int                     clientHostNameSize = 1024;
     char                    clientHostName[clientHostNameSize];
 
+// get service-instance
+    etThreadListUserdataGet( (threadListItem_t*)void_service, &service );
 
 // get the server infos
     coCore::ptr->config->nodesIterate();

@@ -1145,45 +1145,7 @@ bool sslSession::           communicate(){
             continue;
         }
         
-/*
-    // did we recieve a remote node name ?
-        if( this->remoteNoteName == NULL ){
-            
-        // check jsonMessage for nodename
-            json_t* jsonNodeName = NULL;
-            const char*     msgCommand = NULL;
-            const char*     msgPayload = NULL;
-            
-            psBus::fromJson( jsonMessage, NULL, NULL, NULL, NULL, &msgCommand, &msgPayload );
 
-        // request of nodename ?
-            if( strncmp(msgCommand,"getNodeName",11) == 0 ){
-            // we dont need anymore the old message
-                json_decref(jsonMessage);
-                
-                etDebugMessage( etID_LEVEL_DETAIL_APP, "Send Nodename to peer" );
-                psBus::toJson( &jsonMessage, "", "", "", "", "nodename", coCore::ptr->nodeName() );
-                sslSession::psSubscriberJsonMessage( jsonMessage, this );
-                json_decref(jsonMessage);
-                usleep( 5000 );
-                continue;
-            }
-
-        // we get a node name, yeah
-            if( strncmp(msgCommand,"nodename",8) == 0 ){
-                etStringAlloc( this->remoteNoteName );
-                etStringCharSet( this->remoteNoteName, msgPayload, -1 );
-                
-                snprintf( etDebugTempMessage, etDebugTempMessageLen, "Get nodename '%s' from peer", msgPayload );
-                etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-            }
-            
-            
-            json_decref(jsonMessage);
-            usleep( 5000 );
-            continue;
-        }
-*/
         
     // we subscribe ?
         const char* nodeSource, *nodeID, *nodeCmd;
