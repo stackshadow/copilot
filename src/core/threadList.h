@@ -34,34 +34,49 @@ extern "C" {
 typedef void*(*threadFunctionStart)(void *);
 typedef void*(*threadFunctionStop)(void *);
 
-
 typedef struct threadListItem_s {
-	pthread_t				thread;
-	char 					threadName[16];
-	
-	threadFunctionStart		functionStart;
-	threadFunctionStop		functionCancel;
-	void*					functionData;
+    pthread_t               thread;
+    char                    threadName[16];
+    
+    threadFunctionStart     functionStart;
+    threadFunctionStop      functionCancel;
+    void*                   functionData;
+    
+    char                    cancelRequest;
 } threadListItem_t;
 
 typedef struct threadList_s {
-	threadListItem_t**		items;
-	int						count;
+    threadListItem_t**      items;
+    int                     count;
 } threadList_t;
 
+// some callback functions
+typedef void*(*threadIterationFunction)(threadListItem_t*,void*);
 
 
 
-etID_STATE 		etThreadListAlloc( threadList_t** threadList );
+etID_STATE      etThreadListAlloc( threadList_t** threadList );
 
 
-etID_STATE 		etThreadListFree( threadList_t** threadList );
+etID_STATE      etThreadListFree( threadList_t** threadList );
 
 
-etID_STATE 		etThreadListAdd( threadList_t* threadList, const char* name, threadFunctionStart startFunction, threadFunctionStop stopFunction, void* userdata );
+etID_STATE      etThreadListAdd( threadList_t* threadList, const char* name, threadFunctionStart startFunction, threadFunctionStop stopFunction, void* userdata );
 
 
-etID_STATE 		etThreadListCancelAll( threadList_t* threadList );
+etID_STATE      etThreadListCancelAll( threadList_t* threadList );
+
+
+etID_STATE      etThreadListIterate( threadList_t* threadList, threadIterationFunction iteratorFunction, void* userdata );
+
+
+
+etID_STATE      etThreadListUserdataGet( threadListItem_t* threadListItem, void** userdata );
+
+
+etID_STATE      etThreadListCancelRequestActive( threadListItem_t* threadListItem );
+
+
 
 
 
