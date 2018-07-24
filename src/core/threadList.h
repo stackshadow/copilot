@@ -37,11 +37,12 @@ typedef void*(*threadFunctionStop)(void *);
 typedef struct threadListItem_s {
     pthread_t               thread;
     char                    threadName[16];
-    
+    const char*             serviceName;
+
     threadFunctionStart     functionStart;
     threadFunctionStop      functionCancel;
     void*                   functionData;
-    
+
     char                    cancelRequest;
 } threadListItem_t;
 

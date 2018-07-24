@@ -31,17 +31,17 @@ extern int pthread_setname_np (pthread_t __target_thread, const char *__name) __
 
 
 etID_STATE      etThreadListAlloc( threadList_t** threadList ){
-    
+
 // vars
     threadList_t*	newThreadList = NULL;
-    
+
 // allocate the list itselfe
     etMemoryAlloc( newThreadList, sizeof(threadList_t) );
-    
+
 // setup
     newThreadList->count = 0;
     newThreadList->items = NULL;
-    
+
     *threadList = newThreadList;
     return etID_YES;
 }
@@ -54,16 +54,16 @@ etID_STATE      etThreadListFree( threadList_t** p_threadList ){
     int						index = 0;
     threadList_t*			threadList = *p_threadList;
     threadListItem_t*		threadListItem;
-    
-    
-    
+
+
+
     for( index = 0; index < threadList->count; index++ ){
-        
+
     // get element
         threadListItem = threadList->items[index];
         if( threadListItem == NULL ) continue;
-        
-    // call 
+
+    // call
         if( threadListItem->functionCancel != NULL ){
             threadListItem->functionCancel( threadListItem->functionData );
         }
@@ -76,37 +76,39 @@ etID_STATE      etThreadListFree( threadList_t** p_threadList ){
 // relase the list
     etMemoryRelease( threadList->items );
     __etMemoryRelease( (void**)threadList );
-    
+
     return etID_YES;
 }
 
 
 etID_STATE      etThreadListAdd( threadList_t* threadList, const char* name, threadFunctionStart startFunction, threadFunctionStop stopFunction, void* userdata ){
-    
+
 // vars
     threadListItem_t*	newThreadListItem;
     threadListItem_t**	newThreadListItemArray;
     int					newThreadListItemsCount;
-    
+
 // list-item: alloc and set
     etMemoryAlloc( newThreadListItem, sizeof(threadListItem_t) );
+    newThreadListItem->serviceName = NULL;
     newThreadListItem->functionStart = startFunction;
     newThreadListItem->functionCancel = stopFunction;
     newThreadListItem->functionData = userdata;
     newThreadListItem->cancelRequest = 0;
-    
+
 // list-array: alloc and copy
     newThreadListItemsCount = threadList->count + 1;
     etMemoryAlloc( newThreadListItemArray, sizeof(threadListItem_t*) * newThreadListItemsCount );
     memcpy( newThreadListItemArray, threadList->items, sizeof(threadListItem_t*) * threadList->count );
-    
+
 // list-array: set new list-item
     newThreadListItemArray[threadList->count] = newThreadListItem;
-    
+
 // list-array: replace
     if( threadList->items != NULL )	etMemoryRelease( threadList->items );
     threadList->items = newThreadListItemArray;
     threadList->count = newThreadListItemsCount;
+
 
 // start the thread
     pthread_create( &newThreadListItem->thread, NULL, startFunction, newThreadListItem );
@@ -119,19 +121,19 @@ etID_STATE      etThreadListAdd( threadList_t* threadList, const char* name, thr
 
 
 etID_STATE      etThreadListCancelAll( threadList_t* threadList ){
-    
+
 // vars
     int                     index = 0;
     threadListItem_t*       threadListItem;
-    
-    
+
+
     for( index = 0; index < threadList->count; index++ ){
-        
+
     // get element
         threadListItem = threadList->items[index];
         if( threadListItem == NULL ) continue;
-        
-    // call 
+
+    // call
         if( threadListItem->functionCancel != NULL ){
             threadListItem->functionCancel( threadListItem->functionData );
         }
@@ -139,7 +141,7 @@ etID_STATE      etThreadListCancelAll( threadList_t* threadList ){
     // cancel thread
         //pthread_cancel( threadListItem->thread );
         threadListItem->cancelRequest = 1;
-        
+
     // release memory
         etMemoryRelease( threadListItem );
         threadList->items[index] = NULL;
@@ -149,7 +151,7 @@ etID_STATE      etThreadListCancelAll( threadList_t* threadList ){
     etMemoryRelease( threadList->items );
     threadList->items = NULL;
     threadList->count = 0;
-    
+
 }
 
 
@@ -158,16 +160,16 @@ etID_STATE      etThreadListIterate( threadList_t* threadList, threadIterationFu
 // vars
     int                     index = 0;
     threadListItem_t*       threadListItem;
-    
-    
+
+
     for( index = 0; index < threadList->count; index++ ){
     // get element
         threadListItem = threadList->items[index];
         if( threadListItem == NULL ) continue;
-        
+
         iteratorFunction( threadListItem, userdata );
     }
-    
+
     return etID_YES;
 }
 
@@ -175,9 +177,41 @@ etID_STATE      etThreadListIterate( threadList_t* threadList, threadIterationFu
 
 etID_STATE      etThreadListUserdataGet( threadListItem_t* threadListItem, void** userdata ){
     if( threadListItem == NULL ) return etID_FALSE;
-    
+
     *userdata = threadListItem->functionData;
     return etID_YES;
+}
+
+
+etID_STATE      etThreadServiceNameSet( threadListItem_t* threadListItem, const char* serviceName ){
+
+// already set
+    if( threadListItem->serviceName != NULL ){
+        etMemoryRelease( threadListItem->serviceName );
+        threadListItem->serviceName = NULL;
+    }
+
+// remember the full name
+    size_t nameSize = strlen(serviceName) * sizeof(char);
+    etMemoryAlloc( threadListItem->serviceName, nameSize + sizeof(char) );
+    etMemoryClean( threadListItem->serviceName );
+    snprintf( threadListItem->serviceName, nameSize, "%s", serviceName );
+
+// return
+    return etID_YES;
+}
+
+
+etID_STATE      etThreadServiceNameGet( threadListItem_t* threadListItem, const char** serviceName ){
+
+// get
+    *serviceName = threadListItem->serviceName;
+
+    if( threadListItem->serviceName != NULL ){
+        return etID_YES;
+    }
+
+    return etID_NO;
 }
 
 
@@ -185,7 +219,7 @@ etID_STATE      etThreadListCancelRequestActive( threadListItem_t* threadListIte
     if( threadListItem->cancelRequest == 1 ){
         return etID_YES;
     }
-    
+
     return etID_NO;
 }
 
