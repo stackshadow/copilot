@@ -17,15 +17,13 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 */
 
-#ifndef lsslService_H
-#define lsslService_H
+#ifndef lsslSession_H
+#define lsslSession_H
 
 #include "../libs/portable-2.7.4/include/tls.h"
 
 #include "coCoreConfig.h"
 #include "core/threadList.h"
-
-#include "lsslSession.h"
 
 /**
 @defgroup lsslService TLS-Service
@@ -43,47 +41,41 @@ openssl s_server -cert /etc/copilot/ssl_private/hacktop7.crt -key /etc/copilot/s
 
 */
 
+#include "lsslService.h"
+
 #define MAX_BUF 20480
 
-class lsslService {
 
-    private:
-        threadList_t*       threadListServer;
-        threadList_t*       threadListClients;
-        tls_config*         tlsConfig;
+class lsslSession {
+        private:
+        threadList_t*       threadListClients = NULL;       // server: so we need to remember clients
+        std::string         hostName;                       // server / client
+        int                 hostPort;                       // server / client
+        tls_config*         tlsConfig;                      // server / client
+        struct tls*         tlsConnection = NULL;
+        std::string         sha256;
+        std::string         peerNodeName = "";
+        std::string         authChallange = "";
+        bool                authenticated = false;
 
-
-// public functions
     public:
-                            lsslService();
-                            ~lsslService();
+                            lsslSession( threadList_t* threadListClients, tls_config* tlsConfig, struct tls* tlsConnection, const char* host, int port );
+                                                          // incoming-client-constructor
+                            ~lsslSession();
 
-// common
-    void                    createTLSConfig();
-    static bool             toBase64( unsigned char* sourceData, size_t size, unsigned char** p_base64String, size_t* p_base64Size );
-    static bool             fromBase64( unsigned char* base64, unsigned char** p_plaintext, size_t* plaintextSize );
-    static int              encrypt( unsigned char *plaintext,  unsigned char *key, unsigned char **ciphertextBase64 );
-    static int              decrypt( unsigned char *ciphertextBase64, unsigned char *key, unsigned char **plaintext );
+    const char*             peerNodeNameGet(){ return this->peerNodeName.c_str(); };
+    bool                    sendJson( json_t* jsonObject );
 
 
+    static void*            waitForClientThread( void* void_lsslService );
+    static void*            connectToClientThread( void* void_lsslService );
+
+    int                     communicateReadJson( char* buffer, size_t bufferSize, json_t** p_jsonMessage );
+    int                     communicateNodeNameHandshake( const char* msgID, const char* msgSource, const char* msgTarget, const char* msgGroup, const char* msgCmd, const char* msgPayload );
+    int                     communicateAuth();
+    static void*            communicateThread( void* void_lsslService );
 
 
-// key handling
-    bool                    generateKeyPair();
-    static bool             checkIfKeyIsAccepted( const char* nodeName, const char* hash );
-    static bool             requestedKeysGet( json_t** jsonObject );
-    static bool             acceptKeyOfNodeName( const char* nodeName );
-    static bool             removeKeyOfNodeName( const char* nodeName );
-
-// server / client
-    void                    serve();
-    void                    connectToAllClients();
-
-// infos
-    bool                    runningClientsGet( json_t* object );
-    static void*            threadIterationAddServiceName( threadListItem_t* threadListItem, void* jsonObject );
-
-// bus
     static int              onSubscriberMessage(
                                 void* objectSource,
                                 const char* id,
@@ -94,8 +86,7 @@ class lsslService {
                                 const char* payload,
                                 void* userdata
                             );
-
+    static int              onSubscriberJsonMessage( void* objectSource, json_t* jsonObject, void* userdata );
 };
-
 
 #endif

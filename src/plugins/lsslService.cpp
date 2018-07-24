@@ -22,14 +22,22 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "coCore.h"
 
+
 #include "lsslService.h"
 #include "pubsub.h"
 #include "uuid/uuid.h"
+
 
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+
+#include <openssl/conf.h>
+#include <openssl/evp.h>
+#include <openssl/err.h>
+
+
 
 /** @ingroup lsslService
 @brief This class provide the TLS-Service based on libressl
@@ -49,11 +57,7 @@ lsslService::                   lsslService(){
     tls_init();
     this->createTLSConfig();
 
-// create server
-    this->serve();
-
-// connect to client
-    this->connectToAllClients();
+    psBus::inst->subscribe( this, coCore::ptr->nodeName(), "ssl", this, lsslService::onSubscriberMessage, NULL );
 }
 
 
@@ -102,10 +106,12 @@ void lsslService::              createTLSConfig(){
     tempString += "/ssl_private/";
     tempString += nodeName;
     tempString += ".key";
+
     if( tls_config_set_key_file( this->tlsConfig, tempString.c_str() ) != 0 ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Error: %s", tls_config_error(this->tlsConfig) );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
     }
+
 
 // set cert
     tempString =  configPath;
@@ -127,6 +133,172 @@ void lsslService::              createTLSConfig(){
 }
 
 
+bool lsslService::              toBase64( unsigned char* sourceData, size_t size, unsigned char** p_base64String, size_t* p_base64Size ){
+
+//vars
+    unsigned char*      base64String;
+    size_t              base64StringLen = size;
+    size_t              base64StringLenReal;
+    size_t              base64StringSize;
+
+
+// allocate
+    base64StringSize = base64StringLen * 2 + 10 + 2 + 1;
+    base64String = (unsigned char*)malloc( base64StringSize );
+    memset( base64String, 0, base64StringSize );
+
+// encode
+    base64StringLenReal = EVP_EncodeBlock( base64String, sourceData, size );
+
+// return
+    *p_base64String = base64String;
+    *p_base64Size = base64StringLenReal;
+    return true;
+}
+
+
+bool lsslService::              fromBase64( unsigned char* base64, unsigned char** p_plaintext, size_t* plaintextSize ){
+
+//vars
+    unsigned char*      plaintextString;
+    size_t              plaintextStringLen = strlen((const char*)base64);
+    size_t              plaintextStringLenReal;
+    size_t              plaintextStringSize = plaintextStringLen * sizeof(char);
+
+// allocate ciphertext
+    plaintextString = (unsigned char*)malloc( plaintextStringSize );
+    memset( plaintextString, 0 , plaintextStringSize );
+
+
+
+// base64 -> plain
+    plaintextStringLenReal = EVP_DecodeBlock( plaintextString, base64, plaintextStringLen );
+
+    *p_plaintext = plaintextString;
+    *plaintextSize = plaintextStringLenReal;
+    return true;
+}
+
+
+int lsslService::               encrypt( unsigned char *plaintext,  unsigned char *key, unsigned char **ciphertextBase64 ) {
+
+// vars
+    EVP_CIPHER_CTX*     ctx;
+    int                 len;
+    int                 plaintextLen = strlen( (const char*)plaintext );
+    unsigned char*      cipherText;
+    size_t              cipherTextSize = (((plaintextLen / 8) + 1 ) * 8) * sizeof(char);
+    size_t              cipherTextLen = 0;
+
+
+// scary about lenght ...
+    cipherTextSize = cipherTextSize + 8;
+
+// allocate
+    cipherText = (unsigned char*)malloc( cipherTextSize );
+    memset( cipherText, 0, cipherTextSize );
+
+/* Create and initialise the context */
+    if(!(ctx = EVP_CIPHER_CTX_new())){
+        ERR_print_errors_fp(stderr);
+        return -1;
+    }
+
+// Init
+    if( 1 != EVP_EncryptInit_ex( ctx, EVP_bf_ecb(), NULL, key, NULL ) ){
+        ERR_print_errors_fp(stderr);
+        return -1;
+    }
+
+// Encrypt
+    if( 1 != EVP_EncryptUpdate( ctx, cipherText, &len, plaintext, plaintextLen ) ){
+        ERR_print_errors_fp(stderr);
+        return -1;
+    }
+    cipherTextLen = len;
+
+// Encrypt rest
+    if( 1 != EVP_EncryptFinal_ex( ctx, cipherText + len, &len ) ){
+        ERR_print_errors_fp(stderr);
+        return -1;
+    }
+    cipherTextLen += len;
+
+
+
+
+// convert to base 64
+    unsigned char*      base64String = NULL;
+    size_t              base64StringLen = 0;
+
+    lsslService::toBase64( cipherText, cipherTextLen, &base64String, &base64StringLen );
+
+// clean
+    EVP_CIPHER_CTX_free( ctx );
+    free( cipherText );
+
+    *ciphertextBase64 = base64String;
+    return base64StringLen;
+}
+
+
+int lsslService::               decrypt( unsigned char *ciphertextBase64, unsigned char *key, unsigned char **p_plaintext ){
+
+
+    EVP_CIPHER_CTX*     ctx;
+    int                 len;
+    size_t              ciphertextBase64Len = strlen((const char*)ciphertextBase64);
+    size_t              ciphertextBase64Size = ciphertextBase64Len * sizeof(char);
+    unsigned char*      ciphertext;
+    size_t              ciphertextLen;
+    unsigned char*      plaintext = NULL;
+    int                 plaintextLen;
+
+// convert from base64
+    lsslService::fromBase64( ciphertextBase64, &ciphertext, &ciphertextLen );
+
+
+// new
+  if(!(ctx = EVP_CIPHER_CTX_new())){
+        ERR_print_errors_fp(stderr);
+        return -1;
+    }
+
+// init
+    if( 1 != EVP_DecryptInit_ex( ctx, EVP_bf_ecb(), NULL, key, NULL ) ){
+        ERR_print_errors_fp(stderr);
+        return -1;
+    }
+
+// plaintext
+    plaintext = (unsigned char*)malloc( ciphertextBase64Size );
+    memset( plaintext, 0 , ciphertextBase64Size );
+
+// decrypt
+    if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertextLen)){
+        ERR_print_errors_fp(stderr);
+        return -1;
+    }
+    plaintextLen = len;
+
+// finish
+    if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)){
+        ERR_print_errors_fp(stderr);
+        return -1;
+    }
+    plaintextLen += len;
+
+
+// clean
+    EVP_CIPHER_CTX_free(ctx);
+    free( ciphertext );
+
+
+// set \0
+    plaintext[plaintextLen] = '\0';
+    *p_plaintext = plaintext;
+    return plaintextLen;
+}
 
 
 bool lsslService::              generateKeyPair(){
@@ -223,55 +395,87 @@ bool lsslService::              generateKeyPair(){
 }
 
 
-bool lsslService::              checkIfKeyIsAccepted( const char* hash ){
+bool lsslService::              checkIfKeyIsAccepted( const char* nodeName, const char* hash ){
 
 // vars
-    json_t* jsonAccepted = NULL;
+    json_t* jsonNode = NULL;
+    json_t* jsonHash = NULL;
     json_t* jsonRequested = NULL;
 
+    coCore::ptr->config->nodesIterate();
+    if( coCore::ptr->config->nodeSelect( nodeName ) == false ) return false;
+    if( coCore::ptr->config->nodeGet( &jsonNode ) == false ) return false;
 
-// accepted ?
-    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
-    if( json_object_get(jsonAccepted,hash) != NULL ){
+// get hash
+    jsonHash = json_object_get( jsonNode, "tlshash" );
+    if( jsonHash == NULL ) goto saveit;
+
+// compare
+    if( coCore::strIsExact( hash, json_string_value(jsonHash), json_string_length(jsonHash) ) == true ){
         return true;
     }
 
-// requested
+saveit:
+// not accepted, save it to requested keys
     jsonRequested = coCore::ptr->config->section( "ssl_requested" );
-    json_object_set_new( jsonRequested, hash, json_object() );
+    json_object_set_new( jsonRequested, nodeName, json_string( hash ) );
+    coCore::ptr->config->nodesIterateFinish();
 
-    coCore::ptr->config->save(); // is thread-save
+// save it
+    coCore::ptr->config->save();
 
     return false;
 }
 
 
-bool lsslService::              checkNodeNameOfHash( const char* hash, const char* nodeName ){
-    
-// vars
-    json_t* jsonAccepted = NULL;
-    json_t* jsonHash = NULL;
-    json_t* jsonString = NULL;
+bool lsslService::              requestedKeysGet( json_t** jsonObject ){
 
-// get accepted-section
-    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
-    jsonHash = json_object_get(jsonAccepted,hash);
-    if( jsonHash == NULL ){
+// vars
+    json_t* jsonRequested = NULL;
+
+// accepted ?
+    jsonRequested = coCore::ptr->config->section( "ssl_requested" );
+    if( jsonRequested == NULL ){
         return false;
     }
 
-// get name
-    jsonString = json_object_get( jsonHash, "nodeName" );
-    if( jsonString == NULL ){
-        jsonString = json_string( nodeName );
-        json_object_set_new( jsonHash, "nodeName", jsonString );
-        
-        coCore::ptr->config->save(); // is thread-save
+    *jsonObject = json_deep_copy( jsonRequested );
+    return true;
+}
+
+
+bool lsslService::              acceptKeyOfNodeName( const char* nodeName ){
+
+// vars
+    json_t* jsonNode = NULL;
+    json_t* jsonHash = NULL;
+    json_t* jsonRequested = NULL;
+
+// get node
+    coCore::ptr->config->nodesIterate();
+    if( coCore::ptr->config->nodeSelect( nodeName ) == false ) return false;
+    if( coCore::ptr->config->nodeGet( &jsonNode ) == false ) return false;
+
+
+// get requested hash
+    jsonRequested = coCore::ptr->config->section( "ssl_requested" );
+    jsonHash = json_object_get( jsonRequested, nodeName );
+    if( jsonHash != NULL ){
+
+        json_object_set( jsonNode, "tlshash", jsonHash );
+        json_object_del( jsonRequested, nodeName );
+
+        coCore::ptr->config->nodesIterateFinish();
+
         return true;
     }
 
-// compare name
-    return coCore::strIsExact( json_string_value(jsonString), nodeName, strlen(nodeName) );
+
+    return false;
+}
+
+
+bool lsslService::              removeKeyOfNodeName( const char* nodeName ){
 
 }
 
@@ -279,24 +483,16 @@ bool lsslService::              checkNodeNameOfHash( const char* hash, const cha
 
 
 
+
+// server / client
+
 void lsslService::              serve(){
-    
+
 
 // vars
     coCoreConfig::nodeType  serverType = coCoreConfig::UNKNOWN;
     const char*             serverHost = NULL;
     int                     serverPort = 0;
-
-    int                     serverSocket;
-    struct sockaddr_in      serverSocketAddress;
-    int                     clientSocket;
-    struct sockaddr_in      clientSocketAddress;
-    socklen_t               clientSocketAddressLen;
-    int                     optval = 1;
-
-    struct tls*             tlsServer = NULL;
-    struct tls*             tlsClient = NULL;
-
 
 
 // get the server infos
@@ -337,10 +533,7 @@ void lsslService::              connectToAllClients(){
     const char*                 clientHost;
     int                         clientPort;
     coCoreConfig::nodeType      nodeType;
-    struct sockaddr_in          clientSocketAddress;
-    socklen_t                   clientSocketAddressLen;
-    int                         clientSocket;
-    int                         ret;
+
 
 
 // start iteration ( and lock core )
@@ -378,413 +571,105 @@ void lsslService::              connectToAllClients(){
 
 
 
+// infos
+
+bool lsslService::              runningClientsGet( json_t* object ){
+    etThreadListIterate( this->threadListClients, lsslService::threadIterationAddServiceName, object );
+};
 
 
-
-
-
-
-
-
-
-/**
- * @brief Constructor for the TLS-Server, it just will save the provided parameter
- * @param threadListClients An pointer to an already created etThreadList. This is mainly for Servers which are waiting for clients and append new client-handling-threads to the threadlist
- * @param tlsConfig The TLS-Configuration
- * @param tlsConnection An already established TLS-Connection
- * @param host The hostname
- * @param port The Port
- * @return An new lsslSession instance
- * @detail Some of the parameter are optional. @see waitForClientThread() @see connectToClientThread() or @see communicateThread() for detail informations.
- */
-lsslSession::                   lsslSession( threadList_t* threadListClients, tls_config* tlsConfig, struct tls* tlsConnection, const char* host, int port ){
-
-// save parameter
-    this->threadListClients = threadListClients;
-    this->tlsConfig = tlsConfig;
-    this->tlsConnection = tlsConnection;
-    this->hostName = host;
-    this->hostPort = port;
-
-
-
-
-}
-
-
-
-bool lsslSession::              sendJson( json_t* jsonObject ){
+void* lsslService::             threadIterationAddServiceName( threadListItem_t* threadListItem, void* jsonObject ){
 
 // vars
-    const char*     myNodeName = coCore::ptr->nodeName();
-    const char*     msgID = NULL;
-    const char*     msgSource = NULL;
-    const char*     msgTarget = NULL;
-    const char*     msgGroup = NULL;
-    const char*     msgCommand = NULL;
-    char*           jsonString = NULL;
-
-
-
-// get source/target from json
-    psBus::fromJson( jsonObject, &msgID, &msgSource, &msgTarget, &msgGroup, &msgCommand, NULL );
-
-// if there is a message for myHost we dont need to send it out to the world
-    if( strncmp(msgTarget,myNodeName,strlen(myNodeName)) == 0 ){
-        return false;
-    }
-
-
-// make sure we are the source
-    json_object_set_new( jsonObject, "s", json_string( coCore::ptr->nodeName() ) );
-
-// dump / send json
-    jsonString = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
-    if( jsonString != NULL ){
-
-    // debug
-        snprintf( etDebugTempMessage, etDebugTempMessageLen,
-        "[SEND] [%s -> %s] [%s - %s]",
-        msgSource, msgTarget,
-        msgGroup, msgCommand );
-        etDebugMessage( etID_LEVEL_DETAIL_NET, etDebugTempMessage );
-
-    // send it out
-        tls_write( this->tlsConnection, jsonString, strlen(jsonString) );
-
-    // cleanup
-        free( jsonString );
-
-    }
-
-    return true;
-}
-
-
-/**
- * @brief Wait for an client
- * @param threadListItem
- * @detail This is an Server thread which wait for new clients that connect to us.
- * This function needs the following parameter from the constructor:
- * - threadListClients
- * - tlsConfig
- * - host
- * - port
- * tlsConnection can be set to NULL
- */
-void* lsslSession::             waitForClientThread( void* threadListItem ){
-
-// vars
-	lsslSession*            session = NULL;
-    struct sockaddr_in      serverSocketAddress;
-    int                     serverSocket;
-    
-    int                     clientSocket;
-    struct sockaddr_in      clientSocketAddress;
-    socklen_t               clientSocketAddressLen;
-
-    int                     optval = 1;
-
-    struct tls*             tlsServer = NULL;
-    struct tls*             tlsClient = NULL;
+    lsslSession*            session = NULL;
 
 // get instance
-    etThreadListUserdataGet( (threadListItem_t*)threadListItem, (void**)&session );
+    etThreadListUserdataGet( threadListItem, (void**)&session );
 
-
-// create address description
-    memset( &serverSocketAddress, '\0', sizeof(serverSocketAddress) );
-    serverSocketAddress.sin_family = AF_INET;
-    serverSocketAddress.sin_addr.s_addr = INADDR_ANY;
-    serverSocketAddress.sin_port = htons( session->hostPort );
-
-// create socket
-    serverSocket = socket( AF_INET, SOCK_STREAM, 0 );
-    setsockopt( serverSocket, SOL_SOCKET, SO_REUSEADDR, (void*)&optval, sizeof (int) );
-    bind( serverSocket, (struct sockaddr*)&serverSocketAddress, sizeof(serverSocketAddress) );
-    listen( serverSocket, 1 );
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Server ready. Listening to port '%d'.\n\n", session->hostPort );
-    etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
-
-
-// tls server
-    tlsServer = tls_server();
-
-    if(tls_configure( tlsServer, session->tlsConfig ) < 0 ){
-        printf("tls_configure error: %s\n", tls_error(tlsServer));
-        exit(1);
-    }
-
-    while( etThreadListCancelRequestActive((threadListItem_t*)threadListItem) == etID_NO ){
-
-        etDebugMessage( etID_LEVEL_INFO, "Wait for client." );
-        clientSocket = accept( serverSocket, (struct sockaddr *)&clientSocketAddress, &clientSocketAddressLen );
-        if( tls_accept_socket( tlsServer, &tlsClient, clientSocket ) != 0 ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Error: %s", tls_error(tlsServer) );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            return NULL;
-        }
-
-    // perform a handshake to recieve peer cert
-        tls_handshake( tlsClient );
-
-    // hash peer cert
-        const char* hash = tls_peer_cert_hash( tlsClient );
-
-    // check if key is accepted
-        if( lsslService::checkIfKeyIsAccepted( hash ) == false ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, " [%s] Key not accepted, close connection", hash );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-
-            tls_close( tlsClient );
-            tls_free( tlsClient );
-            close( clientSocket );
-        }
-
-    // cool, accepted, we create an client
-        lsslSession* sslClient = new lsslSession( NULL, NULL, tlsClient, NULL, 0 );
-        etThreadListAdd( session->threadListClients, "ssl-client", lsslSession::communicateThread, NULL, sslClient );
-        
-    }
-
-
+    json_object_set_new( (json_t*)jsonObject, session->peerNodeNameGet(), json_object() );
 
     return NULL;
 }
 
-/**
- * @brief Connect to an single client
- * @param void_lsslService
- * @detail This threaded function is used, when to TRY to connect to an client.
- * This function needs the following parameter from the constructor:
- * - tlsConfig
- * - host
- * - port
- * threadListClients can be set to NULL
- * tlsConnection can be set to NULL
- */
-void* lsslSession::             connectToClientThread( void* void_lsslService ){
+
+
+// bus
+
+int lsslService::               onSubscriberMessage(
+                                    void* objectSource,
+                                    const char* id,
+                                    const char* nodeSource,
+                                    const char* nodeTarget,
+                                    const char* group,
+                                    const char* command,
+                                    const char* payload,
+                                    void* userdata
+                                ){
 
 // vars
-    int                     rc = 0;
-    lsslSession*            sessionInst = NULL;
-    struct sockaddr_in      clientSocketAddress;
-    socklen_t               clientSocketAddressLen;
-    int                     clientSocket;
+    lsslService*            service = (lsslService*)objectSource;
 
 
-// get
-    etThreadListUserdataGet( (threadListItem_t*)void_lsslService, (void**)&sessionInst );
+    if( coCore::strIsExact( command, "requestedKeysGet", 16 ) == true ){
 
-// create address description
-    memset( &clientSocketAddress, '\0', sizeof(clientSocketAddress) );
-    clientSocketAddress.sin_family = AF_INET;
-    clientSocketAddress.sin_addr.s_addr = inet_addr( sessionInst->hostName.c_str() );
-    clientSocketAddress.sin_port = htons( sessionInst->hostPort );      /* Server Port number */
+    // vars
+        json_t*     jsonClientsObject = NULL;
 
+    // get requested keys
+        service->requestedKeysGet( &jsonClientsObject );
 
-    while(1){
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Try to connect to client %s:%i", sessionInst->hostName.c_str(), sessionInst->hostPort );
-        etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
+    // dump json
+        const char* jsonDump = json_dumps( jsonClientsObject, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
+    // add the message to list
+        psBus::inst->publish( service, id, nodeTarget, nodeSource, group, "requestKeys", jsonDump );
 
-        clientSocket = socket(AF_INET, SOCK_STREAM, 0);
-        rc = connect( clientSocket, (struct sockaddr *) &clientSocketAddress, sizeof(clientSocketAddress) );
-        if( rc < 0 ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, 
-                "Could not connect to server %s:%i, %s", 
-                sessionInst->hostName.c_str(), 
-                sessionInst->hostPort,
-                strerror( rc ) 
-            );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            
-            sleep( 10 );
-            continue;
-        }
+    // cleanup and return
+        free((void*)jsonDump);
+        json_decref( jsonClientsObject );
 
-
-
-    // tls server
-        sessionInst->tlsConnection = tls_client();
-        if(tls_configure( sessionInst->tlsConnection, sessionInst->tlsConfig ) < 0 ){
-            printf("tls_configure error: %s\n", tls_error(sessionInst->tlsConnection));
-            continue;
-        }
-
-    // upgrade port to tls
-        if( tls_connect_socket( sessionInst->tlsConnection, clientSocket, "localhost" ) < 0 ) {
-            printf("tls_connect error\n");
-            printf("%s\n", tls_error( sessionInst->tlsConnection ));
-            continue;
-        }
-
-    // perform a handshake
-        tls_handshake( sessionInst->tlsConnection );
-
-    // we communicate
-        lsslSession::communicateThread( void_lsslService );
-        
-    // finished with communication
-        tls_close( sessionInst->tlsConnection );
-        tls_free( sessionInst->tlsConnection );
-        close( clientSocket );
-
-    //@todo Create unsubscribe ... 
-
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, 
-            "Client %s:%i disconnected", 
-            sessionInst->hostName.c_str(), 
-            sessionInst->hostPort
-        );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-        
-        sleep( 10 );
+    // finished
+        return psBus::END;
     }
-}
 
 
-void* lsslSession::             communicateThread( void* void_lsslService ){
+    if( coCore::strIsExact( command, "connectedClientsGet", 19 ) == true ){
 
+    // vars
+        json_t*     jsonClientsObject = json_object();
+        void*       jsonIterator = NULL;
 
-// vars
-    lsslSession*            sessionInst = NULL;
-    ssize_t                 ret = -1;
-    char                    buffer[MAX_BUF + 1];
-    json_error_t            jsonError;
-    json_t*                 jsonMessage = NULL;
+    // get running clients as json
+        service->runningClientsGet( jsonClientsObject );
 
-// get session
-    etThreadListUserdataGet( (threadListItem_t*)void_lsslService, (void**)&sessionInst );
+    // send for every client
+        jsonIterator = json_object_iter( jsonClientsObject );
+        while( jsonIterator != NULL ){
 
+            const char* connectedClientNodeName = json_object_iter_key( jsonIterator );
 
-// We subscribe on the remote-node for our node
-    json_t*     jsonTempRequest = NULL;
-    char        jsonTempRequestString[128];
-    uuid_t      newUUID;
-    char        newUUIDString[37];
+            psBus::inst->publish( service, id, nodeTarget, nodeSource, group, "connectedClient", connectedClientNodeName );
 
-
-
-// ######################################## Send nodename request ########################################
-    uuid_generate( newUUID );
-    uuid_unparse( newUUID, newUUIDString );
-    psBus::toJson( &jsonTempRequest, newUUIDString, coCore::ptr->nodeName(), "", "co", "nodeNameGet", "" );
-    sessionInst->sendJson( jsonTempRequest );
-    json_decref(jsonTempRequest);
-
-
-
-// ######################################## Read Loop ########################################
-
-    while(1){
-
-    // clear buffer
-        memset( buffer, 0, MAX_BUF + 1 );
-
-    // read from connection
-        ret = tls_read( sessionInst->tlsConnection, buffer, MAX_BUF );
-
-    // Error
-        if( ret < 0 ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Error: %s", tls_error(sessionInst->tlsConnection) );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            return NULL;
-        }
-        
-    // nodata
-        if( ret == 0 ){
-            etDebugMessage( etID_LEVEL_ERR, "No Data readed, we close the connection." );
-            return NULL;
+            jsonIterator = json_object_iter_next( jsonClientsObject, jsonIterator );
         }
 
-    // debug
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Received %s", buffer );
-        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    // cleanup and return
+        json_decref( jsonClientsObject );
 
-
-    // ######################################## PARSe JSON ########################################
-
-    // try to parse the data into json
-        jsonMessage = json_loads( (const char*)buffer, JSON_PRESERVE_ORDER, &jsonError );
-        if( jsonMessage == NULL || jsonError.line >= 0 ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "JSON ERROR: %s", jsonError.text );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            continue;
-        }
-
-
-    // parse json to values
-        const char* nodeSource, *nodeID, *nodeCmd, *nodePayload;
-        psBus::fromJson( jsonMessage, &nodeID, &nodeSource, NULL, NULL, &nodeCmd, &nodePayload );
-
-
-    // an external message should not come from us
-        if( coCore::ptr->isNodeName( nodeSource ) == true ){
-            etDebugMessage( etID_LEVEL_WARNING, "We recieve a message from another host with our hostname as source. Message will be dropped" );
-        } else {
-            
-            
-        // ######################################## nodename ########################################
-            if( coCore::strIsExact("nodeName",nodeCmd,strlen(nodeCmd)) == true ){
-                
-                if( coCore::strIsExact(nodePayload,coCore::ptr->nodeName(),strlen(coCore::ptr->nodeName())) == true ){
-                    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Peer told us her name. It is %s ... BUT we are %s, close connection !", nodePayload, coCore::ptr->nodeName() );
-                    etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-                    json_decref( jsonMessage );
-                    return NULL;
-                }
-                
-                snprintf( etDebugTempMessage, etDebugTempMessageLen, "Peer told us her name. It is %s", nodePayload );
-                etDebugMessage( etID_LEVEL_DETAIL_BUS, etDebugTempMessage );
-                
-            // hash to name okay ?
-            /// @todo CHECK THIS !
-                const char* hash = tls_peer_cert_hash( sessionInst->tlsConnection );
-                lsslService::checkNodeNameOfHash( hash, nodePayload );
-                
-            // save peer-node-name
-                sessionInst->peerNodeName = nodePayload;
-                
-            // we can now subscibe for remote
-                psBus::inst->subscribe( sessionInst, nodePayload, NULL, sessionInst, NULL, lsslSession::onSubscriberJsonMessage );
-                
-                json_decref( jsonMessage );
-                usleep( 5000 );
-                continue;
-            }
-
-        // ######################################## publish ########################################
-            psBus::inst->publishOrSubscribe( sessionInst, jsonMessage, NULL, NULL, lsslSession::onSubscriberJsonMessage );
-
-        }
-
-
-    // cleanup
-        json_decref( jsonMessage );
-
-        usleep( 5000 );
+    // finished
+        return psBus::END;
     }
 
 
 
+
+
+
+
+    return psBus::END;
 }
 
 
-int lsslSession::               onSubscriberJsonMessage( void* objectSource, json_t* jsonObject, void* userdata ){
-
-
-// vars
-    lsslSession*    sslSessionInst = (lsslSession*)objectSource;
-
-// send it out
-    sslSessionInst->sendJson( jsonObject );
-
-// we dont have anything to reply, because the answer comes asynchron
-	return 0;
-
-
-}
 
 
 #endif
