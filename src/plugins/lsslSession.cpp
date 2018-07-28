@@ -407,15 +407,135 @@ int lsslSession::               communicateNodeNameHandshake( const char* msgID,
 }
 
 
-int lsslSession::               communicateAuth(){
+int lsslSession::               communicateAuth( const char* msgID, const char* msgSource, const char* msgTarget, const char* msgGroup, const char* msgCmd, const char* msgPayload ){
+//
+    if( this->authenticated == true ) return 1;
+
 
 // auth
+    int ret = -1;
     const char* hash = tls_peer_cert_hash( this->tlsConnection );
 
-    if( lsslService::checkIfKeyIsAccepted( this->peerNodeName.c_str(), hash ) == true ){
-        return 1;
+// hash
+    if( lsslService::checkIfKeyIsAccepted( this->peerNodeName.c_str(), hash ) == false ){
+        return -1;
     }
 
+
+
+// request hash of challange
+    const char* sharedSecret = NULL;
+
+// try to get shared secret
+    ret = lsslService::sharedSecretGet( this->peerNodeName.c_str(), &sharedSecret );
+    if( ret < 0 ) return ret;
+
+
+// we have no shared secret
+    if( ret == 0 ){
+
+    // if we are a server
+        if( coCore::ptr->config->nodeIsServer( coCore::ptr->nodeName() ) == true ){
+
+            std::string newRandom = lsslService::randomBase64( 32 );
+
+            ret = lsslService::sharedSecretSet( this->peerNodeName.c_str(), newRandom.c_str() );
+            if( ret < 0 ) return -1;
+
+
+        // send it to client
+            json_t* jsonTempRequest = NULL;
+            psBus::toJson( &jsonTempRequest, "", msgTarget, msgSource, "ssl", "sharedSecretSet", newRandom.c_str() );
+            this->sendJson( jsonTempRequest );
+            json_decref(jsonTempRequest);
+
+        // we dont return here, because we need to send out an challange request
+        }
+
+    // all other
+        else {
+        // check if server request set of an shared secret
+            if( coCore::strIsExact( msgCmd, "sharedSecretSet", 15 ) == true ){
+                ret = lsslService::sharedSecretSet( this->peerNodeName.c_str(), msgPayload );
+            }
+            if( ret < 0 ) return -1;
+
+            return 0;
+        }
+    }
+
+
+// check if we have a hallange random
+    if( coCore::strIsExact( msgCmd, "reqChallange", 12 ) == true ){
+
+        std::string fullString = "";
+        fullString += sharedSecret;
+        fullString += msgPayload;
+
+    // get the hash and answer
+        std::string scHash = lsslService::sha256( fullString );
+
+    // send it back
+        json_t* jsonTempRequest = NULL;
+        psBus::toJson( &jsonTempRequest, "", msgTarget, msgSource, "ssl", "resChallange", scHash.c_str() );
+        this->sendJson( jsonTempRequest );
+        json_decref(jsonTempRequest);
+
+        return 0;
+    }
+
+// we respond an challange, compare it
+    if( coCore::strIsExact( msgCmd, "resChallange", 12 ) == true ){
+
+        std::string fullString = "";
+        fullString += sharedSecret;
+        fullString += this->authChallange;
+
+    // get the hash and answer
+        std::string scHash = lsslService::sha256( fullString );
+
+    // compare it
+        if( scHash == msgPayload ){
+            this->authenticated = true;
+        }
+
+        this->authenticated = false;
+        return -1;
+    }
+
+
+// reqChallange already set
+    if( this->authChallange != "" ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Already send out an challange, nobody answer. Protokoll error." );
+        etDebugMessage( etID_LEVEL_DETAIL_BUS, etDebugTempMessage );
+        return -1;
+    }
+
+// reqChallange
+    std::string newRandom = lsslService::randomBase64( 32 );
+    this->authChallange = newRandom;
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "We create a new random as challange %s", this->authChallange.c_str() );
+    etDebugMessage( etID_LEVEL_DETAIL_BUS, etDebugTempMessage );
+
+//
+    std::string fullString = "";
+    fullString += sharedSecret;
+    fullString += newRandom;
+
+// get the hash and answer
+    std::string scHash = lsslService::sha256( fullString );
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "We wait for hash %s", scHash.c_str() );
+    etDebugMessage( etID_LEVEL_DETAIL_BUS, etDebugTempMessage );
+
+
+
+// send it back
+    json_t* jsonTempRequest = NULL;
+    psBus::toJson( &jsonTempRequest, "", msgTarget, msgSource, "ssl", "reqChallange", this->authChallange.c_str() );
+    this->sendJson( jsonTempRequest );
+    json_decref(jsonTempRequest);
+
+    //this->authenticated
     return 0;
 }
 
@@ -467,11 +587,13 @@ void* lsslSession::             communicateThread( void* void_threadListItem ){
 
     // nodename-handshake
         ret = sessionInst->communicateNodeNameHandshake( msgID, nodeSource, nodeTarget, nodeGroup, nodeCmd, nodePayload );
+        if( ret < 0 ) goto onError;
         if( ret == 0 ) continue;
 
     // authentication
-        ret = sessionInst->communicateAuth();
-        if( ret == 0 ) goto onError;
+        ret = sessionInst->communicateAuth( msgID, nodeSource, nodeTarget, nodeGroup, nodeCmd, nodePayload );
+        if( ret < 0 ) goto onError;
+        if( ret == 0 ) continue;
 
 
 

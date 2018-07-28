@@ -78,11 +78,16 @@ static struct option options[] = {
     { "listConections",         no_argument,        NULL, 30 },
     { "createConnection",       required_argument,  NULL, 31 },
     { "createServe",            required_argument,  NULL, 32 },
+#ifndef DISABLE_LTLS
     { "keyReqList",             no_argument,        NULL, 40 },
     { "keyAccept",              required_argument,  NULL, 41 },
-    #ifndef DISABLE_WEBSOCKET
+    { "sharedSecretForget",     required_argument,  NULL, 42 },
+
+
+#endif
+#ifndef DISABLE_WEBSOCKET
     { "websocket",              no_argument,        NULL, 50 },
-    #endif
+#endif
     { "nonft",                  no_argument,        NULL, 60 },
 
 
@@ -128,8 +133,8 @@ int main( int argc, char *argv[] ){
 
     bool            reqKeysList = false;
     bool            reqKeyAccept = false;
-    bool            reqKeyCler = false;
-    const char*     keyName = NULL;
+    const char*     reqKeyAcceptNodeName = NULL;
+    bool            sharedSecretForget = false;
 
     bool            startWebSocket = false;
     bool            disablenft = false;
@@ -157,7 +162,7 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, "--createConnection <hostname:port>: Create a new client connection and exit \n" );
                 fprintf( stdout, "--createServe <hostname:port>: Create a new server connection and exist \n" );
                 fprintf( stdout, "--keyReqList List keys which request an connection \n" );
-                fprintf( stdout, "--keyAccept <name> Accept an requested key \n" );
+                fprintf( stdout, "--keyAccept <name> Accept the requested key for node <name>\n" );
                 #ifndef DISABLE_WEBSOCKET
                 fprintf( stdout, "--websocket: start websocket-server \n" );
                 #endif
@@ -173,7 +178,7 @@ int main( int argc, char *argv[] ){
             case 3:
                 etDebugLevelSet( etID_LEVEL_DETAIL_APP );
                 break;
-                
+
             case 4:
                 etDebugLevelSet( etID_LEVEL_DETAIL_DB );
                 break;
@@ -227,14 +232,17 @@ int main( int argc, char *argv[] ){
 
                 break;
 
+#ifndef DISABLE_LTLS
+
             case 40:
                 reqKeysList = true;
                 break;
 
             case 41:
                 reqKeyAccept = true;
-                keyName = optarg;
+                reqKeyAcceptNodeName = optarg;
                 break;
+#endif
 
             #ifndef DISABLE_WEBSOCKET
             case 50:
@@ -322,6 +330,38 @@ int main( int argc, char *argv[] ){
 #ifndef DISABLE_LTLS
 
     lsslService* tls = new lsslService();
+
+// list of requested keys
+    if( reqKeysList == true ){
+        json_t* jsonReqKeyList = NULL;
+        lsslService::requestedKeysGet( &jsonReqKeyList );
+
+        json_dumpf( jsonReqKeyList, stdout, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+        json_decref( jsonReqKeyList );
+        fprintf( stdout, "\n" );
+        fflush(stdout);
+        exit(0);
+    }
+
+// accept key
+    if( reqKeyAccept == true ){
+        lsslService::acceptKeyOfNodeName( reqKeyAcceptNodeName );
+        //lsslService::acceptKey(keyName);
+        //accKeysList = true;
+    }
+
+
+
+
+
+
+
+
+// create server
+    tls->serve();
+
+// connect to client
+    tls->connectToAllClients();
 
 #endif
 

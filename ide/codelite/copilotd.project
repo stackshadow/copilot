@@ -22,6 +22,11 @@
   <Description/>
   <Dependencies/>
   <VirtualDirectory Name="doc">
+    <VirtualDirectory Name="sphinx">
+      <File Name="../../doc/sphinx/index.cpp"/>
+      <File Name="../../doc/sphinx/conf.py"/>
+      <File Name="../../doc/sphinx/Makefile"/>
+    </VirtualDirectory>
     <File Name="../../doc/doxyfile"/>
     <File Name="../../doc/mainpage.h"/>
   </VirtualDirectory>
@@ -57,6 +62,10 @@
       <File Name="../../src/develop/doDBTable.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="plugins">
+      <File Name="../../src/plugins/lsslSession.h"/>
+      <File Name="../../src/plugins/lsslSession.cpp"/>
+      <File Name="../../src/plugins/lsslService.h"/>
+      <File Name="../../src/plugins/lsslService.cpp"/>
       <File Name="../../src/plugins/mongodb.h"/>
       <File Name="../../src/plugins/mongodb.cpp"/>
       <File Name="../../src/plugins/uwebsockets.h"/>
@@ -174,14 +183,14 @@
         <Command Enabled="yes">mkdir -p /tmp/copilotd</Command>
         <Command Enabled="yes">cd /tmp/copilotd</Command>
         <Command Enabled="yes">cmake ${projPath}/cmake \
--DPLUGIN_SSL=ON \
+-DPLUGIN_SSL=OFF \
 -DPLUGIN_LDAP=ON \
 -DPLUGIN_NFT=OFF \
 -DPLUGIN_STS=ON \
 -DPLUGIN_SYSTEMD=OFF \
 -DPLUGIN_WS=ON \
 -DPLUGIN_DB=OFF \
--DPLUGIN_MDB=ON</Command>
+-DPLUGIN_MDB=OFF</Command>
       </PreBuild>
       <PostBuild/>
       <CustomBuild Enabled="yes">

@@ -30,13 +30,15 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/random.h>
 #include <arpa/inet.h>
 #include <netinet/in.h>
+#include <sstream>
 
 #include <openssl/conf.h>
 #include <openssl/evp.h>
 #include <openssl/err.h>
-
+#include <openssl/sha.h>
 
 
 /** @ingroup lsslService
@@ -180,125 +182,58 @@ bool lsslService::              fromBase64( unsigned char* base64, unsigned char
 }
 
 
-int lsslService::               encrypt( unsigned char *plaintext,  unsigned char *key, unsigned char **ciphertextBase64 ) {
+std::string lsslService::       randomBase64( size_t size ){
 
 // vars
-    EVP_CIPHER_CTX*     ctx;
-    int                 len;
-    int                 plaintextLen = strlen( (const char*)plaintext );
-    unsigned char*      cipherText;
-    size_t              cipherTextSize = (((plaintextLen / 8) + 1 ) * 8) * sizeof(char);
-    size_t              cipherTextLen = 0;
+    unsigned char       randomBuffer[size];
+    char*               randomBase64 = NULL;
+    size_t              randomBase64Size = 0;
 
-
-// scary about lenght ...
-    cipherTextSize = cipherTextSize + 8;
-
-// allocate
-    cipherText = (unsigned char*)malloc( cipherTextSize );
-    memset( cipherText, 0, cipherTextSize );
-
-/* Create and initialise the context */
-    if(!(ctx = EVP_CIPHER_CTX_new())){
-        ERR_print_errors_fp(stderr);
-        return -1;
-    }
-
-// Init
-    if( 1 != EVP_EncryptInit_ex( ctx, EVP_bf_ecb(), NULL, key, NULL ) ){
-        ERR_print_errors_fp(stderr);
-        return -1;
-    }
-
-// Encrypt
-    if( 1 != EVP_EncryptUpdate( ctx, cipherText, &len, plaintext, plaintextLen ) ){
-        ERR_print_errors_fp(stderr);
-        return -1;
-    }
-    cipherTextLen = len;
-
-// Encrypt rest
-    if( 1 != EVP_EncryptFinal_ex( ctx, cipherText + len, &len ) ){
-        ERR_print_errors_fp(stderr);
-        return -1;
-    }
-    cipherTextLen += len;
+    size_t              base64StringSize = size * 2 + 10 + 2 + 1;
+    unsigned char       base64String[base64StringSize];
+    size_t              base64StringLen = size;
+    size_t              base64StringLenReal;
 
 
 
+// get from urandom
+    ssize_t randomReaded = getrandom( &randomBuffer, size, 0 );
 
-// convert to base 64
-    unsigned char*      base64String = NULL;
-    size_t              base64StringLen = 0;
 
-    lsslService::toBase64( cipherText, cipherTextLen, &base64String, &base64StringLen );
+// encode
+    base64StringLenReal = EVP_EncodeBlock( base64String, randomBuffer, size );
 
-// clean
-    EVP_CIPHER_CTX_free( ctx );
-    free( cipherText );
-
-    *ciphertextBase64 = base64String;
-    return base64StringLen;
+    std::string returnString = "";
+    returnString.assign( (char*)base64String );
+    return returnString;
 }
 
 
-int lsslService::               decrypt( unsigned char *ciphertextBase64, unsigned char *key, unsigned char **p_plaintext ){
+std::string lsslService::       sha256( const std::string input ){
+
+// vars
+    unsigned char   hash[SHA256_DIGEST_LENGTH];
+    char            outputBuffer[ ( 2 * SHA256_DIGEST_LENGTH ) + 2 ];
+    SHA256_CTX      sha256;
 
 
-    EVP_CIPHER_CTX*     ctx;
-    int                 len;
-    size_t              ciphertextBase64Len = strlen((const char*)ciphertextBase64);
-    size_t              ciphertextBase64Size = ciphertextBase64Len * sizeof(char);
-    unsigned char*      ciphertext;
-    size_t              ciphertextLen;
-    unsigned char*      plaintext = NULL;
-    int                 plaintextLen;
-
-// convert from base64
-    lsslService::fromBase64( ciphertextBase64, &ciphertext, &ciphertextLen );
+    SHA256_Init( &sha256 );
+    SHA256_Update( &sha256, input.c_str(), input.size() );
+    SHA256_Final( hash, &sha256 );
 
 
-// new
-  if(!(ctx = EVP_CIPHER_CTX_new())){
-        ERR_print_errors_fp(stderr);
-        return -1;
+    int i = 0;
+    for(i = 0; i < SHA256_DIGEST_LENGTH; i++)
+    {
+        sprintf(outputBuffer + (i * 2), "%02x", hash[i]);
     }
 
-// init
-    if( 1 != EVP_DecryptInit_ex( ctx, EVP_bf_ecb(), NULL, key, NULL ) ){
-        ERR_print_errors_fp(stderr);
-        return -1;
-    }
+    outputBuffer[64] = 0;
 
-// plaintext
-    plaintext = (unsigned char*)malloc( ciphertextBase64Size );
-    memset( plaintext, 0 , ciphertextBase64Size );
-
-// decrypt
-    if(1 != EVP_DecryptUpdate(ctx, plaintext, &len, ciphertext, ciphertextLen)){
-        ERR_print_errors_fp(stderr);
-        return -1;
-    }
-    plaintextLen = len;
-
-// finish
-    if(1 != EVP_DecryptFinal_ex(ctx, plaintext + len, &len)){
-        ERR_print_errors_fp(stderr);
-        return -1;
-    }
-    plaintextLen += len;
-
-
-// clean
-    EVP_CIPHER_CTX_free(ctx);
-    free( ciphertext );
-
-
-// set \0
-    plaintext[plaintextLen] = '\0';
-    *p_plaintext = plaintext;
-    return plaintextLen;
+    return outputBuffer;
 }
+
+
 
 
 bool lsslService::              generateKeyPair(){
@@ -395,39 +330,6 @@ bool lsslService::              generateKeyPair(){
 }
 
 
-bool lsslService::              checkIfKeyIsAccepted( const char* nodeName, const char* hash ){
-
-// vars
-    json_t* jsonNode = NULL;
-    json_t* jsonHash = NULL;
-    json_t* jsonRequested = NULL;
-
-    coCore::ptr->config->nodesIterate();
-    if( coCore::ptr->config->nodeSelect( nodeName ) == false ) return false;
-    if( coCore::ptr->config->nodeGet( &jsonNode ) == false ) return false;
-
-// get hash
-    jsonHash = json_object_get( jsonNode, "tlshash" );
-    if( jsonHash == NULL ) goto saveit;
-
-// compare
-    if( coCore::strIsExact( hash, json_string_value(jsonHash), json_string_length(jsonHash) ) == true ){
-        return true;
-    }
-
-saveit:
-// not accepted, save it to requested keys
-    jsonRequested = coCore::ptr->config->section( "ssl_requested" );
-    json_object_set_new( jsonRequested, nodeName, json_string( hash ) );
-    coCore::ptr->config->nodesIterateFinish();
-
-// save it
-    coCore::ptr->config->save();
-
-    return false;
-}
-
-
 bool lsslService::              requestedKeysGet( json_t** jsonObject ){
 
 // vars
@@ -462,7 +364,7 @@ bool lsslService::              acceptKeyOfNodeName( const char* nodeName ){
     jsonHash = json_object_get( jsonRequested, nodeName );
     if( jsonHash != NULL ){
 
-        json_object_set( jsonNode, "tlshash", jsonHash );
+        json_object_set( jsonNode, "tlsHash", jsonHash );
         json_object_del( jsonRequested, nodeName );
 
         coCore::ptr->config->nodesIterateFinish();
@@ -479,6 +381,139 @@ bool lsslService::              removeKeyOfNodeName( const char* nodeName ){
 
 }
 
+
+
+bool lsslService::              checkIfKeyIsAccepted( const char* peerNodeName, const char* hash ){
+
+// vars
+    json_t* jsonNode = NULL;
+    json_t* jsonHash = NULL;
+    json_t* jsonRequested = NULL;
+
+// lock
+    coCore::ptr->config->nodesIterate();
+
+// get nodeName
+    if( coCore::ptr->config->nodeSelect( peerNodeName ) == false ){
+        coCore::ptr->config->nodeAppend( peerNodeName );
+    }
+    if( coCore::ptr->config->nodeGet( &jsonNode ) == false ){
+        coCore::ptr->config->nodesIterateFinish();
+        return false;
+    }
+
+// get hash
+    jsonHash = json_object_get( jsonNode, "tlsHash" );
+    if( jsonHash == NULL ){
+
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Node has no hash, we save %s as hash for nodeName %s", hash, peerNodeName );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+    // not accepted, save it to requested keys
+        jsonRequested = coCore::ptr->config->section( "ssl_requested" );
+        json_object_set_new( jsonRequested, peerNodeName, json_string( hash ) );
+        coCore::ptr->config->nodesIterateFinish();
+
+    // save it
+        coCore::ptr->config->save();
+
+        return false;
+    }
+
+// compare
+    if( coCore::strIsExact( hash, json_string_value(jsonHash), json_string_length(jsonHash) ) == true ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Accept hash '%s' for nodeName '%s'", hash, peerNodeName );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+
+        coCore::ptr->config->nodesIterateFinish();
+        return true;
+    }
+
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Denied hash '%s' for nodeName '%s'", hash, peerNodeName );
+    etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+    return false;
+
+
+}
+
+
+int lsslService::               sharedSecretGet( const char* peerNodeName, const char** secret ){
+
+// vars
+    json_t*                     jsonPeerNode = NULL;
+
+
+// lock
+    coCore::ptr->config->nodesIterate();
+
+// get nodeName
+    if( coCore::ptr->config->nodeSelect( peerNodeName ) == false ){
+        coCore::ptr->config->nodeAppend( peerNodeName );
+    }
+    if( coCore::ptr->config->nodeGet( &jsonPeerNode ) == false ){
+        coCore::ptr->config->nodesIterateFinish();
+        return -1;
+    }
+
+
+// secret
+    json_t*                     jsonTLSSecret = NULL;
+
+    jsonTLSSecret = json_object_get( jsonPeerNode, "tlsSecret" );
+    if( jsonTLSSecret == NULL ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "No secret aviable for node '%s'.", peerNodeName );
+        etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+        coCore::ptr->config->nodesIterateFinish();
+        return 0;
+    }
+
+
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Secret aviable for node '%s'.", peerNodeName );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+    *secret = json_string_value( jsonTLSSecret );
+    coCore::ptr->config->nodesIterateFinish();
+    return 1;
+}
+
+
+int lsslService::               sharedSecretSet( const char* peerNodeName, const char* secret ){
+
+// vars
+    json_t*                     jsonPeerNode = NULL;
+
+
+// lock
+    coCore::ptr->config->nodesIterate();
+
+// get nodeName
+    if( coCore::ptr->config->nodeSelect( peerNodeName ) == false ){
+        coCore::ptr->config->nodeAppend( peerNodeName );
+    }
+    if( coCore::ptr->config->nodeGet( &jsonPeerNode ) == false ){
+        coCore::ptr->config->nodesIterateFinish();
+        return -1;
+    }
+
+
+// secret
+    json_t*                     jsonTLSSecret = NULL;
+
+    jsonTLSSecret = json_object_get( jsonPeerNode, "tlsSecret" );
+    if( jsonTLSSecret == NULL ){
+
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Set Secret of node '%s'.", peerNodeName );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+        json_object_set_new( jsonPeerNode, "tlsSecret", json_string(secret) );
+        coCore::ptr->config->nodesIterateFinish();
+
+        coCore::ptr->config->save();
+        return 1;
+    }
+
+    return 0;
+}
 
 
 

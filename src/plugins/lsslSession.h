@@ -72,7 +72,7 @@ class lsslSession {
 
     int                     communicateReadJson( char* buffer, size_t bufferSize, json_t** p_jsonMessage );
     int                     communicateNodeNameHandshake( const char* msgID, const char* msgSource, const char* msgTarget, const char* msgGroup, const char* msgCmd, const char* msgPayload );
-    int                     communicateAuth();
+    int                     communicateAuth( const char* msgID, const char* msgSource, const char* msgTarget, const char* msgGroup, const char* msgCmd, const char* msgPayload );
     static void*            communicateThread( void* void_lsslService );
 
 

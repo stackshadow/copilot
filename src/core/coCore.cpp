@@ -159,6 +159,7 @@ bool coCore::				isHostName( const char* hostNameToCheck ){
 
 
 bool coCore::				isNodeName( const char* nodeNameToCheck ){
+    if( nodeNameToCheck == NULL ) return false;
 
 // vars
 	const char*		tempCharArray = NULL;
