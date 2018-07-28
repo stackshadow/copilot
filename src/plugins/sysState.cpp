@@ -266,23 +266,17 @@ bool sysState::                     createBash(){
 
 // vars
     char            tempFileNameIn[] = "/tmp/copilotd_health.bash";
-    char*           tempFileName;
     FILE*           tempFile = NULL;
 
 // json
-    json_t*         jsonCommands = NULL;
     void*           jsonCommandIterator = NULL;
     json_t*         jsonCommand = NULL;
     json_t*         jsonValue = NULL;
-    char*           jsonValueChar = NULL;
-    int             jsonArrayIndex = 0;
-    int             jsonArrayLen = 0;
 
 // vars - command
     const char*     command = NULL;
     int             commandMin = 0;
     int             commandMax = 0;
-    int             commandHealth = 0;
     int             commandInterval = 0;
 
 
@@ -383,7 +377,6 @@ int sysState::                      commandsStartAll(){
     const char*     cmdDisplayName = NULL;
     int             cmdValueMin;
     int             cmdValueMax;
-    int             cmdDelay = 100;
 
 // how many threads we need ?
 // ( normaly one thread per timer )
@@ -478,8 +471,6 @@ int sysState::                      commandsStopAll(){
 // vars
     sysStateThreadData*     threadData = NULL;
     int                     cmdArraysIndex = 0;
-    sysStateCmd*            command;
-    int                     commandIndex = 0;
 
     for( cmdArraysIndex = 0; cmdArraysIndex < this->threadedDataArrayCount; cmdArraysIndex++ ){
 
@@ -723,10 +714,6 @@ int sysState::                      onSubscriberMessage( void* objectSource, con
     if( strncmp(command,"cmdSave",7) == 0 ){
 
     // vars
-        json_t*         jsonID = NULL;
-        const char*     jsonIDChar = NULL;
-        json_t*         jsonInterval = NULL;
-        int             intervalMilliseconds = 0;
         char            intervalMillisecondsChar[20]; memset( intervalMillisecondsChar, 0, 20 );
         char*           id;
 
@@ -759,7 +746,7 @@ int sysState::                      onSubscriberMessage( void* objectSource, con
         }
 
         return psBus::END;
-    } 
+    }
 
 
     if( strncmp(command,"cmdDetailGet",12) == 0 ){
