@@ -136,7 +136,7 @@ bool coCoreConfig::         save( const char* jsonString ){
 	if( jsonString != NULL ){
 	// parse json
 		jsonObject = json_loads( jsonString, JSON_PRESERVE_ORDER | JSON_INDENT(4), &jsonError );
-		if( jsonObject == NULL | jsonError.line > -1 ){
+		if( jsonObject == NULL || jsonError.line > -1 ){
 			snprintf( etDebugTempMessage, etDebugTempMessageLen, "json-error: %s", jsonError.text );
 			etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
@@ -185,7 +185,11 @@ bool coCoreConfig::         save( const char* jsonString ){
     return false;
 }
 
-
+/**
+ * @brief Get a section inside the config file
+ * @param sectionName
+ * @return A json_t object which should NOT be freed !
+ */
 json_t* coCoreConfig::      section( const char* sectionName ){
 
 // vars
@@ -290,8 +294,6 @@ void coCoreConfig::         nodeStatesRemove(){
 // vars
     void*           iterator = NULL;
     json_t*         node = NULL;
-    json_t*         jsonString = NULL;
-    const char*     jsonStringChar = NULL;
 
 
     iterator = json_object_iter( this->jsonNodes );
@@ -510,6 +512,40 @@ bool coCoreConfig::			nodeConnInfo( const char** host, int* port, bool set ){
 
 // return
 	return true;
+}
+
+
+bool coCoreConfig::         nodeIsServer( const char* name ){
+    lockMyPthread();
+
+// vars
+	json_t*		                jsonVar = NULL;
+    coCoreConfig::nodeType      type;
+
+
+    if( this->nodeSelect(name) == false ){
+        unlockMyPthread();
+        return false;
+    }
+
+    jsonVar = json_object_get( this->jsonNode, "type" );
+    if( jsonVar == NULL ){
+        unlockMyPthread();
+        return false;
+    }
+
+    jsonVar = json_integer( coCoreConfig::UNKNOWN );
+    type = (coCoreConfig::nodeType)json_integer_value( jsonVar );
+
+// check
+    if( type == coCoreConfig::SERVER ){
+        unlockMyPthread();
+        return true;
+    }
+
+
+    unlockMyPthread();
+    return true;
 }
 
 

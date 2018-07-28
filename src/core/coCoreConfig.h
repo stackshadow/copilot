@@ -43,56 +43,57 @@ class coCoreConfig {
 
 
 // types
-	public:
-		typedef enum {
-			UNKNOWN = 0,
-			SERVER = 1,
-			CLIENT = 10,
+    public:
+        typedef enum {
+            UNKNOWN = 0,
+            SERVER = 1,
+            CLIENT = 10,
             CLIENT_IN = 11,
-		} nodeType;
+        } nodeType;
 
 
 
 // public values
-	private:
-		lockID				threadLock;
+    private:
+        lockID              threadLock;
 
-	// settings
+    // settings
         etString*           configBasePath = NULL;
-		json_t*				jsonConfig = NULL;
-		json_t*				jsonNodes = NULL;
-		void*				jsonNodesIterator = NULL;
-		json_t*				jsonNode = NULL;
+        json_t*             jsonConfig = NULL;
+        json_t*             jsonNodes = NULL;
+        void*               jsonNodesIterator = NULL;
+        json_t*             jsonNode = NULL;
 
 public:
-		coCoreConfig();
-		~coCoreConfig();
+        coCoreConfig();
+        ~coCoreConfig();
 
-	// config
-		bool				load( const char* myNodeName );
-		bool				save( const char* jsonString = NULL );
+    // config
+        bool                load( const char* myNodeName );
+        bool                save( const char* jsonString = NULL );
         json_t*             section( const char* sectionName );
 
     // core config
         bool                configPath( const char** path );
         bool                myNodeName( const char** nodeName );
 
-	// nodes
-		bool				nodesGet( json_t** jsonObject );
-		bool				nodesGetAsArray( json_t* jsonArray );
+    // nodes
+        bool                nodesGet( json_t** jsonObject );
+        bool                nodesGetAsArray( json_t* jsonArray );
         void                nodeStatesRemove();
 
-	// iterate nodes / get node-infos
-		bool				nodesIterate();
-		bool				nodeAppend( const char* name );
+    // iterate nodes / get node-infos
+        bool                nodesIterate();
+        bool                nodeAppend( const char* name );
         bool                nodeRemove( const char* name );
-		bool				nodeSelect( const char* name );
+        bool                nodeSelect( const char* name );
         bool                nodeSelectByHostName( const char* hostName );
         bool                nodeGet( json_t** jsonNode );
-		bool				nodeNext();
-		bool				nodeInfo( const char** name, coCoreConfig::nodeType* type, bool set = false );
-		bool				nodeConnInfo( const char** host, int* port, bool set = false );
-		bool				nodesIterateFinish();
+        bool                nodeNext();
+        bool                nodeInfo( const char** name, coCoreConfig::nodeType* type, bool set = false );
+        bool                nodeConnInfo( const char** host, int* port, bool set = false );
+        bool                nodeIsServer( const char* name );
+        bool                nodesIterateFinish();
 
     // user / password
         bool                authMethode();
