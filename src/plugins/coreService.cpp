@@ -76,7 +76,15 @@ void coreService::                      appendKnownNodes( const char* nodeName )
 
 
 
-int coreService::                       onSubscriberMessage( void* objectInstance, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata ){
+int coreService::                       onSubscriberMessage( 
+    void* objectInstance, 
+    const char* id, 
+    const char* nodeSource, 
+    const char* nodeTarget, 
+    const char* group, 
+    const char* command, 
+    const char* payload, 
+    void* userdata ){
 
     // vars
     coreService*        coreServiceInst = (coreService*)objectInstance;
@@ -111,13 +119,13 @@ int coreService::                       onSubscriberMessage( void* objectInstanc
 
     }
 
-    // to "localhost" or to the nodename-host
-    if( strncmp(nodeTarget,"localhost",9) != 0 &&
-    coCore::ptr->isNodeName(nodeTarget) == false ){
+
+
+// get nodename
+    if( coCore::strIsExact("nodeNameGet",command,msgCommandLen) == true ){
+        psBus::inst->publish( coreServiceInst, id, nodeTarget, nodeSource, group, "nodeName", myNodeName );
         return psBus::END;
     }
-
-
 
     // get version
     if( coCore::strIsExact("versionGet",command,msgCommandLen) == true ){
@@ -130,6 +138,40 @@ int coreService::                       onSubscriberMessage( void* objectInstanc
 
 
     // get hosts
+    if( coCore::strIsExact("nodeListGet",command,msgCommandLen) == true ){
+        
+    // vars
+        json_t*         jsonObject = NULL;
+        void*           jsonObjectIterator = NULL;
+        json_t*         jsonResultArray = json_array();
+        char*           jsonArrayChar = NULL;
+        
+        
+    // create result-array
+        coCore::ptr->config->nodesGet( &jsonObject );
+        jsonObjectIterator = json_object_iter( jsonObject );
+        while( jsonObjectIterator != NULL ){
+            
+            const char* nodeName = json_object_iter_key( jsonObjectIterator );
+            json_array_append_new( jsonResultArray, json_string(nodeName) );
+            
+            jsonObjectIterator = json_object_iter_next( jsonObject, jsonObjectIterator );
+        }
+
+        jsonArrayChar = json_dumps( jsonResultArray, JSON_PRESERVE_ORDER | JSON_COMPACT );
+
+    // publish
+        psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodeList", jsonArrayChar );
+        
+    // free
+        free( jsonArrayChar );
+        json_decref( jsonResultArray );
+
+
+        return psBus::END;
+    }
+
+
     if( coCore::strIsExact("nodesGet",command,msgCommandLen) == true ){
         nodesGet:
     // vars
