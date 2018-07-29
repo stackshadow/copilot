@@ -105,7 +105,7 @@ void lsslService::              createTLSConfig(){
 
 // set key
     tempString =  configPath;
-    tempString += "/ssl_private/";
+    tempString += "/";
     tempString += nodeName;
     tempString += ".key";
 
@@ -117,7 +117,7 @@ void lsslService::              createTLSConfig(){
 
 // set cert
     tempString =  configPath;
-    tempString += "/ssl_private/";
+    tempString += "/";
     tempString += nodeName;
     tempString += ".crt";
     if( tls_config_set_cert_file( this->tlsConfig, tempString.c_str() ) != 0 ){
@@ -346,173 +346,208 @@ bool lsslService::              requestedKeysGet( json_t** jsonObject ){
 }
 
 
-bool lsslService::              acceptKeyOfNodeName( const char* nodeName ){
+bool lsslService::              acceptHash( const char* hash ){
 
 // vars
     json_t* jsonNode = NULL;
     json_t* jsonHash = NULL;
     json_t* jsonRequested = NULL;
-
-// get node
-    coCore::ptr->config->nodesIterate();
-    if( coCore::ptr->config->nodeSelect( nodeName ) == false ) return false;
-    if( coCore::ptr->config->nodeGet( &jsonNode ) == false ) return false;
-
+    json_t* jsonAccepted = NULL;
 
 // get requested hash
     jsonRequested = coCore::ptr->config->section( "ssl_requested" );
-    jsonHash = json_object_get( jsonRequested, nodeName );
-    if( jsonHash != NULL ){
+    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    if( jsonRequested == NULL || jsonAccepted == NULL ) return false;
 
-        json_object_set( jsonNode, "tlsHash", jsonHash );
-        json_object_del( jsonRequested, nodeName );
-
-        coCore::ptr->config->nodesIterateFinish();
-
-        return true;
-    }
-
-
-    return false;
-}
-
-
-bool lsslService::              removeKeyOfNodeName( const char* nodeName ){
-
-}
-
-
-
-bool lsslService::              checkIfKeyIsAccepted( const char* peerNodeName, const char* hash ){
-
-// vars
-    json_t* jsonNode = NULL;
-    json_t* jsonHash = NULL;
-    json_t* jsonRequested = NULL;
-
-// lock
-    coCore::ptr->config->nodesIterate();
-
-// get nodeName
-    if( coCore::ptr->config->nodeSelect( peerNodeName ) == false ){
-        coCore::ptr->config->nodeAppend( peerNodeName );
-    }
-    if( coCore::ptr->config->nodeGet( &jsonNode ) == false ){
-        coCore::ptr->config->nodesIterateFinish();
-        return false;
-    }
 
 // get hash
-    jsonHash = json_object_get( jsonNode, "tlsHash" );
+    jsonHash = json_object_get( jsonRequested, hash );
+    if( jsonHash == NULL ) return false;
+
+// remove it from requested
+    json_incref( jsonHash );
+    json_object_del( jsonRequested, hash );
+
+// add it to accepted
+    json_object_set_new( jsonAccepted, hash, jsonHash );
+
+// save it
+    coCore::ptr->config->save();
+    return false;
+}
+
+
+bool lsslService::              forgetHash( const char* hash ){
+
+// vars
+    json_t* jsonHash = NULL;
+    json_t* jsonAccepted = NULL;
+
+// get requested hash
+    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    if( jsonAccepted == NULL ) return false;
+
+//
+    json_object_del( jsonAccepted, hash );
+
+// check if
+    jsonHash = json_object_get( jsonAccepted, hash );
+    if( jsonHash == NULL ) return true;
+
+    coCore::ptr->config->save();
+    return false;
+}
+
+
+/**
+@return
+If remoteNodeName is NULL
+ - HASH_MISSING Hash is not accepted and saved to requested-list
+ - HASH_ACCEPTED Hash is ok, but remoteNodeName was not checked
+
+If remoteNodeName is not NULL
+ - HASH_MISSING Hash not accepted
+ - HASH_ACCEPTED Hash accepted and remoteNodeName is okay
+ - HASH_WRONG_NODENAME Hash ok, but nodename was wrong
+*/
+int lsslService::               checkIfKeyIsAccepted( const char* hash, const char* remoteNodeName ){
+
+// vars
+    json_t* jsonRequested = NULL;
+    json_t* jsonAccepted = NULL;
+    json_t* jsonHash = NULL;
+    json_t* jsonNodeName = NULL;
+
+// get requested hash
+    jsonRequested = coCore::ptr->config->section( "ssl_requested" );
+    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    if( jsonRequested == NULL || jsonAccepted == NULL ) return false;
+
+// get hash
+    jsonHash = json_object_get( jsonAccepted, hash );
     if( jsonHash == NULL ){
 
-    // debug
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Node has no hash, we save %s as hash for nodeName %s", hash, peerNodeName );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+    // already requested ?
+        jsonHash = json_object_get( jsonRequested, hash );
+        if( jsonHash != NULL ){
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] not accepted, already requested", hash );
+            etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+            return HASH_MISSING;
+        }
 
-    // not accepted, save it to requested keys
-        jsonRequested = coCore::ptr->config->section( "ssl_requested" );
-        json_object_set_new( jsonRequested, peerNodeName, json_string( hash ) );
-        coCore::ptr->config->nodesIterateFinish();
-
-    // save it
-        coCore::ptr->config->save();
-
-        return false;
-    }
-
-// compare
-    if( coCore::strIsExact( hash, json_string_value(jsonHash), json_string_length(jsonHash) ) == true ){
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Accept hash '%s' for nodeName '%s'", hash, peerNodeName );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-
-        coCore::ptr->config->nodesIterateFinish();
-        return true;
-    }
-
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Denied hash '%s' for nodeName '%s'", hash, peerNodeName );
-    etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-    return false;
-
-
-}
-
-
-int lsslService::               sharedSecretGet( const char* peerNodeName, const char** secret ){
-
-// vars
-    json_t*                     jsonPeerNode = NULL;
-
-
-// lock
-    coCore::ptr->config->nodesIterate();
-
-// get nodeName
-    if( coCore::ptr->config->nodeSelect( peerNodeName ) == false ){
-        coCore::ptr->config->nodeAppend( peerNodeName );
-    }
-    if( coCore::ptr->config->nodeGet( &jsonPeerNode ) == false ){
-        coCore::ptr->config->nodesIterateFinish();
-        return -1;
-    }
-
-
-// secret
-    json_t*                     jsonTLSSecret = NULL;
-
-    jsonTLSSecret = json_object_get( jsonPeerNode, "tlsSecret" );
-    if( jsonTLSSecret == NULL ){
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "No secret aviable for node '%s'.", peerNodeName );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] not accepted, save it to requested", hash );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
-        coCore::ptr->config->nodesIterateFinish();
-        return 0;
+
+        json_object_set_new( jsonRequested, hash, json_object() );
+
+        coCore::ptr->config->save();
+        return HASH_MISSING;
+    }
+
+// no peerNodeName provided
+    if( remoteNodeName == NULL ){
+        return HASH_ACCEPTED;
+    }
+
+// get nodeName of hash
+    jsonNodeName = json_object_get( jsonHash, "nodeName" );
+    if( jsonNodeName == NULL ){
+
+    // set nodeName
+        json_object_set_new( jsonHash, "nodeName", json_string(remoteNodeName) );
+
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] accepted, and nodeName '%s' is remembered", hash, remoteNodeName );
+        etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+
+        coCore::ptr->config->save();
+        return HASH_ACCEPTED;
+    }
+
+// nodename is present
+    if( coCore::strIsExact( json_string_value(jsonNodeName), remoteNodeName, strlen(remoteNodeName) ) == true ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] accepted for nodeName '%s'", hash, remoteNodeName );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return HASH_ACCEPTED;
     }
 
 
-    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Secret aviable for node '%s'.", peerNodeName );
-    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-    *secret = json_string_value( jsonTLSSecret );
-    coCore::ptr->config->nodesIterateFinish();
-    return 1;
+    snprintf( etDebugTempMessage, etDebugTempMessageLen,
+        "[%s] not accepted accepted. RemoteNodeName is '%s', should be '%s'",
+        hash,
+        remoteNodeName,
+        json_string_value(jsonNodeName)
+    );
+    etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+    return HASH_WRONG_NODENAME;
 }
 
 
-int lsslService::               sharedSecretSet( const char* peerNodeName, const char* secret ){
+int lsslService::               sharedSecretGet( const char* hash, const char** secret ){
 
 // vars
-    json_t*                     jsonPeerNode = NULL;
+    json_t* jsonAccepted = NULL;
+    json_t* jsonHash = NULL;
+    json_t* jsonSecret = NULL;
 
 
-// lock
-    coCore::ptr->config->nodesIterate();
+// get requested hash
+    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    if( jsonAccepted == NULL ) return SECRET_MISSING;
 
-// get nodeName
-    if( coCore::ptr->config->nodeSelect( peerNodeName ) == false ){
-        coCore::ptr->config->nodeAppend( peerNodeName );
+// get hash-object
+    jsonHash = json_object_get( jsonAccepted, hash );
+    if( jsonHash == NULL ) return SECRET_MISSING;
+
+// get secret
+    jsonSecret = json_object_get( jsonHash, "secret" );
+    if( jsonSecret == NULL ){
+
+    // if we are a server, we create a new secret
+        if( coCore::ptr->config->nodeIsServer( coCore::ptr->nodeName() ) == true ){
+
+            std::string newRandom = lsslService::randomBase64( 32 );
+
+            jsonSecret = json_string( newRandom.c_str() );
+            json_object_set_new( jsonHash, "secret", jsonSecret );
+            coCore::ptr->config->save();
+
+            *secret = json_string_value( jsonSecret );
+            return SECRET_CREATED;
+        }
+
+        return SECRET_MISSING;
     }
-    if( coCore::ptr->config->nodeGet( &jsonPeerNode ) == false ){
-        coCore::ptr->config->nodesIterateFinish();
-        return -1;
-    }
+
+//
+    *secret = json_string_value( jsonSecret );
+    return SECRET_PRESENT;
+}
 
 
-// secret
-    json_t*                     jsonTLSSecret = NULL;
+int lsslService::               sharedSecretSet( const char* hash, const char* secret ){
 
-    jsonTLSSecret = json_object_get( jsonPeerNode, "tlsSecret" );
-    if( jsonTLSSecret == NULL ){
+// vars
+    json_t* jsonAccepted = NULL;
+    json_t* jsonHash = NULL;
+    json_t* jsonSecret = NULL;
 
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Set Secret of node '%s'.", peerNodeName );
-        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
-        json_object_set_new( jsonPeerNode, "tlsSecret", json_string(secret) );
-        coCore::ptr->config->nodesIterateFinish();
+// get requested hash
+    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    if( jsonAccepted == NULL ) return SECRET_MISSING;
 
-        coCore::ptr->config->save();
-        return 1;
-    }
+// get hash-object
+    jsonHash = json_object_get( jsonAccepted, hash );
+    if( jsonHash == NULL ) return SECRET_MISSING;
 
-    return 0;
+// of course, you can not overwrite an existing secret
+    jsonSecret = json_object_get( jsonHash, "secret" );
+    if( jsonSecret != NULL ) return SECRET_MISSING;
+
+    json_object_set_new( jsonHash, "secret", json_string(secret) );
+
+
+    return SECRET_CREATED;
 }
 
 

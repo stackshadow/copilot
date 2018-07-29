@@ -33,9 +33,21 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 This service provide an copilot to copilot connection. \n
 The connection is TLS-Encrypted with the power of libressl ( the libretls-library is super easy to use :D )
 
-
+// start a server
 openssl s_server -cert /etc/copilot/ssl_private/hacktop7.crt -key /etc/copilot/ssl_private/hacktop7.key  -accept 5555
-{"id":"sendMyNodeName","s":"testssl","t":"hacktop7","g":"co","c":"nodeName","v":"testssl"}
+
+// first request nodeName
+{"id":"requestNodeName","s":"openssl","t":"unknown","g":"ssl","c":"nodeNameGet","v":""}
+
+// ( we get the answer of the nodeName from remote, the remote waits for our nodeName )
+// then send our nodeName
+{"id":"sendMyNodeName","s":"openssl","t":"hacktop7","g":"co","c":"nodeName","v":"openssl"}
+
+
+
+openssl s_client -cert /etc/copilot/ssl_private/hacktop7.crt -key /etc/copilot/ssl_private/hacktop7.key -connect localhost:5555
+
+
 {"id":"","s":"testssl","t":"hacktop7","g":"ssl","c":"resChallange","v":"664168cc461479ea619bd03411b84d831bf53186acb9fc01498c68f05001d994"}
 
 
@@ -52,6 +64,16 @@ ERROR
 */
 
 #define MAX_BUF 20480
+
+#define HASH_WRONG_NODENAME -1
+#define HASH_MISSING 0
+#define HASH_ACCEPTED 1
+
+#define SECRET_MISSING 0
+#define SECRET_PRESENT 1
+#define SECRET_CREATED 2
+
+
 
 class lsslService {
 
@@ -77,12 +99,12 @@ class lsslService {
 // key handling
     bool                    generateKeyPair();
     static bool             requestedKeysGet( json_t** jsonObject );
-    static bool             acceptKeyOfNodeName( const char* nodeName );
-    static bool             removeKeyOfNodeName( const char* nodeName );
+    static bool             acceptHash( const char* hash );
+    static bool             forgetHash( const char* hash );
 
-    static bool             checkIfKeyIsAccepted( const char* nodeName, const char* hash );
-    static int              sharedSecretGet( const char* remoteNodeName, const char** secret );
-    static int              sharedSecretSet( const char* remoteNodeName, const char* secret );
+    static int              checkIfKeyIsAccepted( const char* hash, const char* remoteNodeName );
+    static int              sharedSecretGet( const char* hash, const char** secret );
+    static int              sharedSecretSet( const char* hash, const char* secret );
 
     //static bool
 
