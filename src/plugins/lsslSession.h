@@ -44,7 +44,9 @@ openssl s_server -cert /etc/copilot/ssl_private/hacktop7.crt -key /etc/copilot/s
 #include "lsslService.h"
 
 #define MAX_BUF 20480
-
+#define HANDSHAKE_ERROR -1
+#define HANDSHAKE_NEXT 0
+#define HANDSHAKE_OK 1
 
 class lsslSession {
         private:
@@ -71,8 +73,8 @@ class lsslSession {
     static void*            connectToClientThread( void* void_lsslService );
 
     int                     communicateReadJson( char* buffer, size_t bufferSize, json_t** p_jsonMessage );
-    int                     communicateNodeNameHandshake( const char* msgID, const char* msgSource, const char* msgTarget, const char* msgGroup, const char* msgCmd, const char* msgPayload );
-    int                     communicateAuth( const char* msgID, const char* msgSource, const char* msgTarget, const char* msgGroup, const char* msgCmd, const char* msgPayload );
+    bool                    communicateNodeNameHandshake();
+    bool                    communicateAuthHandshake();
     static void*            communicateThread( void* void_lsslService );
 
 
