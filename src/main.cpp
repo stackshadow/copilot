@@ -80,8 +80,10 @@ static struct option options[] = {
     { "createServe",            required_argument,  NULL, 32 },
 #ifndef DISABLE_LTLS
     { "keyReqList",             no_argument,        NULL, 40 },
-    { "keyAccept",              required_argument,  NULL, 41 },
-    { "sharedSecretForget",     required_argument,  NULL, 42 },
+    { "hash",                   required_argument,  NULL, 41 },
+    { "accept",                 no_argument,        NULL, 42 },
+    { "sharedSecretSet",        required_argument,  NULL, 43 },
+    { "sharedSecretForget",     required_argument,  NULL, 44 },
 
 
 #endif
@@ -132,9 +134,12 @@ int main( int argc, char *argv[] ){
     int             servePort = 4567;
 
     bool            reqKeysList = false;
-    bool            reqKeyAccept = false;
-    const char*     reqKeyAcceptNodeName = NULL;
+    bool            optAccept = false;
+    const char*     optHash = NULL;
+    const char*     reqKeyAcceptHash = NULL;
     bool            sharedSecretForget = false;
+    bool            sharedSecretSet = true;
+    const char*     sharedSecret = NULL;
 
     bool            startWebSocket = false;
     bool            disablenft = false;
@@ -162,7 +167,8 @@ int main( int argc, char *argv[] ){
                 fprintf( stdout, "--createConnection <hostname:port>: Create a new client connection and exit \n" );
                 fprintf( stdout, "--createServe <hostname:port>: Create a new server connection and exist \n" );
                 fprintf( stdout, "--keyReqList List keys which request an connection \n" );
-                fprintf( stdout, "--keyAccept <name> Accept the requested key for node <name>\n" );
+                fprintf( stdout, "--hash <name> Select an hash ( needed by other options ) \n" );
+                fprintf( stdout, "--accept Accept the selected hash\n" );
                 #ifndef DISABLE_WEBSOCKET
                 fprintf( stdout, "--websocket: start websocket-server \n" );
                 #endif
@@ -239,8 +245,16 @@ int main( int argc, char *argv[] ){
                 break;
 
             case 41:
-                reqKeyAccept = true;
-                reqKeyAcceptNodeName = optarg;
+                optHash = optarg;
+                break;
+
+            case 42:
+                optAccept = true;
+                break;
+
+            case 43:
+                sharedSecretSet = true;
+                sharedSecret = optarg;
                 break;
 #endif
 
@@ -268,6 +282,17 @@ int main( int argc, char *argv[] ){
     }
 
 
+    if( serveConnection == true ){
+        if( coCore::ptr->config->nodeSelect( coCore::ptr->nodeName() ) != true ){
+            coCore::ptr->config->nodeAppend( coCore::ptr->nodeName() );
+        }
+
+        coCoreConfig::nodeType serveNodeType = coCoreConfig::SERVER;
+        coCore::ptr->config->nodeInfo( NULL, &serveNodeType, true );
+        coCore::ptr->config->nodeConnInfo( &serveHost, &servePort, true );
+        coCore::ptr->config->save();
+        exit(0);
+    }
 
 // ssl service
 #ifndef DISABLE_SSL
@@ -285,17 +310,7 @@ int main( int argc, char *argv[] ){
         exit(0);
     }
 
-    if( serveConnection == true ){
-        if( coCore::ptr->config->nodeSelectByHostName(serveHost) != true ){
-            coCore::ptr->config->nodeAppend(serveHost);
-        }
 
-        coCoreConfig::nodeType serveNodeType = coCoreConfig::SERVER;
-        coCore::ptr->config->nodeInfo( &serveHost, &serveNodeType, true );
-        coCore::ptr->config->nodeConnInfo( &serveHost, &servePort, true );
-        coCore::ptr->config->save();
-        exit(0);
-    }
 
 // list keys
     if( reqKeysList == true ){
@@ -344,10 +359,14 @@ int main( int argc, char *argv[] ){
     }
 
 // accept key
-    if( reqKeyAccept == true ){
-        lsslService::acceptKeyOfNodeName( reqKeyAcceptNodeName );
-        //lsslService::acceptKey(keyName);
-        //accKeysList = true;
+    if( optAccept == true ){
+        if( optHash == NULL ){
+            fprintf( stderr, "You need to select an hash with --hash\n" );
+            exit(-1);
+        }
+
+        lsslService::acceptHash( optHash );
+        exit(0);
     }
 
 
