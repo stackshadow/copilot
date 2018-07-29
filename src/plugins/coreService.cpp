@@ -76,14 +76,14 @@ void coreService::                      appendKnownNodes( const char* nodeName )
 
 
 
-int coreService::                       onSubscriberMessage( 
-    void* objectInstance, 
-    const char* id, 
-    const char* nodeSource, 
-    const char* nodeTarget, 
-    const char* group, 
-    const char* command, 
-    const char* payload, 
+int coreService::                       onSubscriberMessage(
+    void* objectInstance,
+    const char* id,
+    const char* nodeSource,
+    const char* nodeTarget,
+    const char* group,
+    const char* command,
+    const char* payload,
     void* userdata ){
 
     // vars
@@ -96,11 +96,11 @@ int coreService::                       onSubscriberMessage(
     msgCommandLen = strlen(command);
 
     // to all hosts
-    if( strncmp( (char*)nodeTarget, "all", 3 ) == 0 ){
+    if( strncmp( (char*)nodeTarget, "all", 3 ) == 0 || strncmp( (char*)nodeTarget, myNodeName, strlen(myNodeName) ) == 0 ){
 
     // ping
         if( strncmp(command,"ping",4) == 0 ){
-            
+
         // publish
             psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "pong", "" );
 
@@ -139,22 +139,22 @@ int coreService::                       onSubscriberMessage(
 
     // get hosts
     if( coCore::strIsExact("nodeListGet",command,msgCommandLen) == true ){
-        
+
     // vars
         json_t*         jsonObject = NULL;
         void*           jsonObjectIterator = NULL;
         json_t*         jsonResultArray = json_array();
         char*           jsonArrayChar = NULL;
-        
-        
+
+
     // create result-array
         coCore::ptr->config->nodesGet( &jsonObject );
         jsonObjectIterator = json_object_iter( jsonObject );
         while( jsonObjectIterator != NULL ){
-            
+
             const char* nodeName = json_object_iter_key( jsonObjectIterator );
             json_array_append_new( jsonResultArray, json_string(nodeName) );
-            
+
             jsonObjectIterator = json_object_iter_next( jsonObject, jsonObjectIterator );
         }
 
@@ -162,7 +162,7 @@ int coreService::                       onSubscriberMessage(
 
     // publish
         psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodeList", jsonArrayChar );
-        
+
     // free
         free( jsonArrayChar );
         json_decref( jsonResultArray );
@@ -184,7 +184,7 @@ int coreService::                       onSubscriberMessage(
 
     // publish
         psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodes", jsonArrayChar );
-        
+
     // free
         free(jsonArrayChar);
         //json_decref(jsonArray);
@@ -202,7 +202,7 @@ int coreService::                       onSubscriberMessage(
 
     // publish
         psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodes", jsonArrayChar );
-        
+
         coCore::ptr->config->nodesIterate();
         if( coCore::ptr->config->nodeSelect( payload ) == false ){
             coCore::ptr->config->nodesIterateFinish();
@@ -219,7 +219,7 @@ int coreService::                       onSubscriberMessage(
 
     // publish
         psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodeForEdit", jsonArrayChar );
-        
+
     // free
         free(jsonArrayChar);
 
