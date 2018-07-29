@@ -285,6 +285,7 @@ void psBus::                toJson( json_t** jsonObject, const char* id, const c
 
 
 bool psBus::                fromJson( json_t* jsonObject, const char** id, const char** nodeSource, const char** nodeTarget, const char** group, const char** command, const char** payload ){
+    if( jsonObject == NULL ) return false;
 
 // vars
     json_t*     jsonObjectValue = NULL;
