@@ -6,6 +6,27 @@ project(copilotd)
 execute_process( COMMAND nproc OUTPUT_VARIABLE NCPUS
 )
 
+# submodules
+add_custom_command(
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
+    COMMAND git submodule update
+    OUTPUT
+    ${CMAKE_SOURCE_DIR}/../libs/evillib/make/Makefile
+    ${CMAKE_SOURCE_DIR}/../libs/util-linux/README
+    ${CMAKE_SOURCE_DIR}/../libs/uWebSockets/Makefile
+)
+add_custom_target( submodules
+    DEPENDS
+    ${CMAKE_SOURCE_DIR}/../libs/evillib/make/Makefile
+    ${CMAKE_SOURCE_DIR}/../libs/util-linux/README
+    ${CMAKE_SOURCE_DIR}/../libs/uWebSockets/Makefile
+)
+add_custom_target( clean_submodules )
+add_custom_command(
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/..
+    COMMAND git submodule foreach git clean -d -x -f
+    TARGET clean_submodules
+)
 
 # sources - evillib
 file( GLOB srcEvillib   "../src/evillib.c" )
@@ -194,7 +215,7 @@ include_directories( "../src" )
 include_directories( "../src/core" )
 
 
-add_executable(copilotd ${srcEvillib} ${srcCopilotd} ${srclibressl} )
+add_executable(copilotd ${srcEvillib} ${srcCopilotd} )
 target_link_libraries( copilotd ${LIBRARYS} )
 target_include_directories( copilotd PRIVATE ${INCDIRS} )
 install( TARGETS copilotd RUNTIME DESTINATION bin )
@@ -214,7 +235,7 @@ FILE(WRITE ../src/gitversion.h
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -pie -fPIE -fPIC -fstack-protector -Wformat -Wformat-security -Wall -DPACKAGE='\"copilotd\"' -DLOCALEDIR='\"/usr/share/locale\"' -DDISABLE_SSH")
 
 
-add_dependencies( copilotd libressl )
+add_dependencies( copilotd libressl submodules )
 
 
 

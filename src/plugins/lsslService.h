@@ -20,7 +20,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef lsslService_H
 #define lsslService_H
 
-#include "../libs/portable-2.7.4/include/tls.h"
+#include "../libs/libressl/include/tls.h"
 
 #include "coCoreConfig.h"
 #include "core/threadList.h"
