@@ -623,6 +623,8 @@ void lsslService::              connectToAllClients(){
             continue;
         }
 
+
+
     // new client
         lsslSession* sslClient = new lsslSession( NULL, this->tlsConfig, NULL, clientHost, clientPort );
     // we create a client thread
@@ -731,7 +733,34 @@ int lsslService::               onSubscriberMessage(
     }
 
 
+    if( coCore::strIsExact( command, "stop", 4 ) == true ){
+        etThreadListCancelAll( service->threadListServer );
+        etThreadListCancelAll( service->threadListClients );
 
+        return psBus::END;
+    }
+
+
+    if( coCore::strIsExact( command, "start", 5 ) == true ){
+    // create server
+        service->serve();
+
+    // connect to client
+        service->connectToAllClients();
+
+        return psBus::END;
+    }
+
+
+    if( coCore::strIsExact( command, "status", 6 ) == true ){
+
+    // add the message to list
+        psBus::inst->publish( service, id, nodeTarget, nodeSource, group,
+        "runningClientThreads", std::to_string(service->threadListClients->count).c_str() );
+
+
+        return psBus::END;
+    }
 
 
 

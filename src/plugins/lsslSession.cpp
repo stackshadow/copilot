@@ -127,6 +127,7 @@ bool lsslSession::              sendJson( json_t* jsonObject ){
 void* lsslSession::             waitForClientThread( void* void_threadListItem ){
 
 // vars
+    threadListItem_t*       threadListItem = (threadListItem_t*)void_threadListItem;
 	lsslSession*            session = NULL;
     struct sockaddr_in      serverSocketAddress;
     int                     serverSocket;
@@ -141,7 +142,7 @@ void* lsslSession::             waitForClientThread( void* void_threadListItem )
     struct tls*             tlsClient = NULL;
 
 // get instance
-    etThreadListUserdataGet( (threadListItem_t*)void_threadListItem, (void**)&session );
+    etThreadListUserdataGet( threadListItem, (void**)&session );
 
 
 // create address description
@@ -167,7 +168,7 @@ void* lsslSession::             waitForClientThread( void* void_threadListItem )
         exit(1);
     }
 
-    while( etThreadListCancelRequestActive((threadListItem_t*)void_threadListItem) == etID_NO ){
+    while( etThreadCancelRequestActive(threadListItem) == etID_NO ){
 
         etDebugMessage( etID_LEVEL_INFO, "Wait for client." );
         clientSocket = accept( serverSocket, (struct sockaddr *)&clientSocketAddress, &clientSocketAddressLen );
@@ -183,7 +184,9 @@ void* lsslSession::             waitForClientThread( void* void_threadListItem )
 
     // cool, accepted, we create an client
         lsslSession* sslClient = new lsslSession( NULL, NULL, tlsClient, "", 0 );
-        etThreadListAdd( session->threadListClients, "ssl-client", lsslSession::communicateThread, NULL, sslClient );
+        etThreadListAdd( session->threadListClients, "ssl-incoming", lsslSession::communicateThread, NULL, sslClient );
+
+
 
     }
 
@@ -206,6 +209,7 @@ void* lsslSession::             waitForClientThread( void* void_threadListItem )
 void* lsslSession::             connectToClientThread( void* void_threadListItem ){
 
 // vars
+    threadListItem_t*       threadListItem = (threadListItem_t*)void_threadListItem;
     int                     rc = 0;
     lsslSession*            sessionInst = NULL;
     struct sockaddr_in      clientSocketAddress;
@@ -214,7 +218,9 @@ void* lsslSession::             connectToClientThread( void* void_threadListItem
 
 
 // get
-    etThreadListUserdataGet( (threadListItem_t*)void_threadListItem, (void**)&sessionInst );
+    etThreadListUserdataGet( threadListItem, (void**)&sessionInst );
+
+
 
 // create address description
     memset( &clientSocketAddress, '\0', sizeof(clientSocketAddress) );
@@ -223,7 +229,7 @@ void* lsslSession::             connectToClientThread( void* void_threadListItem
     clientSocketAddress.sin_port = htons( sessionInst->hostPort );      /* Server Port number */
 
 
-    while(1){
+    while( etThreadCancelRequestActive(threadListItem) == etID_NO ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Try to connect to client %s:%i", sessionInst->hostName.c_str(), sessionInst->hostPort );
         etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
 
@@ -266,8 +272,6 @@ void* lsslSession::             connectToClientThread( void* void_threadListItem
         lsslSession::communicateThread( void_threadListItem );
 
     // finished with communication
-        tls_close( sessionInst->tlsConnection );
-        tls_free( sessionInst->tlsConnection );
         close( clientSocket );
 
     //@todo Create unsubscribe ...
@@ -573,6 +577,7 @@ void* lsslSession::             communicateThread( void* void_threadListItem ){
 
 
 // vars
+    threadListItem_t*       threadListItem = (threadListItem_t*)void_threadListItem;
     lsslSession*            sessionInst = NULL;
     ssize_t                 ret = -1;
     char                    buffer[MAX_BUF + 1];
@@ -588,7 +593,7 @@ void* lsslSession::             communicateThread( void* void_threadListItem ){
 
 
 // get session
-    etThreadListUserdataGet( (threadListItem_t*)void_threadListItem, (void**)&sessionInst );
+    etThreadListUserdataGet( threadListItem, (void**)&sessionInst );
 
 
 
@@ -607,13 +612,21 @@ void* lsslSession::             communicateThread( void* void_threadListItem ){
     }
 
 
+// send count
+    psBus::inst->publish(
+        sessionInst, "",
+        coCore::ptr->nodeName(), "websocket",
+        "ssl", "newConnectedClient", sessionInst->peerNodeName.c_str()
+    );
+
+
 // we can now subscibe for remote messages
     psBus::inst->subscribe( sessionInst, sessionInst->peerNodeName.c_str(), NULL, sessionInst, NULL, lsslSession::onSubscriberJsonMessage );
 
 
 // ######################################## Read Loop ########################################
 
-    while(1){
+    while( etThreadCancelRequestActive(threadListItem) == etID_NO ){
         usleep( 5000 );
 
     // read json from tls
@@ -640,6 +653,10 @@ doDisconnect:
         json_decref( jsonMessage );
         jsonMessage = NULL;
     }
+
+// finished with communication
+    tls_close( sessionInst->tlsConnection );
+    tls_free( sessionInst->tlsConnection );
 
     usleep( 5000 );
     return NULL;

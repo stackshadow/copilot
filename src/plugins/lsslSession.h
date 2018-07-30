@@ -60,6 +60,7 @@ class lsslSession {
         std::string         authChallange = "";
         bool                authenticated = false;
 
+
     public:
                             lsslSession( threadList_t* threadListClients, tls_config* tlsConfig, struct tls* tlsConnection, const char* host, int port );
                                                           // incoming-client-constructor
