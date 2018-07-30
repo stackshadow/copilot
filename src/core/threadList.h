@@ -75,7 +75,7 @@ etID_STATE      etThreadListIterate( threadList_t* threadList, threadIterationFu
 etID_STATE      etThreadListUserdataGet( threadListItem_t* threadListItem, void** userdata );
 
 
-etID_STATE      etThreadListCancelRequestActive( threadListItem_t* threadListItem );
+etID_STATE      etThreadCancelRequestActive( threadListItem_t* threadListItem );
 
 
 

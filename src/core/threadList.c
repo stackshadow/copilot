@@ -138,12 +138,25 @@ etID_STATE      etThreadListCancelAll( threadList_t* threadList ){
             threadListItem->functionCancel( threadListItem->functionData );
         }
 
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Thread [%s] Request cancel", threadListItem->threadName );
+        etDebugMessage( etID_LEVEL_DETAIL_THREAD, etDebugTempMessage );
+
     // cancel thread
         //pthread_cancel( threadListItem->thread );
         threadListItem->cancelRequest = 1;
 
+    // wait
+        while( threadListItem->cancelRequest == 1 ){
+            usleep( 5000 );
+        }
+
+    // debug
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Thread [%s] Cancelled", threadListItem->threadName );
+        etDebugMessage( etID_LEVEL_DETAIL_THREAD, etDebugTempMessage );
+
     // release memory
-        etMemoryRelease( threadListItem );
+        //etMemoryRelease( threadListItem );
         threadList->items[index] = NULL;
     }
 
@@ -215,8 +228,10 @@ etID_STATE      etThreadServiceNameGet( threadListItem_t* threadListItem, const 
 }
 
 
-etID_STATE      etThreadListCancelRequestActive( threadListItem_t* threadListItem ){
+etID_STATE      etThreadCancelRequestActive( threadListItem_t* threadListItem ){
     if( threadListItem->cancelRequest == 1 ){
+        threadListItem->cancelRequest = 0;
+        etMemoryRelease( threadListItem );
         return etID_YES;
     }
 
