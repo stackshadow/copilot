@@ -14,5 +14,9 @@
       <Environment/>
       <Project Name="copilotd" ConfigName="createServe"/>
     </WorkspaceConfiguration>
+    <WorkspaceConfiguration Name="Test Plugin - lsslService" Selected="no">
+      <Environment/>
+      <Project Name="copilotd" ConfigName="Test - lsslService"/>
+    </WorkspaceConfiguration>
   </BuildMatrix>
 </CodeLite_Workspace>

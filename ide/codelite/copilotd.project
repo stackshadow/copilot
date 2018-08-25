@@ -2,22 +2,22 @@
 <CodeLite_Project Name="copilotd" Version="10.0.0" InternalType="">
   <Plugins>
     <Plugin Name="qmake">
-      <![CDATA[00050001N0006Client0000000000000001N0005Debug0000000000000001N0012Debug Client0000000000000001N0012Debug Server0000000000000001N0005Setup000000000000]]>
+      <![CDATA[00060001N0006Client0000000000000001N0005Debug0000000000000001N0012Debug Client0000000000000001N0012Debug Server0000000000000001N0005Setup0000000000000001N0018Test - lsslService000000000000]]>
     </Plugin>
   </Plugins>
   <VirtualDirectory Name="cmake">
+    <File Name="../../cmake/CMakeLists.txt"/>
     <File Name="../../cmake/contoclient.bash"/>
     <File Name="../../cmake/testserver.bash"/>
-    <File Name="../../cmake/CMakeLists.txt"/>
   </VirtualDirectory>
   <Reconciliation>
     <Regexes/>
     <Excludepaths/>
     <Ignorefiles/>
     <Extensions>
-      <![CDATA[cpp;c;h;hpp;xrc;wxcp;fbp]]>
+      <![CDATA[*.cpp;*.c;*.h;*.hpp;*.xrc;*.wxcp;*.fbp]]>
     </Extensions>
-    <Topleveldir>../codelite</Topleveldir>
+    <Topleveldir>/mnt/local/data/Develop/copilot/copilotd</Topleveldir>
   </Reconciliation>
   <Description/>
   <Dependencies/>
@@ -62,14 +62,38 @@
       <File Name="../../src/develop/doDBTable.h"/>
     </VirtualDirectory>
     <VirtualDirectory Name="plugins">
-      <File Name="../../src/plugins/lsslSession.h"/>
-      <File Name="../../src/plugins/lsslSession.cpp"/>
-      <File Name="../../src/plugins/lsslService.h"/>
-      <File Name="../../src/plugins/lsslService.cpp"/>
+      <VirtualDirectory Name="websocket">
+        <File Name="../../src/plugins/websocket/CMakeLists.txt"/>
+        <File Name="../../src/plugins/websocket/websocket.h"/>
+        <File Name="../../src/plugins/websocket/websocket.cpp"/>
+        <File Name="../../src/plugins/websocket/uwebsockets.h"/>
+        <File Name="../../src/plugins/websocket/uwebsockets.cpp"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="sysState">
+        <File Name="../../src/plugins/sysState/sysStateCmd.h"/>
+        <File Name="../../src/plugins/sysState/sysStateCmd.cpp"/>
+        <File Name="../../src/plugins/sysState/sysState.h"/>
+        <File Name="../../src/plugins/sysState/sysState.cpp"/>
+        <File Name="../../src/plugins/sysState/CMakeLists.txt"/>
+      </VirtualDirectory>
+      <File Name="../../src/plugins/plugin.h"/>
+      <File Name="../../src/plugins/plugin.cpp"/>
+      <VirtualDirectory Name="libretls">
+        <File Name="../../src/plugins/libretls/lsslSession.h"/>
+        <File Name="../../src/plugins/libretls/lsslSession.cpp"/>
+        <File Name="../../src/plugins/libretls/lsslService.h"/>
+        <File Name="../../src/plugins/libretls/lsslService.cpp"/>
+        <File Name="../../src/plugins/libretls/CMakeLists.txt"/>
+      </VirtualDirectory>
+      <VirtualDirectory Name="pluginTester">
+        <File Name="../../src/plugins/pluginTester/tester.cpp"/>
+        <File Name="../../src/plugins/pluginTester/CMakeLists.txt"/>
+      </VirtualDirectory>
+      <File Name="../../src/plugins/collectdService.h"/>
+      <File Name="../../src/plugins/collectdService.cpp"/>
+      <File Name="../../src/plugins/coreService.h"/>
       <File Name="../../src/plugins/mongodb.h"/>
       <File Name="../../src/plugins/mongodb.cpp"/>
-      <File Name="../../src/plugins/uwebsockets.h"/>
-      <File Name="../../src/plugins/uwebsockets.cpp"/>
       <File Name="../../src/plugins/eDB.cpp"/>
       <File Name="../../src/plugins/eDB.h"/>
       <File Name="../../src/plugins/coreService.cpp"/>
@@ -109,15 +133,18 @@
     <File Name="../../src/lockPthread.h"/>
     <File Name="../../src/main.cpp"/>
     <VirtualDirectory Name="core">
+      <File Name="../../src/core/pubsub.h"/>
+      <File Name="../../src/core/pubsub.cpp"/>
+      <File Name="../../src/core/plugin.h"/>
+      <File Name="../../src/core/plugin.cpp"/>
+      <File Name="../../src/core/coConfig.h"/>
+      <File Name="../../src/core/coConfig.cpp"/>
       <File Name="../../src/plugins/pubsub.h"/>
       <File Name="../../src/plugins/pubsub.cpp"/>
-      <File Name="../../src/plugins/coreService.h"/>
       <File Name="../../src/core/threadList.h"/>
       <File Name="../../src/core/threadList.c"/>
       <File Name="../../src/core/coCore.cpp"/>
       <File Name="../../src/core/coCore.h"/>
-      <File Name="../../src/core/coCoreConfig.cpp"/>
-      <File Name="../../src/core/coCoreConfig.h"/>
       <File Name="../../src/core/coMessage.cpp"/>
       <File Name="../../src/core/coMessage.h"/>
     </VirtualDirectory>
@@ -167,7 +194,73 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="$(ProjectPath)/../../" Command="/tmp/copilotd/copilotd" CommandArguments="--websocket --debug" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="$(ProjectPath)/../../" Command="/tmp/copilotd/copilotd" CommandArguments="--websocket --debug" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <BuildSystem Name="CMake"/>
+      <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
+        <![CDATA[]]>
+      </Environment>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="" IsExtended="no">
+        <DebuggerSearchPaths/>
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild>
+        <Command Enabled="yes">projPath=$PWD</Command>
+        <Command Enabled="yes">echo "projPath: ${projPath}"</Command>
+        <Command Enabled="yes">mkdir -p /tmp/copilotd</Command>
+        <Command Enabled="yes">cd /tmp/copilotd</Command>
+        <Command Enabled="yes">echo "cmake ${projPath}/cmake"</Command>
+        <Command Enabled="yes">cmake ${projPath}/cmake \
+-DCMAKE_INSTALL_PREFIX=/tmp/copilot_install \
+-DPLUGIN_SSL=OFF \
+-DPLUGIN_LDAP=ON \
+-DPLUGIN_NFT=OFF \
+-DPLUGIN_STS=ON \
+-DPLUGIN_SYSTEMD=OFF \
+-DPLUGIN_WS=ON \
+-DPLUGIN_DB=OFF \
+-DPLUGIN_MDB=OFF \
+-DDEVELOP=ON</Command>
+      </PreBuild>
+      <PostBuild/>
+      <CustomBuild Enabled="yes">
+        <RebuildCommand/>
+        <CleanCommand>make -C /tmp/copilotd clean_cmake</CleanCommand>
+        <BuildCommand>make</BuildCommand>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory>$(IntermediateDirectory)</WorkingDirectory>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+      <Completion EnableCpp11="no" EnableCpp14="no">
+        <ClangCmpFlagsC/>
+        <ClangCmpFlags/>
+        <ClangPP/>
+        <SearchPaths>/usr/include
+/usr/include/uWS
+/usr/local/include
+/usr/src/projekte/copilot/copilotd/libs/evillib/core
+$(ProjectPath)/../../src
+$(ProjectPath)/../../src/plugins
+$(ProjectPath)/../../src/plugins/libretls
+$(ProjectPath)/../../src/plugins/sysstate
+$(ProjectPath)/../../libs/evillib/core
+$(ProjectPath)/../../libs/evillib/extra
+/usr/include/libmongoc-1.0</SearchPaths>
+      </Completion>
+    </Configuration>
+    <Configuration Name="Test - lsslService" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="Executable" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" C_Options="-g" Assembler="" Required="yes" PreCompiledHeader="" PCHInCommandLine="no" PCHFlags="" PCHFlagsPolicy="0">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="" IntermediateDirectory="$(ProjectPath)/../../" Command="/mnt/local/data/Develop/copilot/copilotd/src/plugins/pluginTester/pluginTester" CommandArguments="/mnt/local/data/Develop/copilot/copilotd/src/plugins/libretls/liblsslService.so" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="no" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="Default"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -182,6 +275,7 @@
         <Command Enabled="yes">echo "projPath: ${projPath}"</Command>
         <Command Enabled="yes">mkdir -p /tmp/copilotd</Command>
         <Command Enabled="yes">cd /tmp/copilotd</Command>
+        <Command Enabled="yes">echo "cmake ${projPath}/cmake"</Command>
         <Command Enabled="yes">cmake ${projPath}/cmake \
 -DPLUGIN_SSL=OFF \
 -DPLUGIN_LDAP=ON \
@@ -196,7 +290,7 @@
       <CustomBuild Enabled="yes">
         <RebuildCommand/>
         <CleanCommand>make clean</CleanCommand>
-        <BuildCommand>make</BuildCommand>
+        <BuildCommand>make pluginTester lsslService</BuildCommand>
         <PreprocessFileCommand/>
         <SingleFileCommand/>
         <MakefileGenerationCommand/>

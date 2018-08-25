@@ -20,7 +20,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef coCoreConfig_H
 #define coCoreConfig_H
 
-
+#include <getopt.h>
 #include <unistd.h>
 #include <sys/utsname.h>
 #include <string>
@@ -39,7 +39,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
 
-class coCoreConfig {
+class coConfig {
 
 
 // types
@@ -57,25 +57,29 @@ class coCoreConfig {
     private:
         lockID              threadLock;
 
+
+
     // settings
-        etString*           configBasePath = NULL;
         json_t*             jsonConfig = NULL;
         json_t*             jsonNodes = NULL;
         void*               jsonNodesIterator = NULL;
         json_t*             jsonNode = NULL;
 
+
 public:
-        coCoreConfig();
-        ~coCoreConfig();
+        coConfig();
+        ~coConfig();
+        static coConfig* ptr;
+
 
     // config
-        bool                load( const char* myNodeName );
+        bool                parseOpt( int argc, char *argv[] );
+        bool                load();
         bool                save( const char* jsonString = NULL );
         json_t*             section( const char* sectionName );
 
     // core config
-        bool                configPath( const char** path );
-        bool                myNodeName( const char** nodeName );
+        const char*         nodeName( const char* nodeName = NULL );
 
     // nodes
         bool                nodesGet( json_t** jsonObject );
@@ -90,18 +94,16 @@ public:
         bool                nodeSelectByHostName( const char* hostName );
         bool                nodeGet( json_t** jsonNode );
         bool                nodeNext();
-        bool                nodeInfo( const char** name, coCoreConfig::nodeType* type, bool set = false );
+        bool                nodeInfo( const char** name, coConfig::nodeType* type, bool set = false );
         bool                nodeConnInfo( const char** host, int* port, bool set = false );
         bool                nodeIsServer( const char* name );
+        static bool         isServer( const char* nodeName );
         bool                nodesIterateFinish();
 
     // user / password
         bool                authMethode();
         bool                userAdd( const char* username );
         bool                userCheck( const char* username, const char* password );
-
-
-
 
 
 };

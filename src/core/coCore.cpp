@@ -24,8 +24,9 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "coCore.h"
 #include <sodium.h>
+#include <string>
 
-
+struct option optionEndElement = { NULL, 0, 0, 0 };
 
 coCore*         coCore::ptr = NULL;
 bool            coCore::setupMode = false;
@@ -35,28 +36,25 @@ coMessage*      coCore::message = NULL;
 coCore::                    coCore(){
 
 // init lock
-	this->threadLock = 0;
+    this->threadLock = 0;
 
 
 // get host name
-	struct utsname tempHostInfo;
-	uname( &tempHostInfo );
-	etStringAlloc( this->hostName );
-	etStringCharSet( this->hostName, tempHostInfo.nodename, -1 );
-	this->hostNodeNameLen = strlen( tempHostInfo.nodename );
+    struct utsname tempHostInfo;
+    uname( &tempHostInfo );
+    etStringAlloc( this->hostName );
+    etStringCharSet( this->hostName, tempHostInfo.nodename, -1 );
+    this->hostNodeNameLen = strlen( tempHostInfo.nodename );
+
+// config path
+    etStringAlloc( this->configBasePath );
+    etStringCharSet( this->configBasePath, "/etc/copilot", -1 );
 
 // my node name
-    etStringAlloc( this->myNodeName );
-	etStringCharSet( this->myNodeName, tempHostInfo.nodename, -1 );
+    etStringAlloc( this->thisNodeName );
+    etStringCharSet( this->thisNodeName, tempHostInfo.nodename, -1 );
 
 
-// create config-object
-	this->config = new coCoreConfig();
-	this->config->load( tempHostInfo.nodename );
-// get my node name
-    const char* tempNodeName = NULL;
-    this->config->myNodeName( &tempNodeName );
-    etStringCharSet( this->myNodeName, tempNodeName, -1 );
 
 
 // create temp-message
@@ -74,14 +72,19 @@ coCore::                    coCore(){
     }
 
 
-
 // save the instance
     this->ptr = this;
+
+
+// we need some options for core
+    coCore::addOption( "help", "h", "print this help", no_argument );
+    coCore::addOption( "debug", "d", "Enable debugging", no_argument );
+
+    coCore::addOption( "websocket", "w", "Enable debugging", no_argument );
 
 }
 
 coCore::                    ~coCore(){
-    delete this->config;
 	delete this->message;
     etStringFree( this->hostName );
 
@@ -89,6 +92,176 @@ coCore::                    ~coCore(){
 
 
 
+bool coCore::               addOption( const char* optionLong, const char* optionShort, const char* description, int has_arg ){
+
+
+// allocate a new option
+    struct option*      newOption = NULL;
+    struct option*      newOptions = NULL;
+    int                 newOptionsLen = coCore::ptr->optionsLen + 1;
+    int                 newOptionNameLen = strlen( optionLong );
+
+
+// allocate new option array
+    newOptions = (struct option*)malloc( (newOptionsLen + 1) * sizeof(struct option) );
+    memset( newOptions, 0, (newOptionsLen + 1) * sizeof(struct option) );
+    if( coCore::ptr->options != NULL ){
+    // copy the old one
+        memcpy( newOptions, coCore::ptr->options, coCore::ptr->optionsLen * sizeof(struct option) );
+
+    // release the old one
+        free( coCore::ptr->options );
+    }
+
+
+// the new element
+    newOption = &newOptions[newOptionsLen-1];
+// name
+    newOption->name = (const char*)malloc( (newOptionNameLen+1) * sizeof(char) );
+    memset( (void*)newOption->name, 0, (newOptionNameLen+1) * sizeof(char) );
+    memcpy( (void*)newOption->name, optionLong, newOptionNameLen * sizeof(char) );
+// has arguments
+    newOption->has_arg = has_arg;
+// option No
+    newOption->val = newOptionsLen - 1;
+// flag
+    newOption->flag = NULL;
+
+
+
+// the new element
+    newOption = &newOptions[newOptionsLen];
+// name
+    newOption->name = NULL;
+// has arguments
+    newOption->has_arg = 0;
+// option No
+    newOption->val = 0;
+// flag
+    newOption->flag = NULL;
+
+
+
+    coCore::ptr->options = newOptions;
+    coCore::ptr->optionsLen = newOptionsLen;
+
+/*
+// new option
+    newOption = (struct option*)malloc( sizeof(struct option) );
+    memset( newOption, 0, sizeof(struct option) );
+
+// name
+    newOption->name = (const char*)malloc( (newOptionNameLen+1) * sizeof(char) );
+    memset( (void*)newOption->name, 0, (newOptionNameLen+1) * sizeof(char) );
+    memcpy( (void*)newOption->name, optionLong, newOptionNameLen * sizeof(char) );
+
+// set the new one
+    newOptions[newOptionsLen-1] = newOption;
+    newOptions[newOptionsLen] = &optionEndElement;
+
+*/
+
+
+
+}
+
+
+bool coCore::               isOption( const char* optionLong, unsigned int optNum ){
+
+// check
+    if( optNum == '?' ){
+        return false;
+    }
+
+    if( optNum > coCore::ptr->optionsLen ){
+        etDebugMessage( etID_LEVEL_ERR, "This is impossible" );
+        return false;
+    }
+
+// vars
+    struct option*      newOption = &coCore::ptr->options[optNum];
+
+
+    if( strcmp(newOption->name,optionLong) == 0 ){
+        return true;
+    }
+
+    return false;
+}
+
+
+void coCore::               dumpOptions(){
+
+// var
+    struct option*      optionActual = NULL;
+
+    for( unsigned int index = 0; index < coCore::ptr->optionsLen; index++ ){
+
+        optionActual = &coCore::ptr->options[index];
+
+        fprintf( stdout, "--%s\n", optionActual->name );
+
+
+    }
+
+    fflush( stdout );
+
+}
+
+
+bool coCore::               parseOpt( int argc, char *argv[] ){
+// reset getopt
+    optind = 1;
+
+    int optionSelected = 0;
+    while( optionSelected >= 0 ) {
+        optionSelected = getopt_long(argc, argv, "", coCore::ptr->options, NULL);
+        if( optionSelected < 0 ) break;
+
+        if( coCore::isOption( "help", optionSelected ) == true ){
+            fprintf( stdout, "\n====== core ======\n" );
+            fprintf( stdout, "--nodename <nodename>: Sets the name of this node\n" );
+            break;
+        }
+
+        if( coCore::isOption( "debug", optionSelected ) == true ){
+            etDebugLevelSet( etID_LEVEL_DETAIL_APP );
+            continue;
+        }
+
+        if( coCore::isOption( "configpath", optionSelected ) == true ){
+            this->configPath( optarg );
+            continue;
+        }
+
+        if( coCore::isOption( "nodename", optionSelected ) == true ){
+            this->nodeName( optarg );
+            continue;
+        }
+    }
+
+    return true;
+}
+
+
+
+const char* coCore::        configPath( const char* path ){
+
+// set it
+    if( path != NULL ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Set path to: '%s'", path );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+        etStringCharSet( this->configBasePath, path, -1 );
+        return path;
+    } else {
+        const char* myConfigPath = NULL;
+        etStringCharGet( this->configBasePath, myConfigPath );
+        return myConfigPath;
+    }
+
+    return NULL;
+}
 
 
 const char* coCore::        nodeName( const char* newNodeName ){
@@ -98,13 +271,12 @@ const char* coCore::        nodeName( const char* newNodeName ){
 
 // set
     if( newNodeName != NULL ){
-        this->config->myNodeName( &newNodeName );
-        etStringCharSet( this->myNodeName, newNodeName, -1 );
-        this->config->save();
+        etStringCharSet( this->thisNodeName, newNodeName, -1 );
+        return newNodeName;
     }
 
 // get
-    etStringCharGet( this->myNodeName, myNodeNameCharArray );
+    etStringCharGet( this->thisNodeName, myNodeNameCharArray );
     return myNodeNameCharArray;
 }
 
@@ -120,7 +292,7 @@ void coCore::               setHostName( const char *hostname ){
 }
 
 
-bool coCore::				hostNameGet( const char** hostName, int* hostNameChars ){
+bool coCore::               hostNameGet( const char** hostName, int* hostNameChars ){
 	if( hostName != NULL ){
 		__etStringCharGet( this->hostName, hostName );
 	}
@@ -131,7 +303,7 @@ bool coCore::				hostNameGet( const char** hostName, int* hostNameChars ){
 }
 
 
-const char* coCore::		hostNameGet(){
+const char* coCore::        hostNameGet(){
 
 // vars
 	const char*		tempCharArray = NULL;
@@ -143,7 +315,7 @@ const char* coCore::		hostNameGet(){
 }
 
 
-bool coCore::				isHostName( const char* hostNameToCheck ){
+bool coCore::               isHostName( const char* hostNameToCheck ){
 
 // vars
 	const char*		tempCharArray = NULL;
@@ -158,20 +330,14 @@ bool coCore::				isHostName( const char* hostNameToCheck ){
 }
 
 
-bool coCore::				isNodeName( const char* nodeNameToCheck ){
+bool coCore::               isNodeName( const char* nodeNameToCheck ){
     if( nodeNameToCheck == NULL ) return false;
+    if( coCore::ptr == NULL ) return false;
 
 // vars
-	const char*		tempCharArray = NULL;
-	if( etStringCharGet( this->myNodeName, tempCharArray ) != etID_YES ){
-		return NULL;
-	}
+	const char*		tempCharArray = coCore::ptr->nodeName();
 
-	if( strncmp( nodeNameToCheck, tempCharArray, strlen(tempCharArray) ) == 0 ){
-		return true;
-	}
-	return false;
-
+	return coCore::strIsExact( nodeNameToCheck, tempCharArray, strlen(tempCharArray) );
 }
 
 
@@ -326,7 +492,7 @@ bool coCore::               passwordCheck( const char* user, const char* pass ){
     int             jsonPasswordLen = 0;
 
 // get config path
-    coCore::ptr->config->configPath( &baseConfigPath );
+    baseConfigPath = coCore::ptr->configPath();
     configFile  = baseConfigPath;
     configFile += "/";
     configFile += "auth.json";

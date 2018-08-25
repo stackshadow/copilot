@@ -44,7 +44,7 @@
 
 #include "system/etFile.c"
 
-
+/*
 #ifndef DISABLE_EDB
 	// db stuff
 	#include "db/etDBTable.c"
@@ -55,7 +55,7 @@
 	#include "dbdriver/etDBSQL.c"
 	#include "dbdriver/etDBSQLite.c"
 #endif
-
+*/
 /*
 #include "db/etDBObject.c"
 
