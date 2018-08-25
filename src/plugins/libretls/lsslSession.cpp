@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2018 by Martin Langlotz
+Copyright (C) 2018 by Martin Langlotz aka stackshadow
 
 This file is part of copilot.
 
@@ -20,11 +20,12 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef lsslSession_C
 #define lsslSession_C
 
-#include "coCore.h"
 
 #include "lsslSession.h"
-#include "pubsub.h"
+//#include "pubsub.h"
 #include "uuid/uuid.h"
+
+#include "core/plugin.h"
 
 
 #include <sys/types.h>
@@ -86,7 +87,7 @@ bool lsslSession::              sendJson( json_t* jsonObject ){
 
 
 // make sure we are the source
-    json_object_set_new( jsonObject, "s", json_string( coCore::ptr->nodeName() ) );
+    json_object_set_new( jsonObject, "s", json_string( myNodeName ) );
 
 // dump / send json
     jsonString = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
@@ -285,6 +286,8 @@ void* lsslSession::             connectToClientThread( void* void_threadListItem
 
         sleep( 10 );
     }
+
+    return NULL;
 }
 
 
@@ -366,6 +369,7 @@ bool lsslSession::              communicateNodeNameHandshake(){
 
 // var
     ssize_t                 ret = -1;
+    const char*             myNodeName = coCore::ptr->nodeName();
     json_t*                 jsonMessage = NULL;
     char                    msgBuffer[MAX_BUF + 1];
     const char*             msgID;
@@ -381,7 +385,7 @@ bool lsslSession::              communicateNodeNameHandshake(){
     uuid_generate( UUID );
     uuid_unparse( UUID, UUIDString );
 
-    psBus::toJson( &jsonMessage, UUIDString, coCore::ptr->nodeName(), "unknown", "ssl", "nodeNameGet", "" );
+    psBus::toJson( &jsonMessage, UUIDString, myNodeName, "unknown", "ssl", "nodeNameGet", "" );
     this->sendJson( jsonMessage );
     json_decref(jsonMessage); jsonMessage = NULL;
 
@@ -400,7 +404,7 @@ bool lsslSession::              communicateNodeNameHandshake(){
 
         // send my nodeName
             uuid_generate( UUID ); uuid_unparse( UUID, UUIDString );
-            psBus::toJson( &jsonMessage, UUIDString, coCore::ptr->nodeName(), "unknown", "ssl", "nodeName", coCore::ptr->nodeName() );
+            psBus::toJson( &jsonMessage, UUIDString, myNodeName, "unknown", "ssl", "nodeName", myNodeName );
             this->sendJson( jsonMessage );
             json_decref(jsonMessage); jsonMessage = NULL;
 
@@ -446,6 +450,7 @@ bool lsslSession::              communicateAuthHandshake(){
 
 // var
     int                     ret = -1;
+    const char*             myNodeName = coCore::ptr->nodeName();
     json_t*                 jsonMessage = NULL;
     char                    msgBuffer[MAX_BUF + 1];
     const char*             msgID;
@@ -464,12 +469,13 @@ bool lsslSession::              communicateAuthHandshake(){
 // ############################################# get sharedSecret #############################################
 
 // try to get shared secret
+#ifndef DEVELOP
     ret = lsslService::sharedSecretGet( tls_peer_cert_hash( this->tlsConnection ), &sharedSecret );
     if( ret == SECRET_CREATED ){
         uuid_generate( UUID ); uuid_unparse( UUID, UUIDString );
         psBus::toJson(
             &jsonMessage, UUIDString,
-            coCore::ptr->nodeName(), this->peerNodeName.c_str(),
+            myNodeName, this->peerNodeName.c_str(),
             "ssl", "sharedSecretSet", sharedSecret
         );
         this->sendJson( jsonMessage );
@@ -478,10 +484,18 @@ bool lsslSession::              communicateAuthHandshake(){
     if( ret == SECRET_MISSING ){
         goto onError;
     }
-
+#else
+    etDebugMessage( etID_LEVEL_WARNING, "WE USE AN FIXED SHARED SECRET, THIS IS INSECURE !!!" );
+    sharedSecret = "fixedSharedSecret";
+#endif
 
 // ############################################# send challange #############################################
+#ifndef DEVELOP
     this->authChallange = lsslService::randomBase64( 32 );
+#else
+    etDebugMessage( etID_LEVEL_WARNING, "WE USE AN FIXED CHALLANGE, THIS IS INSECURE !!!" );
+    this->authChallange = "fixedchallange";
+#endif
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "We create a new random as challange %s", this->authChallange.c_str() );
     etDebugMessage( etID_LEVEL_DETAIL_BUS, etDebugTempMessage );
 
@@ -489,7 +503,7 @@ bool lsslSession::              communicateAuthHandshake(){
     uuid_generate( UUID ); uuid_unparse( UUID, UUIDString );
     psBus::toJson(
         &jsonMessage, UUIDString,
-        coCore::ptr->nodeName(), this->peerNodeName.c_str(),
+        myNodeName, this->peerNodeName.c_str(),
         "ssl", "reqChallange", this->authChallange.c_str()
     );
     this->sendJson( jsonMessage );
@@ -497,7 +511,7 @@ bool lsslSession::              communicateAuthHandshake(){
 
 
 
-// ############################################# nodeNameGet #############################################
+// ############################################# challange #############################################
 
     while(1){
 
@@ -509,9 +523,14 @@ bool lsslSession::              communicateAuthHandshake(){
 
     // req of shared secret set
         if( coCore::strIsExact( msgCmd, "sharedSecretSet", 15 ) == true ){
+#ifndef DEVELOP
             ret = lsslService::sharedSecretSet( this->peerNodeName.c_str(), msgPayload );
             if( ret != SECRET_CREATED ) break;
+            goto onError;
+#else
+            etDebugMessage( etID_LEVEL_WARNING, "In develop-mode, we can not save shared secrets" );
             continue;
+#endif
         }
 
     // check if we have a hallange random
@@ -543,6 +562,10 @@ bool lsslSession::              communicateAuthHandshake(){
         // get the hash and answer
             tempString = lsslService::sha256( tempString );
 
+#ifdef DEVELOP
+            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Expected hash: '%s', it is '%s'", tempString, msgPayload );
+            etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+#endif
         // compare it
             if( tempString == msgPayload ){
                 this->authenticated = true;
@@ -613,7 +636,7 @@ void* lsslSession::             communicateThread( void* void_threadListItem ){
 
 
 // send count
-    psBus::inst->publish(
+    psBus::publish(
         sessionInst, "",
         coCore::ptr->nodeName(), "websocket",
         "ssl", "newConnectedClient", sessionInst->peerNodeName.c_str()
@@ -621,7 +644,7 @@ void* lsslSession::             communicateThread( void* void_threadListItem ){
 
 
 // we can now subscibe for remote messages
-    psBus::inst->subscribe( sessionInst, sessionInst->peerNodeName.c_str(), NULL, sessionInst, NULL, lsslSession::onSubscriberJsonMessage );
+    psBus::subscribe( sessionInst, sessionInst->peerNodeName.c_str(), NULL, sessionInst, NULL, lsslSession::onSubscriberJsonMessage );
 
 
 // ######################################## Read Loop ########################################
@@ -644,7 +667,7 @@ void* lsslSession::             communicateThread( void* void_threadListItem ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Received %s", buffer );
         etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
-        psBus::inst->publishOrSubscribe( sessionInst, jsonMessage, NULL, NULL, lsslSession::onSubscriberJsonMessage );
+        psBus::publish( sessionInst, msgID, msgNodeSource, msgNodeTarget, msgGroup, msgCmd, msgPayload );
 
     }
 

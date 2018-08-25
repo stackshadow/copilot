@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2018 by Martin Langlotz
+Copyright (C) 2018 by Martin Langlotz aka stackshadow
 
 This file is part of copilot.
 
@@ -20,12 +20,17 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef lsslService_H
 #define lsslService_H
 
+#include <string>
+#include <jansson.h>
+
 #include "../libs/libressl/include/tls.h"
 
-#include "coCoreConfig.h"
+//#include "coConfig.h"
 #include "core/threadList.h"
 
 #include "lsslSession.h"
+
+
 
 /**
 @defgroup lsslService TLS-Service
@@ -87,6 +92,8 @@ class lsslService {
     public:
                             lsslService();
                             ~lsslService();
+    bool                    parseOpt( int argc, char *argv[] );
+
 
 // common
     void                    createTLSConfig();

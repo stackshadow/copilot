@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2018 by Martin Langlotz
+Copyright (C) 2018 by Martin Langlotz aka stackshadow
 
 This file is part of copilot.
 
@@ -21,10 +21,11 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #define lsslService_C
 
 #include "coCore.h"
+#include "coConfig.h"
 
 
 #include "lsslService.h"
-#include "pubsub.h"
+//#include "pubsub.h"
 #include "uuid/uuid.h"
 
 
@@ -40,6 +41,42 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 #include <openssl/err.h>
 #include <openssl/sha.h>
 
+#include "core/plugin.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
+pluginData_s plugin = {
+    .pluginName = "sslService\0",
+    .pluginDescription = "Connect to other copilotd instances over tls.\0",
+    .configSectionName = "tls\0",
+};
+
+extern pluginData_t*            pluginGetData(){
+    pluginSetVersion(plugin);
+    return &plugin;
+}
+
+extern void                     pluginInit( int argc, char *argv[] ){
+    lsslService* service = new lsslService();
+    service->parseOpt( argc, argv );
+    plugin.userdata = service;
+}
+
+extern void                     pluginRun(){
+    lsslService* service = (lsslService*)plugin.userdata;
+    service->serve();
+    service->connectToAllClients();
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+
 
 /** @ingroup lsslService
 @brief This class provide the TLS-Service based on libressl
@@ -54,12 +91,15 @@ lsslService::                   lsslService(){
 // we create a key-pair if needed
     this->generateKeyPair();
 
-
 // we init tls-stuff
     tls_init();
     this->createTLSConfig();
 
-    psBus::inst->subscribe( this, coCore::ptr->nodeName(), "ssl", this, lsslService::onSubscriberMessage, NULL );
+// options
+    coCore::addOption( "tlsReq", "r", "Show requested keys", no_argument );
+    coCore::addOption( "tlsAcp", "w", "<hash> Accept requested key", required_argument );
+
+    psBus::subscribe( this, coCore::ptr->nodeName(), "ssl", this, lsslService::onSubscriberMessage, NULL );
 }
 
 
@@ -67,6 +107,52 @@ lsslService::                   ~lsslService(){
 
 }
 
+
+bool lsslService::              parseOpt( int argc, char *argv[] ){
+
+    int optionSelected = 0;
+    while( optionSelected >= 0 ) {
+        optionSelected = getopt_long(argc, argv, "", coCore::ptr->options, NULL);
+        if( optionSelected < 0 ) break;
+
+        if( coCore::isOption( "help", optionSelected ) == true ){
+            fprintf( stdout, "\n====== lssl ======\n" );
+            fprintf( stdout, "--tlsReq Show requested keys\n" );
+            fprintf( stdout, "--tlsAcp <hash> Accept requested key\n" );
+            break;
+        }
+
+        if( coCore::isOption( "tlsReq", optionSelected ) == true ){
+            json_t*     jsonRequestedKeys = NULL;
+            const char* requestedKeys = NULL;
+
+            this->requestedKeysGet( &jsonRequestedKeys );
+            requestedKeys = json_dumps( jsonRequestedKeys, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+            fprintf( stdout, requestedKeys );
+            fprintf( stdout, "\n" );
+            fflush( stdout );
+            json_decref( jsonRequestedKeys );
+            free( (void*)requestedKeys );
+
+
+            exit(0);
+        }
+
+        if( coCore::isOption( "tlsAcp", optionSelected ) == true ){
+
+            if( this->acceptHash( optarg ) == true ){
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "Hash '%s' accepted" );
+                etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
+            } else {
+                snprintf( etDebugTempMessage, etDebugTempMessageLen, "Hash '%s' not accepted" );
+                etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+            }
+            exit(0);
+        }
+
+    }
+
+}
 
 
 
@@ -78,8 +164,8 @@ void lsslService::              createTLSConfig(){
     const char*     nodeName = NULL;
 
 // get node name
-    coCore::ptr->config->configPath( &configPath );
-    coCore::ptr->config->myNodeName( &nodeName );
+    configPath = coCore::ptr->configPath();
+    nodeName = coCore::ptr->nodeName();
 
 
 // init tls
@@ -250,8 +336,9 @@ bool lsslService::              generateKeyPair(){
     std::string     privCRT;
 
 // get node name
-    coCore::ptr->config->configPath( &configPath );
-    coCore::ptr->config->myNodeName( &nodeName );
+    nodeName = coCore::ptr->nodeName();
+    configPath = coCore::ptr->configPath();
+
 
 //
     privFileNamePrefix =  configPath;
@@ -336,7 +423,7 @@ bool lsslService::              requestedKeysGet( json_t** jsonObject ){
     json_t* jsonRequested = NULL;
 
 // accepted ?
-    jsonRequested = coCore::ptr->config->section( "ssl_requested" );
+    jsonRequested = coConfig::ptr->section( "ssl_requested" );
     if( jsonRequested == NULL ){
         return false;
     }
@@ -355,8 +442,8 @@ bool lsslService::              acceptHash( const char* hash ){
     json_t* jsonAccepted = NULL;
 
 // get requested hash
-    jsonRequested = coCore::ptr->config->section( "ssl_requested" );
-    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    jsonRequested = coConfig::ptr->section( "ssl_requested" );
+    jsonAccepted = coConfig::ptr->section( "ssl_accepted" );
     if( jsonRequested == NULL || jsonAccepted == NULL ) return false;
 
 
@@ -372,7 +459,7 @@ bool lsslService::              acceptHash( const char* hash ){
     json_object_set_new( jsonAccepted, hash, jsonHash );
 
 // save it
-    coCore::ptr->config->save();
+    coConfig::ptr->save();
     return false;
 }
 
@@ -384,7 +471,7 @@ bool lsslService::              forgetHash( const char* hash ){
     json_t* jsonAccepted = NULL;
 
 // get requested hash
-    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    jsonAccepted = coConfig::ptr->section( "ssl_accepted" );
     if( jsonAccepted == NULL ) return false;
 
 //
@@ -394,7 +481,7 @@ bool lsslService::              forgetHash( const char* hash ){
     jsonHash = json_object_get( jsonAccepted, hash );
     if( jsonHash == NULL ) return true;
 
-    coCore::ptr->config->save();
+    coConfig::ptr->save();
     return false;
 }
 
@@ -411,6 +498,11 @@ If remoteNodeName is not NULL
  - HASH_WRONG_NODENAME Hash ok, but nodename was wrong
 */
 int lsslService::               checkIfKeyIsAccepted( const char* hash, const char* remoteNodeName ){
+// check
+    if( hash == NULL ){
+        etDebugMessage( etID_LEVEL_ERR, "No hash provided, this is not acceptable" );
+        return HASH_MISSING;
+    }
 
 // vars
     json_t* jsonRequested = NULL;
@@ -419,8 +511,8 @@ int lsslService::               checkIfKeyIsAccepted( const char* hash, const ch
     json_t* jsonNodeName = NULL;
 
 // get requested hash
-    jsonRequested = coCore::ptr->config->section( "ssl_requested" );
-    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    jsonRequested = coConfig::ptr->section( "ssl_requested" );
+    jsonAccepted = coConfig::ptr->section( "ssl_accepted" );
     if( jsonRequested == NULL || jsonAccepted == NULL ) return false;
 
 // get hash
@@ -440,12 +532,13 @@ int lsslService::               checkIfKeyIsAccepted( const char* hash, const ch
 
         json_object_set_new( jsonRequested, hash, json_object() );
 
-        coCore::ptr->config->save();
+        coConfig::ptr->save();
         return HASH_MISSING;
     }
 
 // no peerNodeName provided
     if( remoteNodeName == NULL ){
+        etDebugMessage( etID_LEVEL_WARNING, "No peer nodeName provided, this is normal on first connect" );
         return HASH_ACCEPTED;
     }
 
@@ -459,14 +552,14 @@ int lsslService::               checkIfKeyIsAccepted( const char* hash, const ch
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] accepted, and nodeName '%s' is remembered", hash, remoteNodeName );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
-        coCore::ptr->config->save();
+        coConfig::ptr->save();
         return HASH_ACCEPTED;
     }
 
 // nodename is present
     if( coCore::strIsExact( json_string_value(jsonNodeName), remoteNodeName, strlen(remoteNodeName) ) == true ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] accepted for nodeName '%s'", hash, remoteNodeName );
-        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
         return HASH_ACCEPTED;
     }
 
@@ -491,7 +584,7 @@ int lsslService::               sharedSecretGet( const char* hash, const char** 
 
 
 // get requested hash
-    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
+    jsonAccepted = coConfig::ptr->section( "ssl_accepted" );
     if( jsonAccepted == NULL ) return SECRET_MISSING;
 
 // get hash-object
@@ -503,13 +596,13 @@ int lsslService::               sharedSecretGet( const char* hash, const char** 
     if( jsonSecret == NULL ){
 
     // if we are a server, we create a new secret
-        if( coCore::ptr->config->nodeIsServer( coCore::ptr->nodeName() ) == true ){
+        if( coConfig::isServer( coCore::ptr->nodeName() ) == true ){
 
             std::string newRandom = lsslService::randomBase64( 32 );
 
             jsonSecret = json_string( newRandom.c_str() );
             json_object_set_new( jsonHash, "secret", jsonSecret );
-            coCore::ptr->config->save();
+            coConfig::ptr->save();
 
             *secret = json_string_value( jsonSecret );
             return SECRET_CREATED;
@@ -533,20 +626,34 @@ int lsslService::               sharedSecretSet( const char* hash, const char* s
 
 
 // get requested hash
-    jsonAccepted = coCore::ptr->config->section( "ssl_accepted" );
-    if( jsonAccepted == NULL ) return SECRET_MISSING;
+    jsonAccepted = coConfig::ptr->section( "ssl_accepted" );
+    if( jsonAccepted == NULL ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] No Secret exists.", hash );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return SECRET_MISSING;
+    }
 
 // get hash-object
     jsonHash = json_object_get( jsonAccepted, hash );
-    if( jsonHash == NULL ) return SECRET_MISSING;
+    if( jsonHash == NULL ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] No Secret for this hash exists.", hash );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return SECRET_MISSING;
+    }
 
 // of course, you can not overwrite an existing secret
     jsonSecret = json_object_get( jsonHash, "secret" );
-    if( jsonSecret != NULL ) return SECRET_MISSING;
+    if( jsonSecret != NULL ){
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] Secret already exist. can not set it !", hash );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+        return SECRET_MISSING;
+    }
 
     json_object_set_new( jsonHash, "secret", json_string(secret) );
 
-
+// new secret was set
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%s] New secret set.", hash );
+    etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
     return SECRET_CREATED;
 }
 
@@ -560,34 +667,34 @@ void lsslService::              serve(){
 
 
 // vars
-    coCoreConfig::nodeType  serverType = coCoreConfig::UNKNOWN;
+    coConfig::nodeType  serverType = coConfig::UNKNOWN;
     const char*             serverHost = NULL;
     int                     serverPort = 0;
 
 
 // get the server infos
-    coCore::ptr->config->nodesIterate();
-    if( coCore::ptr->config->nodeSelect(coCore::ptr->nodeName()) != true ){
+    coConfig::ptr->nodesIterate();
+    if( coConfig::ptr->nodeSelect(coCore::ptr->nodeName()) != true ){
     // debugging message
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "No Config for node, do nothing." );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
-        coCore::ptr->config->nodesIterateFinish();
+        coConfig::ptr->nodesIterateFinish();
         return;
     }
-    coCore::ptr->config->nodeInfo( NULL, &serverType, false );
-    if( serverType != coCoreConfig::SERVER ){
+    coConfig::ptr->nodeInfo( NULL, &serverType, false );
+    if( serverType != coConfig::SERVER ){
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Node has no Server-Config, do nothing." );
         etDebugMessage( etID_LEVEL_WARNING, etDebugTempMessage );
 
-        coCore::ptr->config->nodesIterateFinish();
+        coConfig::ptr->nodesIterateFinish();
         return;
     }
 
 
 // get config
-    coCore::ptr->config->nodeConnInfo( &serverHost, &serverPort );
-    coCore::ptr->config->nodesIterateFinish();
+    coConfig::ptr->nodeConnInfo( &serverHost, &serverPort );
+    coConfig::ptr->nodesIterateFinish();
 
 
 // start server-thread
@@ -602,24 +709,24 @@ void lsslService::              connectToAllClients(){
 // vars
     const char*                 clientHost;
     int                         clientPort;
-    coCoreConfig::nodeType      nodeType;
+    coConfig::nodeType      nodeType;
 
 
 
 // start iteration ( and lock core )
-    coCore::ptr->config->nodesIterate();
-    while( coCore::ptr->config->nodeNext() == true ){
+    coConfig::ptr->nodesIterate();
+    while( coConfig::ptr->nodeNext() == true ){
 
     // get type
-        coCore::ptr->config->nodeInfo(&clientHost,&nodeType);
+        coConfig::ptr->nodeInfo(&clientHost,&nodeType);
 
     // only clients
-        if( nodeType != coCoreConfig::CLIENT ){
+        if( nodeType != coConfig::CLIENT ){
             continue;
         }
 
     // get host/port
-        if( coCore::ptr->config->nodeConnInfo( &clientHost, &clientPort ) != true ){
+        if( coConfig::ptr->nodeConnInfo( &clientHost, &clientPort ) != true ){
             continue;
         }
 
@@ -636,7 +743,7 @@ void lsslService::              connectToAllClients(){
     }
 
 // finish
-    coCore::ptr->config->nodesIterateFinish();
+    coConfig::ptr->nodesIterateFinish();
 
 }
 

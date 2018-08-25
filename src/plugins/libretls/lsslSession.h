@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2018 by Martin Langlotz
+Copyright (C) 2018 by Martin Langlotz aka stackshadow
 
 This file is part of copilot.
 
@@ -22,7 +22,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../libs/libressl/include/tls.h"
 
-#include "coCoreConfig.h"
+//#include "coConfig.h"
 #include "core/threadList.h"
 
 /**
