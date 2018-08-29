@@ -417,6 +417,37 @@ bool lsslService::              generateKeyPair(){
 }
 
 
+bool lsslService::              acceptedHashes( json_t** jsonObject ){
+
+// vars
+    json_t* jsonAccepted = NULL;
+    json_t* jsonKey = NULL;
+
+// accepted ?
+    jsonAccepted = coConfig::ptr->section( "ssl_accepted" );
+    if( jsonAccepted == NULL ){
+        return false;
+    }
+
+// copy
+    jsonAccepted = json_deep_copy( jsonAccepted );
+
+// remove secret of every hash
+    void* jsonAcceptedIterator = json_object_iter( jsonAccepted );
+    while( jsonAcceptedIterator != NULL ){
+
+        jsonKey = json_object_iter_value( jsonAcceptedIterator );
+        json_object_del( jsonKey, "secret" );
+
+        jsonAcceptedIterator = json_object_iter_next( jsonAccepted, jsonAcceptedIterator );
+    }
+
+
+    *jsonObject = jsonAccepted;
+    return true;
+}
+
+
 bool lsslService::              requestedKeysGet( json_t** jsonObject ){
 
 // vars
@@ -801,7 +832,30 @@ int lsslService::               onSubscriberMessage(
         const char* jsonDump = json_dumps( jsonClientsObject, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
 
     // add the message to list
-        psBus::inst->publish( service, id, nodeTarget, nodeSource, group, "requestKeys", jsonDump );
+        psBus::inst->publish( service, id, nodeTarget, nodeSource, group, "requestedKeys", jsonDump );
+
+    // cleanup and return
+        free((void*)jsonDump);
+        json_decref( jsonClientsObject );
+
+    // finished
+        return psBus::END;
+    }
+
+
+    if( coCore::strIsExact( command, "acceptedKeysGet", 15 ) == true ){
+
+    // vars
+        json_t*     jsonClientsObject = NULL;
+
+    // get requested keys
+        service->acceptedHashes( &jsonClientsObject );
+
+    // dump json
+        const char* jsonDump = json_dumps( jsonClientsObject, JSON_PRESERVE_ORDER | JSON_INDENT(4) );
+
+    // add the message to list
+        psBus::inst->publish( service, id, nodeTarget, nodeSource, group, "acceptedKeys", jsonDump );
 
     // cleanup and return
         free((void*)jsonDump);

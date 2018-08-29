@@ -105,6 +105,7 @@ class lsslService {
 
 // key handling
     bool                    generateKeyPair();
+    static bool             acceptedHashes( json_t** jsonObject );
     static bool             requestedKeysGet( json_t** jsonObject );
     static bool             acceptHash( const char* hash );
     static bool             forgetHash( const char* hash );
