@@ -39,13 +39,13 @@ localhost:4567
 
 #include "core/pubsub.h"
 #include "core/coCore.h"
+#include "core/coreService.h"
 
 // plugins
 #include "core/plugin.h"
 //#include "plugins/qwebsocket.h"
 
 
-#include "plugins/coreService.h"
 
 
 
@@ -76,6 +76,8 @@ int main( int argc, char *argv[] ){
 // we need the pubsub-stuff
 	psBus*          bus = new psBus();
 
+// internal services
+    coreService*    cService = new coreService();
 
 // parse options
     core->parseOpt( argc, argv );

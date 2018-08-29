@@ -23,7 +23,7 @@ along with copilot.  If not, see <http://www.gnu.org/licenses/>.
 
 
 #include "coCore.h"
-#include "plugins/coreService.h"
+#include "core/coreService.h"
 #include "version.h"
 #include "pubsub.h"
 #include <string>
@@ -48,29 +48,29 @@ coreService::                           ~coreService(){
 void coreService::                      appendKnownNodes( const char* nodeName ){
     if( nodeName == NULL ) return;
 
-    coCore::ptr->config->nodesIterate();
-    if( coCore::ptr->config->nodeSelect( nodeName ) == false ){
+    coConfig::ptr->nodesIterate();
+    if( coConfig::ptr->nodeSelect( nodeName ) == false ){
 
     // debug
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Host '%s' unknown, append it.", nodeName );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
 
     // append the host
-        coCoreConfig::nodeType hostType = coCoreConfig::CLIENT_IN;
+        coConfig::nodeType hostType = coConfig::CLIENT_IN;
 
-        coCore::ptr->config->nodeAppend( nodeName );
-        coCore::ptr->config->nodeInfo( NULL, &hostType, true );
-        coCore::ptr->config->nodeConnInfo( &nodeName, NULL, true );
-        coCore::ptr->config->nodesIterateFinish();
+        coConfig::ptr->nodeAppend( nodeName );
+        coConfig::ptr->nodeInfo( NULL, &hostType, true );
+        coConfig::ptr->nodeConnInfo( &nodeName, NULL, true );
+        coConfig::ptr->nodesIterateFinish();
 
-        coCore::ptr->config->save();
+        coConfig::ptr->save();
         return;
     } else {
     // debug
         snprintf( etDebugTempMessage, etDebugTempMessageLen, "Host '%s' known.", nodeName );
         etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
     }
-    coCore::ptr->config->nodesIterateFinish();
+    coConfig::ptr->nodesIterateFinish();
 }
 //#endif
 
@@ -148,7 +148,7 @@ int coreService::                       onSubscriberMessage(
 
 
     // create result-array
-        coCore::ptr->config->nodesGet( &jsonObject );
+        coConfig::ptr->nodesGet( &jsonObject );
         jsonObjectIterator = json_object_iter( jsonObject );
         while( jsonObjectIterator != NULL ){
 
@@ -179,7 +179,7 @@ int coreService::                       onSubscriberMessage(
         json_t*         jsonObject = NULL;
         char*           jsonArrayChar = NULL;
 
-        coCore::ptr->config->nodesGet( &jsonObject );
+        coConfig::ptr->nodesGet( &jsonObject );
         jsonArrayChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
 
     // publish
@@ -203,19 +203,19 @@ int coreService::                       onSubscriberMessage(
     // publish
         psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodes", jsonArrayChar );
 
-        coCore::ptr->config->nodesIterate();
-        if( coCore::ptr->config->nodeSelect( payload ) == false ){
-            coCore::ptr->config->nodesIterateFinish();
+        coConfig::ptr->nodesIterate();
+        if( coConfig::ptr->nodeSelect( payload ) == false ){
+            coConfig::ptr->nodesIterateFinish();
             return psBus::END;
         }
-        coCore::ptr->config->nodeGet( &jsonObject );
+        coConfig::ptr->nodeGet( &jsonObject );
 
     // add jsonNode
         json_object_set( jsonObject, "nodename", json_string(payload) );
         jsonArrayChar = json_dumps( jsonObject, JSON_PRESERVE_ORDER | JSON_COMPACT );
         json_object_del( jsonObject, "nodename" );
 
-        coCore::ptr->config->nodesIterateFinish();
+        coConfig::ptr->nodesIterateFinish();
 
     // publish
         psBus::inst->publish( coreServiceInst, id, myNodeName, nodeSource, group, "nodeForEdit", jsonArrayChar );
@@ -228,8 +228,8 @@ int coreService::                       onSubscriberMessage(
 
 
     if( coCore::strIsExact("nodeRemove",command,msgCommandLen) == true ){
-        coCore::ptr->config->nodeRemove( payload );
-        bool configSaved = coCore::ptr->config->save();
+        coConfig::ptr->nodeRemove( payload );
+        bool configSaved = coConfig::ptr->save();
 
     // add the message to list
         if( configSaved == true ){
@@ -254,7 +254,7 @@ int coreService::                       onSubscriberMessage(
         const char*                 nodeName = NULL;
         const char*                 nodeHostName = NULL;
         int                         nodeHostPostPort = 0;
-        coCoreConfig::nodeType      nodeType = coCoreConfig::UNKNOWN;
+        coConfig::nodeType      nodeType = coConfig::UNKNOWN;
 
 
 
@@ -267,14 +267,14 @@ int coreService::                       onSubscriberMessage(
             return psBus::END;
         }
 
-        nodeType = coCoreConfig::CLIENT;
+        nodeType = coConfig::CLIENT;
 
         jsonValue = json_object_get( jsonPayload, "node" );
         nodeName = json_string_value( jsonValue );
 
         jsonValue = json_object_get( jsonPayload, "type" );
         if( jsonValue != NULL ){
-            nodeType = (coCoreConfig::nodeType)json_integer_value( jsonValue );
+            nodeType = (coConfig::nodeType)json_integer_value( jsonValue );
         }
 
         jsonValue = json_object_get( jsonPayload, "host" );
@@ -284,12 +284,12 @@ int coreService::                       onSubscriberMessage(
         nodeHostPostPort = json_integer_value( jsonValue );
 
 
-        coCore::ptr->config->nodesIterate();
-        coCore::ptr->config->nodeAppend( nodeName );
-        coCore::ptr->config->nodeInfo( NULL, &nodeType, true );
-        coCore::ptr->config->nodeConnInfo( &nodeHostName, &nodeHostPostPort, true );
-        bool configSaved = coCore::ptr->config->save();
-        coCore::ptr->config->nodesIterateFinish();
+        coConfig::ptr->nodesIterate();
+        coConfig::ptr->nodeAppend( nodeName );
+        coConfig::ptr->nodeInfo( NULL, &nodeType, true );
+        coConfig::ptr->nodeConnInfo( &nodeHostName, &nodeHostPostPort, true );
+        bool configSaved = coConfig::ptr->save();
+        coConfig::ptr->nodesIterateFinish();
 
     // add the message to list
         if( configSaved == true ){

@@ -133,6 +133,8 @@
     <File Name="../../src/lockPthread.h"/>
     <File Name="../../src/main.cpp"/>
     <VirtualDirectory Name="core">
+      <File Name="../../src/core/coreService.h"/>
+      <File Name="../../src/core/coreService.cpp"/>
       <File Name="../../src/core/pubsub.h"/>
       <File Name="../../src/core/pubsub.cpp"/>
       <File Name="../../src/core/plugin.h"/>
