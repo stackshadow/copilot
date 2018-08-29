@@ -1,4 +1,21 @@
+/*
+Copyright (C) 2018 by Martin Langlotz aka stackshadow
 
+This file is part of copilot.
+
+copilot is free software: you can redistribute it and/or modify
+it under the terms of the GNU Lesser General Public License as published by
+the Free Software Foundation, version 3 of this License
+
+copilot is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Lesser General Public License for more details.
+
+You should have received a copy of the GNU Lesser General Public License
+along with copilot.  If not, see <http://www.gnu.org/licenses/>.
+
+*/
 
 
 
@@ -9,33 +26,102 @@
 
 #include "pubsub.h"
 
-uwebsocket* uwebsocket::inst = NULL;
+
+
+#include "core/plugin.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+
+pluginData_s plugin = {
+    .pluginName = "websocket\0",
+    .pluginDescription = "Connect web frontends with copilotd\0",
+    .configSectionName = "websocket\0",
+};
+
+extern pluginData_t*            pluginGetData(){
+    pluginSetVersion(plugin);
+    return &plugin;
+}
+
+extern void                     pluginInit( int argc, char *argv[] ){
+    uwebsocket* service = new uwebsocket( 3333 );
+    service->parseOpt( argc, argv );
+    plugin.userdata = service;
+}
+
+extern void                     pluginRun(){
+    uwebsocket* service = (uwebsocket*)plugin.userdata;
+    service->serve();
+}
+
+#ifdef __cplusplus
+}
+#endif
+
+
+
+
+
 
 uwebsocket::                        uwebsocket( int wsPort )  {
-    
+
     this->wsServer = NULL;
     this->port = wsPort;
-    this->inst = this;
 
 
+    coCore::addOption( "wsport", "", "<port> Set websocket port", required_argument );
+
+}
+
+uwebsocket::                        ~uwebsocket(){
+
+}
+
+
+bool uwebsocket::                   parseOpt( int argc, char *argv[] ){
+
+    int optionSelected = 0;
+    while( optionSelected >= 0 ) {
+        optionSelected = getopt_long(argc, argv, "", coCore::ptr->options, NULL);
+        if( optionSelected < 0 ) break;
+
+        if( coCore::isOption( "help", optionSelected ) == true ){
+            fprintf( stdout, "\n====== websocket ======\n" );
+            fprintf( stdout, "--wsport <port> Set websocket port\n" );
+            break;
+        }
+
+        if( coCore::isOption( "wsport", optionSelected ) == true ){
+            this->port = atoi( optarg );
+            continue;
+        }
+
+
+    }
+
+}
+
+
+
+void uwebsocket::                   serve(){
+
+// create thread
     pthread_create( &this->thread, NULL, &uwebsocket::wsThread, this );
     char threadName[10] = { '\0' };
     snprintf( threadName, 10, "websocket" );
     pthread_setname_np( this->thread, threadName );
     pthread_detach( this->thread );
 
-// debug 
+// debug
     snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: uwebsocket", this );
     etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-    
+
 // subscribe
     psBus::inst->subscribe( this, NULL, NULL, NULL, NULL, uwebsocket::onSubscriberJsonMessage );
-
-
-}
-
-uwebsocket::                        ~uwebsocket(){
-
 }
 
 
@@ -51,6 +137,12 @@ void* uwebsocket::                  wsThread( void* data ){
     });
 
     h.listen( "127.0.0.1", instance->port);
+
+// debug
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "[%p]: uwebsocket listen on port %i", instance, instance->port );
+    etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
+
+
     h.run();
 
     return NULL;
@@ -58,7 +150,7 @@ void* uwebsocket::                  wsThread( void* data ){
 
 
 void uwebsocket::                   onMessage( uWS::WebSocket<uWS::SERVER> *server, char *message, size_t messageSize, uWS::OpCode opCode ){
-    
+
 
 // switch
     char oldChar = message[messageSize];
@@ -108,13 +200,13 @@ void uwebsocket::                   onMessage( uWS::WebSocket<uWS::SERVER> *serv
     if( strncmp((char*)msgCommad, "authMethodeGet", 11) == 0 ){
 
         json_t*     newJsonAnswer = NULL;
-        
-        if( coCore::ptr->config->authMethode() == false ){
+
+        if( coConfig::ptr->authMethode() == false ){
             psBus::toJson( &newJsonAnswer, msgID, msgTarget, msgSource, msgGroup, "authMethode", "none" );
         } else {
             psBus::toJson( &newJsonAnswer, msgID, msgTarget, msgSource, msgGroup, "authMethode", "password" );
         }
-        
+
         uwebsocket::onSubscriberJsonMessage( this, newJsonAnswer, NULL );
         json_decref( newJsonAnswer );
 
@@ -137,11 +229,11 @@ void uwebsocket::                   onMessage( uWS::WebSocket<uWS::SERVER> *serv
         if( jsonString != NULL ) userPass = json_string_value( jsonString );
 
     // check password
-        if( coCore::ptr->passwordCheck(userName,userPass) == false ){
+        //if( coCore::ptr->passwordCheck(userName,userPass) == false ){
             //this->setAuth( false );
             //json_decref(jsonCredentials);
-            goto checkAuth;
-        }
+            //goto checkAuth;
+        //}
         //this->setAuth( true );
 
     // ckeanup
@@ -166,7 +258,7 @@ checkAuth:
 
 
     json_object_set_new( jsonObject, "s", json_string("wsclient") );
-    psBus::inst->publish( this, jsonObject );
+    psBus::publishJson( this, jsonObject );
 }
 
 
@@ -185,10 +277,10 @@ int uwebsocket::                    onSubscriberJsonMessage( void* objectSource,
     uwebsocket*         uwebsocketInstance = (uwebsocket*)objectSource;
     json_t*             jsonTempObject = NULL;
     const char*         jsonTempObjectChar = NULL;
-    
+
 // no webserver aviable
     if( uwebsocketInstance->wsServer == NULL ) return -1;
-    
+
 // vars
     const char*     msgSource = NULL;
     const char*     msgTarget = NULL;

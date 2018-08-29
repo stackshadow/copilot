@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2017 by Martin Langlotz
+Copyright (C) 2018 by Martin Langlotz aka stackshadow
 
 This file is part of copilot.
 
@@ -39,19 +39,20 @@ private:
     int								port;
     pthread_t                   	thread;
 	uWS::WebSocket<uWS::SERVER>*	wsServer;
-	
+
 public:
                                 uwebsocket( int wsPort );
                                 ~uwebsocket();
-	static 	uwebsocket*			inst;
+    bool                        parseOpt( int argc, char *argv[] );
 
 
 public:
+    void                        serve();
     static void*                wsThread( void* data );
 
 	void						onMessage( uWS::WebSocket<uWS::SERVER> *server, char *message, size_t messageSize, uWS::OpCode opCode );
 	//void                        wsReply( const char* message );
-	
+
 
 	static int					onSubscriberMessage( void* objectSource, const char* id, const char* nodeSource, const char* nodeTarget, const char* group, const char* command, const char* payload, void* userdata );
 	static int					onSubscriberJsonMessage( void* objectSource, json_t* jsonObject, void* userdata );
