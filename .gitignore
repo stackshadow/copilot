@@ -1,1 +1,8 @@
+pkg/arch/pkg
 pkg/arch/src/*
+doc/html
+doc/xml
+doc/sphinx/singlehtml
+ide/codelite/.codelite
+libs/
+CMakeFiles
