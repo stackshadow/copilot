@@ -66,6 +66,7 @@ class coCore {
         static coCore*      ptr;
 
         struct option*      options = NULL;
+        char**              optionDescriptions = NULL;
         unsigned int        optionsLen = 0;
         static bool         setupMode;
         static coMessage*   message;
@@ -79,7 +80,7 @@ class coCore {
         static bool         addOption( const char* optionLong, const char* optionShort, const char* description, int has_arg );
         static bool         isOption( const char* optionLong, unsigned int optNum );
         static void         dumpOptions();
-        bool                parseOpt( int argc, char *argv[] );
+        int                 parseOpt( const char* option, const char* value );
 
     // set / get
         const char*         configPath( const char* path = NULL );

@@ -8,38 +8,32 @@
 extern "C" {
 #endif
 
-
-
-typedef struct pluginData_t {
-
-// version of pluginData
-    unsigned int        version;
-
-// common stuff
-    const char*         pluginName;
-    const char*         pluginDescription;
-    const char*         configSectionName;
-
-// data to handle plugin
-    void*               dlHandle;
-    bool                finishWithInit;
-
-// data for plugin
-    void*               userdata;
-
-} pluginData_s;
-
-
-
 // plugin functions
-typedef pluginData_t*   (*pluginGetData_tf)();
-typedef void            (*pluginInit_tf)( int argc, char *argv[] );
-typedef void            (*pluginRun_tf)();
+typedef struct pluginData_s pluginData_t ;
+
+
+typedef void            (*pluginPrepare_tf)( pluginData_t* pluginData );
+typedef int             (*parseCmdLine_tf)( pluginData_t* pluginData, const char* option, const char* value );
+typedef void            (*pluginRun_tf)( pluginData_t* pluginData );
+
+
+
+
+// function for plugins
+void    pluginSetInfos( pluginData_t* pluginData, const char* name, const char* description );
+void    pluginSetConfigSection( pluginData_t* pluginData, const char* configSectionName );
+void    pluginSetUserData( pluginData_t* pluginData, void* userdata );
+void*   pluginUserData( pluginData_t* pluginData );
+
+// register
+void    pluginRegisterCmdParse( pluginData_t* pluginData, parseCmdLine_tf parseCmdLine_fct );
+void    pluginRegisterCmdRun( pluginData_t* pluginData, pluginRun_tf pluginRun_fct );
+
 
 
 
 bool    loadPlugin( const char* fileName );
-bool    initAllPlugins( int argc, char *argv[] );
+bool    parsePluginOption( const char *arg, const char* argv );
 bool    runAllPlugins();
 
 

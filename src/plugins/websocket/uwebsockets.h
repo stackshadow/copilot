@@ -43,7 +43,8 @@ private:
 public:
                                 uwebsocket( int wsPort );
                                 ~uwebsocket();
-    bool                        parseOpt( int argc, char *argv[] );
+    bool                        parseOpt( const char* option, const char* value );
+    void                        init();
 
 
 public:

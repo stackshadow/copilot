@@ -37,7 +37,7 @@ typedef void*(*threadFunctionStop)(void *);
 typedef struct threadListItem_s {
     pthread_t               thread;
     char                    threadName[16];
-    const char*             serviceName;
+    char*                   serviceName;
 
     threadFunctionStart     functionStart;
     threadFunctionStop      functionCancel;
@@ -65,7 +65,10 @@ etID_STATE      etThreadListFree( threadList_t** threadList );
 etID_STATE      etThreadListAdd( threadList_t* threadList, const char* name, threadFunctionStart startFunction, threadFunctionStop stopFunction, void* userdata );
 
 
-etID_STATE      etThreadListCancelAll( threadList_t* threadList );
+etID_STATE      etThreadListCancelAllRequest( threadList_t* threadList );
+
+
+etID_STATE      etThreadListCancelAllWait( threadList_t* threadList );
 
 
 etID_STATE      etThreadListIterate( threadList_t* threadList, threadIterationFunction iteratorFunction, void* userdata );

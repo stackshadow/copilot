@@ -196,7 +196,7 @@
       </Compiler>
       <Linker Options="" Required="yes"/>
       <ResourceCompiler Options="" Required="no"/>
-      <General OutputFile="" IntermediateDirectory="$(ProjectPath)/../../" Command="/tmp/copilotd/copilotd" CommandArguments="--websocket --debug" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
+      <General OutputFile="" IntermediateDirectory="$(ProjectPath)/../../" Command="/tmp/copilotd/copilotd" CommandArguments="--websocket --debug --configpath /tmp/test --nodename test --accept 4567" UseSeparateDebugArgs="no" DebugArguments="" WorkingDirectory="$(ProjectPath)/../../" PauseExecWhenProcTerminates="yes" IsGUIProgram="no" IsEnabled="yes"/>
       <BuildSystem Name="CMake"/>
       <Environment EnvVarSetName="&lt;Use Defaults&gt;" DbgSetName="&lt;Use Defaults&gt;">
         <![CDATA[]]>
@@ -214,12 +214,13 @@
         <Command Enabled="yes">echo "cmake ${projPath}/cmake"</Command>
         <Command Enabled="yes">cmake ${projPath}/cmake \
 -DCMAKE_INSTALL_PREFIX=/tmp/copilot_install \
+-DPLUGIN_LTLS=ON \
 -DPLUGIN_SSL=OFF \
 -DPLUGIN_LDAP=ON \
 -DPLUGIN_NFT=OFF \
 -DPLUGIN_STS=ON \
 -DPLUGIN_SYSTEMD=OFF \
--DPLUGIN_WS=ON \
+-DPLUGIN_WEBSOCKET=ON \
 -DPLUGIN_DB=OFF \
 -DPLUGIN_MDB=OFF \
 -DDEVELOP=ON</Command>

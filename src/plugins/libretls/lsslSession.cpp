@@ -129,7 +129,7 @@ void* lsslSession::             waitForClientThread( void* void_threadListItem )
 
 // vars
     threadListItem_t*       threadListItem = (threadListItem_t*)void_threadListItem;
-	lsslSession*            session = NULL;
+    lsslSession*            session = NULL;
     struct sockaddr_in      serverSocketAddress;
     int                     serverSocket;
 
@@ -169,24 +169,37 @@ void* lsslSession::             waitForClientThread( void* void_threadListItem )
         exit(1);
     }
 
+    etDebugMessage( etID_LEVEL_INFO, "Wait for client." );
     while( etThreadCancelRequestActive(threadListItem) == etID_NO ){
 
-        etDebugMessage( etID_LEVEL_INFO, "Wait for client." );
-        clientSocket = accept( serverSocket, (struct sockaddr *)&clientSocketAddress, &clientSocketAddressLen );
-        if( tls_accept_socket( tlsServer, &tlsClient, clientSocket ) != 0 ){
-            snprintf( etDebugTempMessage, etDebugTempMessageLen, "Error: %s", tls_error(tlsServer) );
-            etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
-            return NULL;
+        struct timeval tv;
+        tv.tv_sec = (long)10;
+        tv.tv_usec = 0;
+
+        fd_set rfds;
+        FD_ZERO( &rfds );
+        FD_SET( serverSocket, &rfds );
+
+        int selectResult = select( serverSocket, &rfds, (fd_set *) 0, (fd_set *) 0, &tv );
+        if( selectResult > 0 ){
+
+          clientSocket = accept( serverSocket, (struct sockaddr *)&clientSocketAddress, &clientSocketAddressLen );
+          if( tls_accept_socket( tlsServer, &tlsClient, clientSocket ) != 0 ){
+              snprintf( etDebugTempMessage, etDebugTempMessageLen, "Error: %s", tls_error(tlsServer) );
+              etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
+              return NULL;
+          }
+
+      // perform a handshake to recieve peer cert
+          tls_handshake( tlsClient );
+
+
+      // cool, accepted, we create an client
+          etDebugMessage( etID_LEVEL_INFO, "New Client. Run communication" );
+          lsslSession* sslClient = new lsslSession( NULL, NULL, tlsClient, "", 0 );
+          etThreadListAdd( session->threadListClients, "ssl-incoming", lsslSession::communicateThread, NULL, sslClient );
+
         }
-
-    // perform a handshake to recieve peer cert
-        tls_handshake( tlsClient );
-
-
-    // cool, accepted, we create an client
-        lsslSession* sslClient = new lsslSession( NULL, NULL, tlsClient, "", 0 );
-        etThreadListAdd( session->threadListClients, "ssl-incoming", lsslSession::communicateThread, NULL, sslClient );
-
 
 
     }

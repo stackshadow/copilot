@@ -4,57 +4,67 @@
 #include "core/etDebug.h"
 
 
+struct pluginData_s {
+
+// version of pluginData
+    unsigned int        version;
+
+// common stuff
+    const char*         name;
+    const char*         description;
+    const char*         configSectionName;
+
+// data to handle plugin
+    void*               dlHandle;
+    bool                finishWithInit;
+
+// function pointer
+    parseCmdLine_tf     parseCmdLine;
+    pluginRun_tf        pluginRun;
+
+// data for plugin
+    void*               userdata;
+
+};
+
+
 static etList* pluginList = NULL;
 static int     g_argc;
 static char**  g_argv;
 
 
 
-void*   initPluginThread( void* pluginData_v ){
+void    pluginSetInfos( pluginData_t* pluginData, const char* name, const char* description ){
+    pluginData->name = strdup( name );
+    pluginData->description = strdup( description );
+}
 
-// vars
-    pluginData_t*       pluginData = (pluginData_t*)pluginData_v;
-    pluginInit_tf       pluginInit = NULL;
+void    pluginSetConfigSection( pluginData_t* pluginData, const char* configSectionName ){
+    pluginData->configSectionName = strdup( configSectionName );
+}
 
-// init plugin
-    pluginInit = (pluginInit_tf)dlsym( pluginData->dlHandle, "pluginInit" );
-    if (!pluginInit) {
-        fprintf(stderr, "%s\n", dlerror());
-        return NULL;
-    }
+void    pluginSetUserData( pluginData_t* pluginData, void* userdata ){
+    pluginData->userdata = userdata;
+}
 
-// call init
-    optind = 1;
-    pluginInit( g_argc, g_argv );
-
-    pluginData->finishWithInit = true;
-    return NULL;
+void*   pluginUserData( pluginData_t* pluginData ){
+    return pluginData->userdata;
 }
 
 
-void*   runPluginThread( void* pluginData_v ){
-
-// vars
-    pluginData_t*       pluginData = (pluginData_t*)pluginData_v;
-    pluginRun_tf        pluginRun = NULL;
-
-// init plugin
-    pluginRun = (pluginRun_tf)dlsym( pluginData->dlHandle, "pluginRun" );
-    if (!pluginRun) {
-        fprintf(stderr, "%s\n", dlerror());
-        return NULL;
-    }
-
-// wait until finish
-    while( pluginData->finishWithInit == false ){
-        usleep(5000);
-    }
-
-// call init
-    pluginRun();
-
-    return NULL;
+void    pluginRegisterCmdParse( pluginData_t* pluginData, parseCmdLine_tf parseCmdLine_fct ){
+    pluginData->parseCmdLine = parseCmdLine_fct;
 }
+
+void    pluginRegisterCmdRun( pluginData_t* pluginData, pluginRun_tf pluginRun_fct ){
+    pluginData->pluginRun = pluginRun_fct;
+}
+
+
+
+
+
+
 
 
 
@@ -63,8 +73,6 @@ bool    loadPlugin( const char* fileName ){
 
     void*               handle = NULL;
     char*               error;
-    pluginData_s*       pluginData = NULL;
-    pluginGetData_tf    pluginGetData = NULL;
 
 // init list if needed
     if( pluginList == NULL ){
@@ -82,30 +90,26 @@ bool    loadPlugin( const char* fileName ){
         exit(EXIT_FAILURE);
     }
 
-// load pluginData
-    fprintf( stdout, "Try to load pluginData..." );
-    pluginGetData = (pluginGetData_tf)dlsym( handle, "pluginGetData" );
-    if (!pluginGetData) {
-        fprintf(stderr, "%s\n", dlerror());
+
+// prepare
+    pluginData_s* pluginData = NULL;
+    etMemoryAlloc( pluginData, sizeof(pluginData_s) );
+
+
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Prepare '%s'", fileName );
+    etDebugMessage( etID_LEVEL_DETAIL_THREAD, etDebugTempMessage );
+
+    pluginPrepare_tf pluginPrepare = (pluginPrepare_tf)dlsym( handle, "pluginPrepare" );
+    if ( pluginPrepare == NULL ) {
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "%s", dlerror() );
+        etDebugMessage( etID_LEVEL_ERR, etDebugTempMessage );
         exit(EXIT_FAILURE);
     }
-    fprintf( stdout, "ok\n" );
-    pluginData = pluginGetData();
-    fprintf( stdout, "Loaded Plugin '%s', Version: %i \n", pluginData->pluginName, pluginData->version );
+    pluginPrepare( pluginData );
 
-// check version of plugin
-    if( pluginData->version > pluginVersion ) {
-        etDebugMessage( etID_LEVEL_ERR, "Plugin contains an newer Version" );
-        dlclose( handle );
-        return false;
-    }
+    snprintf( etDebugTempMessage, etDebugTempMessageLen, "Prepare '%s' finished", pluginData->name );
+    etDebugMessage( etID_LEVEL_DETAIL_THREAD, etDebugTempMessage );
 
-// save handle
-    pluginData->dlHandle = handle;
-    pluginData->finishWithInit = false;
-
-// clear any error
-    dlerror();
 
 // add plugin to the list
     etListAppend( pluginList, (void*)pluginData );
@@ -114,33 +118,39 @@ bool    loadPlugin( const char* fileName ){
 }
 
 
-bool    initAllPlugins( int argc, char *argv[] ){
+bool    parsePluginOption( const char *arg, const char* argv ){
 
 //vars
     void*               pluginListIterator = NULL;
     pluginData_s*       pluginData = NULL;
 
-// remember argc / argv
-    g_argc = argc;
-    g_argv = argv;
-
 // iterate and init
     etListIterate( pluginList, pluginListIterator );
     while( etListIterateNext( pluginListIterator, pluginData ) == etID_YES ){
-
-    // debug
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Init Plugin '%s'", pluginData->pluginName );
-        etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
-
-    // create thread
-        pthread_t   initThread;
-        pthread_create( &initThread, NULL, initPluginThread, pluginData );
-        pthread_detach( initThread );
-
+        if( pluginData->parseCmdLine == NULL ) continue;
+        pluginData->parseCmdLine( pluginData, arg, argv );
     }
 
-// return
+    fflush( stdout );
     return true;
+}
+
+
+
+
+void*   runPluginThread( void* pluginData_v ){
+
+// vars
+    pluginData_t*       pluginData = (pluginData_t*)pluginData_v;
+    pluginRun_tf        pluginRun = NULL;
+
+// init plugin
+    if( pluginData->pluginRun == NULL ) return NULL;
+
+// run
+    pluginData->pluginRun( pluginData );
+
+    return NULL;
 }
 
 
@@ -154,8 +164,10 @@ bool    runAllPlugins(){
     etListIterate( pluginList, pluginListIterator );
     while( etListIterateNext( pluginListIterator, pluginData ) == etID_YES ){
 
+        if( pluginData->pluginRun == NULL ) continue;
+
     // debug
-        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Run Plugin '%s'", pluginData->pluginName );
+        snprintf( etDebugTempMessage, etDebugTempMessageLen, "Run Plugin '%s'", pluginData->name );
         etDebugMessage( etID_LEVEL_DETAIL_APP, etDebugTempMessage );
 
     // create thread

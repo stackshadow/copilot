@@ -95,6 +95,7 @@ etID_STATE      etThreadListAdd( threadList_t* threadList, const char* name, thr
     newThreadListItem->functionCancel = stopFunction;
     newThreadListItem->functionData = userdata;
     newThreadListItem->cancelRequest = 0;
+    memset( newThreadListItem->threadName, 0, sizeof(newThreadListItem->threadName) );
 
 // list-array: alloc and copy
     newThreadListItemsCount = threadList->count + 1;
@@ -112,7 +113,7 @@ etID_STATE      etThreadListAdd( threadList_t* threadList, const char* name, thr
 
 // start the thread
     pthread_create( &newThreadListItem->thread, NULL, startFunction, newThreadListItem );
-    snprintf( newThreadListItem->threadName, 16, "%s\0", name );
+    snprintf( newThreadListItem->threadName, 16, "%s", name );
     pthread_setname_np( newThreadListItem->thread, newThreadListItem->threadName );
     pthread_detach( newThreadListItem->thread );
 
@@ -120,13 +121,13 @@ etID_STATE      etThreadListAdd( threadList_t* threadList, const char* name, thr
 }
 
 
-etID_STATE      etThreadListCancelAll( threadList_t* threadList ){
+etID_STATE      etThreadListCancelAllRequest( threadList_t* threadList ){
 
 // vars
     int                     index = 0;
     threadListItem_t*       threadListItem;
 
-
+// request cancel
     for( index = 0; index < threadList->count; index++ ){
 
     // get element
@@ -145,6 +146,25 @@ etID_STATE      etThreadListCancelAll( threadList_t* threadList ){
     // cancel thread
         //pthread_cancel( threadListItem->thread );
         threadListItem->cancelRequest = 1;
+    }
+
+    return etID_YES;
+}
+
+
+etID_STATE      etThreadListCancelAllWait( threadList_t* threadList ){
+
+// vars
+    int                     index = 0;
+    threadListItem_t*       threadListItem;
+
+
+// wait for cancel
+    for( index = 0; index < threadList->count; index++ ){
+
+    // get element
+        threadListItem = threadList->items[index];
+        if( threadListItem == NULL ) continue;
 
     // wait
         while( threadListItem->cancelRequest == 1 ){
@@ -165,6 +185,7 @@ etID_STATE      etThreadListCancelAll( threadList_t* threadList ){
     threadList->items = NULL;
     threadList->count = 0;
 
+    return etID_YES;
 }
 
 

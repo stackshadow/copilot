@@ -35,10 +35,9 @@ coConfig::              coConfig(){
     this->threadLock = 0;
 
 // options for config
-    coCore::addOption( "configpath", "c", "<path>: Sets the path where the config of copilotd lives", required_argument );
-    coCore::addOption( "nodename", "n", "<nodename>: Sets the name of this node", required_argument );
-    coCore::addOption( "connect", "o", "<host:port>: Connect to another copilotd", required_argument );
+    coCore::addOption( "nodename", "d", "<nodename> The nodename of this copilotd instance", required_argument );
     coCore::addOption( "accept", "a", "<port>: Listen on port", required_argument );
+    coCore::addOption( "connect", "o", "<host:port>: Connect to another copilotd", required_argument );
 }
 
 
@@ -51,67 +50,60 @@ coConfig::              ~coConfig(){
 
 
 
-bool coConfig::         parseOpt( int argc, char *argv[] ){
-// reset getopt
-    optind = 1;
+int coConfig::          parseOpt( const char* option, const char* value ){
 
-    int optionSelected = 0;
-    while( optionSelected >= 0 ) {
-        optionSelected = getopt_long(argc, argv, "", coCore::ptr->options, NULL);
-        if( optionSelected < 0 ) break;
 
-        if( coCore::isOption( "help", optionSelected ) == true ){
-            fprintf( stdout, "\n====== config ======\n" );
-            fprintf( stdout, "--configpath <path>: Sets the path where the config of copilotd lives\n" );
-            fprintf( stdout, "--nodename <nodename>: Sets the name of this node\n" );
-            break;
-        }
-
-        if( coCore::isOption( "nodename", optionSelected ) == true ){
-            this->load();
-            this->nodeName( optarg );
-            this->save();
-            continue;
-        }
-
-        if( coCore::isOption( "accept", optionSelected ) == true ){
-
-            int     port = atoi( optarg );
-
-            this->load();
-            this->nodesIterate();
-            if( this->nodeSelect( coCore::ptr->nodeName() ) == false ){
-                nodeAppend( coCore::ptr->nodeName() );
-            }
-            this->nodeConnInfo( NULL, &port, true );
-            this->nodesIterateFinish();
-            this->save();
-
-            continue;
-        }
-
-        if( coCore::isOption( "connect", optionSelected ) == true ){
-            char*   host = strtok( optarg, ":" );
-            char*   portChar = strtok( NULL, ":" );
-            int     port = atoi( portChar );
-            coConfig::nodeType  type = coConfig::CLIENT;
-
-            this->load();
-            this->nodesIterate();
-            if( this->nodeSelectByHostName( host ) == false ){
-                nodeAppend( host );
-            }
-            this->nodeInfo( NULL, &type, true );
-            this->nodeConnInfo( (const char**)&host, &port, true );
-            this->nodesIterateFinish();
-            this->save();
-
-            continue;
-        }
-
+    if( coCore::strIsExact( option, "nodename", 8 ) == true ){
+        this->load();
+        this->nodeName( optarg );
+        this->save();
+        return 0;
     }
 
-    return true;
+    if( coCore::strIsExact( option, "accept", 6 ) == true ){
+
+
+
+        this->load();
+        this->nodesIterate();
+        if( this->nodeSelect( coCore::ptr->nodeName() ) == false ){
+            nodeAppend( coCore::ptr->nodeName() );
+        }
+
+        coConfig::nodeType newNodeType = coConfig::SERVER;
+        this->nodeInfo( NULL, &newNodeType, true );
+
+        const char* newNodeHost = "::1";
+        int port = atoi( optarg );
+        this->nodeConnInfo( &newNodeHost, &port, true );
+
+        this->nodesIterateFinish();
+        this->save();
+
+        return 0;
+    }
+
+    if( coCore::strIsExact( option, "connect", 7 ) == true ){
+        char*   host = strtok( optarg, ":" );
+        char*   portChar = strtok( NULL, ":" );
+        int     port = atoi( portChar );
+        coConfig::nodeType  type = coConfig::CLIENT;
+
+        this->load();
+        this->nodesIterate();
+        if( this->nodeSelectByHostName( host ) == false ){
+            nodeAppend( host );
+        }
+        this->nodeInfo( NULL, &type, true );
+        this->nodeConnInfo( (const char**)&host, &port, true );
+        this->nodesIterateFinish();
+        this->save();
+
+        return 0;
+    }
+
+
+    return 0;
 }
 
 

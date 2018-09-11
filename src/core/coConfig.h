@@ -73,7 +73,7 @@ public:
 
 
     // config
-        bool                parseOpt( int argc, char *argv[] );
+        int                 parseOpt( const char* option, const char* value );
         bool                load();
         bool                save( const char* jsonString = NULL );
         json_t*             section( const char* sectionName );

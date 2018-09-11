@@ -724,7 +724,7 @@ bool ldapService::                  configLoad(){
     bool needToSave = false;
 
 // get config path
-    this->jsonObjectConfig = coCore::ptr->config->section( "ldap" );
+    this->jsonObjectConfig = coConfig::ptr->section( "ldap" );
 
 // load config from json
     this->configFromJson( this->jsonObjectConfig );
@@ -779,7 +779,7 @@ bool ldapService::                  configSave(){
     this->configFromJson( this->jsonObjectConfig );
 
 // return
-    return coCore::ptr->config->save();
+    return coConfig::ptr->save();
 }
 
 

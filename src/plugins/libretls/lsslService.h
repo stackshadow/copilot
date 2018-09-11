@@ -92,7 +92,8 @@ class lsslService {
     public:
                             lsslService();
                             ~lsslService();
-    bool                    parseOpt( int argc, char *argv[] );
+    bool                    parseOpt( const char* option, const char* value );
+    void                    init();
 
 
 // common

@@ -74,15 +74,37 @@ int main( int argc, char *argv[] ){
     coConfig*       config = new coConfig();
 
 // we need the pubsub-stuff
-	psBus*          bus = new psBus();
+    psBus*          bus = new psBus();
 
 // internal services
     coreService*    cService = new coreService();
 
-// parse options
-    core->parseOpt( argc, argv );
-    config->parseOpt( argc, argv );
 
+
+
+
+// load plugins
+    loadPlugin( "lssl" );
+    loadPlugin( "websocket" );
+
+// reset getopt
+    optind = 1;
+    int optionSelected = 0;
+    while( optionSelected >= 0 ) {
+        optionSelected = getopt_long(argc, argv, "", coCore::ptr->options, NULL);
+        if( optionSelected < 0 ) break;
+
+        const char* option = coCore::ptr->options[optionSelected].name;
+
+        core->parseOpt( option, optarg );
+        config->parseOpt( option, optarg );
+        parsePluginOption( option, optarg );
+
+        if( coCore::strIsExact( option, "help", 4 ) == true ){
+            core->dumpOptions();
+            exit(0);
+        }
+    }
 
 
 
@@ -103,14 +125,6 @@ int main( int argc, char *argv[] ){
     etDebugMessage( etID_LEVEL_INFO, etDebugTempMessage );
 
 
-
-
-// load plugins
-    loadPlugin( "lssl" );
-    loadPlugin( "websocket" );
-
-// init all plugins
-    initAllPlugins( argc, argv );
 
 // run all plugins
     runAllPlugins();

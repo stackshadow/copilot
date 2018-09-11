@@ -36,27 +36,53 @@ extern "C" {
 
 
 
-pluginData_s plugin = {
-    .pluginName = "websocket\0",
-    .pluginDescription = "Connect web frontends with copilotd\0",
-    .configSectionName = "websocket\0",
-};
 
-extern pluginData_t*            pluginGetData(){
-    pluginSetVersion(plugin);
-    return &plugin;
-}
 
-extern void                     pluginInit( int argc, char *argv[] ){
-    uwebsocket* service = new uwebsocket( 3333 );
-    service->parseOpt( argc, argv );
-    plugin.userdata = service;
-}
+extern void                     websocket_pluginRun( pluginData_t* pluginData ){
+    uwebsocket* service = (uwebsocket*)pluginUserData( pluginData );
+    if( service == NULL ) return;
 
-extern void                     pluginRun(){
-    uwebsocket* service = (uwebsocket*)plugin.userdata;
+    service->init();
     service->serve();
 }
+
+
+extern int                      websocket_pluginParseCmdLine( pluginData_t* pluginData, const char* option, const char* value ){
+
+
+
+    uwebsocket* service = (uwebsocket*)pluginUserData( pluginData );
+    if( service != NULL ){
+        service->parseOpt( option, value );
+        return 0;
+    }
+
+    if( coCore::strIsExact( option, "websocket", 9 ) == true ){
+        uwebsocket* service = new uwebsocket( 3333 );
+        pluginSetUserData( pluginData, service );
+        pluginRegisterCmdRun( pluginData, websocket_pluginRun );
+    }
+
+
+    return 0;
+}
+
+
+extern void                     pluginPrepare( pluginData_t* pluginData ){
+
+
+    coCore::addOption( "websocket", "w", "Enable websocketport ( This MUST be the first option before other websocket options )", no_argument );
+    coCore::addOption( "wsport", "p", "<port> Set websocket port", no_argument );
+
+
+    pluginSetInfos( pluginData, "websocket\0", "Provide an websocket port for web-interfaces\0" );
+    pluginSetConfigSection( pluginData, "websocket\0" );
+    pluginSetUserData( pluginData, NULL );
+
+    pluginRegisterCmdParse( pluginData, websocket_pluginParseCmdLine );
+}
+
+
 
 #ifdef __cplusplus
 }
@@ -72,9 +98,6 @@ uwebsocket::                        uwebsocket( int wsPort )  {
     this->wsServer = NULL;
     this->port = wsPort;
 
-
-    coCore::addOption( "wsport", "", "<port> Set websocket port", required_argument );
-
 }
 
 uwebsocket::                        ~uwebsocket(){
@@ -82,28 +105,24 @@ uwebsocket::                        ~uwebsocket(){
 }
 
 
-bool uwebsocket::                   parseOpt( int argc, char *argv[] ){
-
-    int optionSelected = 0;
-    while( optionSelected >= 0 ) {
-        optionSelected = getopt_long(argc, argv, "", coCore::ptr->options, NULL);
-        if( optionSelected < 0 ) break;
-
-        if( coCore::isOption( "help", optionSelected ) == true ){
-            fprintf( stdout, "\n====== websocket ======\n" );
-            fprintf( stdout, "--wsport <port> Set websocket port\n" );
-            break;
-        }
-
-        if( coCore::isOption( "wsport", optionSelected ) == true ){
-            this->port = atoi( optarg );
-            continue;
-        }
+bool uwebsocket::                   parseOpt( const char* option, const char* value ){
 
 
+    if( coCore::strIsExact( option, "wsport", 6 ) == true ){
+        this->port = atoi( value );
+        return true;
     }
 
+
+    return false;
 }
+
+
+void uwebsocket::                   init(){
+    coCore::addOption( "wsport", "", "<port> Set websocket port", required_argument );
+}
+
+
 
 
 

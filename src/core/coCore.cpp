@@ -79,8 +79,8 @@ coCore::                    coCore(){
 // we need some options for core
     coCore::addOption( "help", "h", "print this help", no_argument );
     coCore::addOption( "debug", "d", "Enable debugging", no_argument );
+    coCore::addOption( "configpath", "d", "<path> Path to config-base ( default to /etc/copilotd )", required_argument );
 
-    coCore::addOption( "websocket", "w", "Enable debugging", no_argument );
 
 }
 
@@ -96,14 +96,12 @@ bool coCore::               addOption( const char* optionLong, const char* optio
 
 
 // allocate a new option
-    struct option*      newOption = NULL;
-    struct option*      newOptions = NULL;
     int                 newOptionsLen = coCore::ptr->optionsLen + 1;
     int                 newOptionNameLen = strlen( optionLong );
 
 
 // allocate new option array
-    newOptions = (struct option*)malloc( (newOptionsLen + 1) * sizeof(struct option) );
+    struct option* newOptions = (struct option*)malloc( (newOptionsLen + 1) * sizeof(struct option) );
     memset( newOptions, 0, (newOptionsLen + 1) * sizeof(struct option) );
     if( coCore::ptr->options != NULL ){
     // copy the old one
@@ -115,7 +113,7 @@ bool coCore::               addOption( const char* optionLong, const char* optio
 
 
 // the new element
-    newOption = &newOptions[newOptionsLen-1];
+    struct option* newOption = &newOptions[newOptionsLen-1];
 // name
     newOption->name = (const char*)malloc( (newOptionNameLen+1) * sizeof(char) );
     memset( (void*)newOption->name, 0, (newOptionNameLen+1) * sizeof(char) );
@@ -129,7 +127,7 @@ bool coCore::               addOption( const char* optionLong, const char* optio
 
 
 
-// the new element
+// the NULL element
     newOption = &newOptions[newOptionsLen];
 // name
     newOption->name = NULL;
@@ -141,28 +139,25 @@ bool coCore::               addOption( const char* optionLong, const char* optio
     newOption->flag = NULL;
 
 
+// desciptions
+    char** newDescriptions = (char**)malloc( newOptionsLen * sizeof(char*) );
+    memset( newDescriptions, 0, newOptionsLen * sizeof(char*) );
+    if( coCore::ptr->optionDescriptions != NULL ){
+        memcpy( newDescriptions, coCore::ptr->optionDescriptions, coCore::ptr->optionsLen * sizeof(char*) );
+        free( coCore::ptr->optionDescriptions );
+    }
+    newDescriptions[newOptionsLen-1] = strdup(description);
+    char* newDescription = newDescriptions[newOptionsLen-1];
 
+
+// save
     coCore::ptr->options = newOptions;
+    coCore::ptr->optionDescriptions = newDescriptions;
     coCore::ptr->optionsLen = newOptionsLen;
 
-/*
-// new option
-    newOption = (struct option*)malloc( sizeof(struct option) );
-    memset( newOption, 0, sizeof(struct option) );
-
-// name
-    newOption->name = (const char*)malloc( (newOptionNameLen+1) * sizeof(char) );
-    memset( (void*)newOption->name, 0, (newOptionNameLen+1) * sizeof(char) );
-    memcpy( (void*)newOption->name, optionLong, newOptionNameLen * sizeof(char) );
-
-// set the new one
-    newOptions[newOptionsLen-1] = newOption;
-    newOptions[newOptionsLen] = &optionEndElement;
-
-*/
 
 
-
+  return true;
 }
 
 
@@ -194,53 +189,38 @@ void coCore::               dumpOptions(){
 
 // var
     struct option*      optionActual = NULL;
+    char*               description = NULL;
 
     for( unsigned int index = 0; index < coCore::ptr->optionsLen; index++ ){
-
         optionActual = &coCore::ptr->options[index];
-
-        fprintf( stdout, "--%s\n", optionActual->name );
-
-
+        description = coCore::ptr->optionDescriptions[index];
+        fprintf( stdout, "--%s %s\n", optionActual->name, description );
     }
 
     fflush( stdout );
-
 }
 
 
-bool coCore::               parseOpt( int argc, char *argv[] ){
-// reset getopt
-    optind = 1;
+int coCore::                parseOpt( const char* option, const char* value ){
 
-    int optionSelected = 0;
-    while( optionSelected >= 0 ) {
-        optionSelected = getopt_long(argc, argv, "", coCore::ptr->options, NULL);
-        if( optionSelected < 0 ) break;
-
-        if( coCore::isOption( "help", optionSelected ) == true ){
-            fprintf( stdout, "\n====== core ======\n" );
-            fprintf( stdout, "--nodename <nodename>: Sets the name of this node\n" );
-            break;
-        }
-
-        if( coCore::isOption( "debug", optionSelected ) == true ){
-            etDebugLevelSet( etID_LEVEL_DETAIL_APP );
-            continue;
-        }
-
-        if( coCore::isOption( "configpath", optionSelected ) == true ){
-            this->configPath( optarg );
-            continue;
-        }
-
-        if( coCore::isOption( "nodename", optionSelected ) == true ){
-            this->nodeName( optarg );
-            continue;
-        }
+    if( coCore::strIsExact( option, "nodename", 8 ) == true ){
+        this->nodeName( optarg );
+        return 0;
     }
 
-    return true;
+    if( coCore::strIsExact( option, "debug", 5 ) == true ){
+        etDebugLevelSet( etID_LEVEL_DETAIL_APP );
+        return 0;
+    }
+
+    if( coCore::strIsExact( option, "configpath", 10 ) == true ){
+        this->configPath( optarg );
+        return 0;
+    }
+
+
+
+    return 0;
 }
 
 
